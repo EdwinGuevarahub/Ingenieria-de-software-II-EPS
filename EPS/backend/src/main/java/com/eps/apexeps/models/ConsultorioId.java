@@ -42,6 +42,6 @@ public class ConsultorioId {
         name = "id_consultorio",
         nullable = false
     )
-    private Long idConsultorio;
+    private Integer idConsultorio;
     
 }
