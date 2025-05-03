@@ -66,7 +66,7 @@ public class Paciente {
         name = "fnac_paciente",
         nullable = false
     )
-    private LocalDate fecha_nacimiento;
+    private LocalDate fechaNacimiento;
 
     @Email
     @Column(
@@ -117,12 +117,12 @@ public class Paciente {
         name = "admreg_paciente",
         referencedColumnName = "email_admeps"
     )
-    private AdmEps adm_registrador;
+    private AdmEps admRegistrador;
 
     @Column(
         name = "fafili_paciente",
         nullable = false
     )
-    private Instant fecha_afiliacion;
+    private Instant fechaAfiliacion;
 
 }
