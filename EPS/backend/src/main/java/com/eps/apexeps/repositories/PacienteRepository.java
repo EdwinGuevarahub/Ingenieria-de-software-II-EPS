@@ -1,8 +1,9 @@
 package com.eps.apexeps.repositories;
 
-import com.eps.apexeps.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.eps.apexeps.models.users.Paciente;
+
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {}
+public interface PacienteRepository extends JpaRepository<Paciente, Long> {}
