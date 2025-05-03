@@ -1,5 +1,9 @@
 package com.eps.apexeps.models.relations;
 
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.users.Medico;
 
@@ -13,6 +17,7 @@ import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,11 +81,69 @@ public class Trabaja {
     private Consultorio consultorio;
 
     @NotEmpty
+    @Getter(AccessLevel.NONE)
     @Column(
         name = "horario_trabaja",
         length = 48,
         nullable = false
     )
     public String horario; // L00-23,M00-23,R00-23,J00-23,V00-23,S00-23,D00-23
+
+    /**
+     * Convierte la cadena de horario a una lista de objetos EntradaHorario.
+     * @return Una lista de objetos EntradaHorario que representan los horarios de trabajo.
+     */
+    public List<EntradaHorario> getHorarios() {
+        List<EntradaHorario> entradas = new ArrayList<>();
+
+        // Separar la cadena de horario por comas y convertir cada parte a un objeto EntradaHorario.
+        String[] entradasStr = horario.split(",");
+        for (String entradaStr : entradasStr)
+            entradas.add(EntradaHorario.valueOf(entradaStr));
+
+        return entradas;
+    }
+
+    /**
+     * Agrega una entrada de horario a la cadena de horario.
+     * @param entrada La entrada de horario a agregar.
+     */
+    public void addEntradaHorario(EntradaHorario entrada) {
+        // Sólo se permite una entrada de horario por día de la semana.
+        int indice = this.horario.indexOf(EntradaHorario.DAY_MAP.get(entrada.getDay()));
+        if (indice >= 0)
+            throw new IllegalArgumentException("Ya existe una entrada de horario para el día: " + entrada.getDay());
+
+        this.horario += (this.horario.isEmpty() ? "" : ",") + entrada.toString();
+    }
+
+    /**
+     * Elimina una entrada de horario para el día especificado de la cadena de horario.
+     * @param dia El día de la semana para el cual se desea eliminar la entrada de horario.
+     */
+    public void removeEntradaHorario(DayOfWeek dia) {
+        // Encontrar la entrada de horario correspondiente al día especificado y eliminarla.
+        List<EntradaHorario> entradas = getHorarios();
+        for (EntradaHorario entrada : entradas) {
+            if (entrada.getDay() == dia) {
+                entradas.remove(entrada);
+                break;
+            }
+        }
+
+        // Si la entrada de horario no se encuentra, lanzar una excepción.
+        if (entradas.size() == this.getHorarios().size())
+            throw new IllegalArgumentException("No se encontró la entrada de horario para el día: " + dia);
+
+
+        // Si no hay, al menos, una entrada, lanzar excepción.
+        if (entradas.isEmpty())
+            throw new IllegalArgumentException("No se puede eliminar la última entrada de horario.");
+        
+        // Reconstruir la cadena de horario a partir de las entradas restantes.
+        this.horario = "";
+        for (EntradaHorario entrada : entradas)
+            this.horario += (this.horario.isEmpty() ? "" : ",") + entrada.toString();
+    }
 
 }
