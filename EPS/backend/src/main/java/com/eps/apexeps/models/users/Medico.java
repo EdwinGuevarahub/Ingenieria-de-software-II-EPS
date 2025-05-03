@@ -1,5 +1,9 @@
 package com.eps.apexeps.models.users;
 
+import java.util.List;
+
+import com.eps.apexeps.models.ServicioMedico;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -15,6 +19,11 @@ import lombok.Setter;
 //   pass_medico char(256) [not null]
 //   tel_medico varchar(20) [not null]
 //   activo_medico boolean [not null, default: true]
+// }
+
+// Table domina {
+//   medico_domina bigint [pk, ref: > medico.dni_medico]
+//   servicio_domina varchar(10) [pk, ref: > servicio_medico.cups_sermed]
 // }
 
 /**
@@ -80,5 +89,18 @@ public class Medico {
     )
     @Builder.Default
     private Boolean activo = true;
+
+    /**
+     * Lista de servicios médicos que el médico domina.
+     * Esta relación es de muchos a muchos, ya que un médico puede dominar varios servicios.
+     * Se utiliza la tabla 'domina' para mapear esta relación.
+     */
+    @ManyToMany
+    @JoinTable(
+        name = "domina",
+        joinColumns = @JoinColumn(name = "medico_domina"),
+        inverseJoinColumns = @JoinColumn(name = "servicio_domina")
+    )
+    private List<ServicioMedico> dominios;
 
 }
