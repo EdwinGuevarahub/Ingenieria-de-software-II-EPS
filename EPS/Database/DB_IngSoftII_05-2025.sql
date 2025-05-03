@@ -134,8 +134,8 @@ CREATE TABLE "ordena" (
 
 CREATE TABLE "inventaria" (
   "id_inventaria" serial PRIMARY KEY,
-  "ips_inventaria" integer UNIQUE NOT NULL,
-  "medicamento_inventaria" varchar(20) UNIQUE NOT NULL,
+  "ips_inventaria" integer NOT NULL,
+  "medicamento_inventaria" varchar(20) NOT NULL,
   "cantidad_inventaria" integer NOT NULL DEFAULT 0
 );
 
@@ -147,6 +147,8 @@ CREATE TABLE "despacha" (
 );
 
 CREATE UNIQUE INDEX ON "trabaja" ("ips_trabaja", "consultorio_trabaja");
+
+CREATE UNIQUE INDEX ON "inventaria" ("ips_inventaria", "medicamento_inventaria");
 
 COMMENT ON COLUMN "trabaja"."horario_trabaja" IS 'L00-23,M00-23,R00-23,J00-23,V00-23,S00-23,D00-23';
 
