@@ -31,7 +31,7 @@ import lombok.Setter;
 //   f_agenda timestamp [not null]
 //   fpago_agenda timestamp [null]
 //   resultado_agenda text [null]
-//   estado_agenda varchar(20) [not null, default: 'pendiente', note: 'pendiente, completada, cancelada']
+//   estado_agenda varchar(20) [not null, default: 'PENDIENTE', note: 'PENDIENTE, COMPLETADA, CANCELADA']
 // }
 
 // Table ordena {
@@ -94,10 +94,10 @@ public class Agenda {
     @Column(
         name = "estado_agenda",
         nullable = false,
-        columnDefinition = "varchar(20) default 'pendiente'"
+        columnDefinition = "estado_agenda_valido"
     )
     @Builder.Default
-    private String estado = "pendiente";
+    private String estado = "PENDIENTE";
 
     /**
      * Relación uno a muchos con la relación Genera.

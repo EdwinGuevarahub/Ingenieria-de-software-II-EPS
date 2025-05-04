@@ -43,7 +43,7 @@ INSERT INTO servicio_medico (cups_sermed, nom_sermed, desc_sermed, tarifa_sermed
 INSERT INTO diagnostico (cie_diagnostico, nom_diagnostico, desc_diagnostico) VALUES
 ('A09', 'Diarrea y gastroenteritis', 'Infección intestinal'),
 ('I10', 'Hipertensión esencial', 'Presión arterial alta idiopática'),
-('E11', 'Diabetes mellitus tipo 2', 'Diabetes no insulinodependiente'),
+('E11', 'Diabetes mellitus tipo 2', 'Diabetes no insulinodePENDIENTE'),
 ('J45', 'Asma', 'Enfermedad respiratoria caracterizada por broncoespasmos'),
 ('M54.5', 'Lumbago', 'Dolor en región lumbar');
 
@@ -126,13 +126,13 @@ INSERT INTO pago_afiliacion (paciente_pagoafiliacion, f_pagoafiliacion, tarifa_p
 
 -- 13. Tabla agenda
 INSERT INTO agenda (id_agenda, paciente_agenda, trabaja_agenda, f_agenda, fpago_agenda, resultado_agenda, estado_agenda) VALUES
-(DEFAULT, 2001234567, 1, '2023-03-10 09:00:00', '2023-03-10 08:30:00', 'Paciente con síntomas de hipertensión. Se realiza control y ajuste de medicación.', 'completada'),
-(DEFAULT, 2002345678, 2, '2023-03-15 10:30:00', '2023-03-15 10:00:00', 'Evaluación de dolor abdominal. Se solicita ecografía abdominal.', 'completada'),
-(DEFAULT, 2003456789, 1, '2023-03-20 14:00:00', '2023-03-20 13:30:00', 'Control pediátrico rutinario. Desarrollo normal.', 'completada'),
-(DEFAULT, 2004567890, 3, '2023-03-25 16:30:00', '2023-03-25 16:00:00', 'Paciente con síntomas de asma. Se ajusta tratamiento.', 'completada'),
-(DEFAULT, 2005678901, 4, '2023-03-30 11:00:00', NULL, NULL, 'pendiente'),
-(DEFAULT, 2001234567, 5, '2023-04-05 09:15:00', NULL, NULL, 'cancelada'),
-(DEFAULT, 2002345678, 1, '2023-04-10 14:30:00', NULL, NULL, 'pendiente');
+(DEFAULT, 2001234567, 1, '2023-03-10 09:00:00', '2023-03-10 08:30:00', 'Paciente con síntomas de hipertensión. Se realiza control y ajuste de medicación.', 'COMPLETADA'),
+(DEFAULT, 2002345678, 2, '2023-03-15 10:30:00', '2023-03-15 10:00:00', 'Evaluación de dolor abdominal. Se solicita ecografía abdominal.', 'COMPLETADA'),
+(DEFAULT, 2003456789, 1, '2023-03-20 14:00:00', '2023-03-20 13:30:00', 'Control pediátrico rutinario. Desarrollo normal.', 'COMPLETADA'),
+(DEFAULT, 2004567890, 3, '2023-03-25 16:30:00', '2023-03-25 16:00:00', 'Paciente con síntomas de asma. Se ajusta tratamiento.', 'COMPLETADA'),
+(DEFAULT, 2005678901, 4, '2023-03-30 11:00:00', NULL, NULL, 'PENDIENTE'),
+(DEFAULT, 2001234567, 5, '2023-04-05 09:15:00', NULL, NULL, 'CANCELADA'),
+(DEFAULT, 2002345678, 1, '2023-04-10 14:30:00', NULL, NULL, 'PENDIENTE');
 
 -- 14. Tabla genera
 INSERT INTO genera (agenda_genera, diagnostico_genera, obs_genera) VALUES

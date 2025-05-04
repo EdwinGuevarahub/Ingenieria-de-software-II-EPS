@@ -1,37 +1,44 @@
+-- Dominios
+CREATE DOMAIN sexo_valido AS char CONSTRAINT ch_sexo CHECK (VALUE IN ('M', 'F'));
+
+CREATE DOMAIN email_valido AS varchar(255) CONSTRAINT ch_email CHECK (VALUE LIKE '%@%');
+
+CREATE DOMAIN estado_agenda_valido AS varchar(20) CONSTRAINT ch_estado CHECK (VALUE IN ('PENDIENTE', 'COMPLETADA', 'CANCELADA'));
+
 CREATE TABLE "paciente" (
   "dni_paciente" bigint PRIMARY KEY,
   "beneficiario_paciente" bigint,
   "nom_paciente" varchar(80) NOT NULL,
   "fnac_paciente" date NOT NULL,
-  "email_paciente" varchar(255) UNIQUE NOT NULL,
-  "pass_paciente" char(256) NOT NULL,
-  "tel_paciente" varchar(20) NOT NULL,
-  "sexo_paciente" char(1) NOT NULL,
+  "email_paciente" email_valido UNIQUE NOT NULL,
+  "pass_paciente" varchar(256) NOT NULL,
+  "tel_paciente" varchar(20),
+  "sexo_paciente" sexo_valido NOT NULL,
   "dir_paciente" varchar(255) NOT NULL,
   "admreg_paciente" varchar(255) NOT NULL,
   "fafili_paciente" timestamp NOT NULL
 );
 
 CREATE TABLE "adm_eps" (
-  "email_admeps" varchar(255) PRIMARY KEY,
+  "email_admeps" email_valido PRIMARY KEY,
   "nom_admeps" varchar(80) NOT NULL,
-  "pass_admeps" char(256) NOT NULL,
+  "pass_admeps" varchar(256) NOT NULL,
   "tel_admeps" varchar(20) NOT NULL
 );
 
 CREATE TABLE "adm_ips" (
-  "email_admips" varchar(255) PRIMARY KEY,
+  "email_admips" email_valido PRIMARY KEY,
   "ips_admips" integer NOT NULL,
   "nom_admips" varchar(80) NOT NULL,
-  "pass_admips" char(256) NOT NULL,
+  "pass_admips" varchar(256) NOT NULL,
   "tel_admips" varchar(20) NOT NULL
 );
 
 CREATE TABLE "medico" (
   "dni_medico" bigint PRIMARY KEY,
   "nom_medico" varchar(80) NOT NULL,
-  "email_medico" varchar(255) UNIQUE NOT NULL,
-  "pass_medico" char(256) NOT NULL,
+  "email_medico" email_valido UNIQUE NOT NULL,
+  "pass_medico" varchar(256) NOT NULL,
   "tel_medico" varchar(20) NOT NULL,
   "activo_medico" boolean NOT NULL DEFAULT true
 );
@@ -98,7 +105,7 @@ CREATE TABLE "agenda" (
   "f_agenda" timestamp NOT NULL,
   "fpago_agenda" timestamp,
   "resultado_agenda" text,
-  "estado_agenda" varchar(20) NOT NULL DEFAULT 'pendiente'
+  "estado_agenda" estado_agenda_valido NOT NULL DEFAULT 'pendiente'
 );
 
 CREATE TABLE "genera" (

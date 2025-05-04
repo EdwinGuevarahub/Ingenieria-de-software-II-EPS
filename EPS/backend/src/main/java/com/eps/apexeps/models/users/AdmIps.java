@@ -15,7 +15,7 @@ import lombok.Setter;
 //   email_admips varchar(255) [pk]
 //   ips_admips integer [not null, ref: > ips.id_ips]
 //   nom_admips varchar(80) [not null]
-//   pass_admips char(256) [not null]
+//   pass_admips varchar(256) [not null]
 //   tel_admips varchar(20) [not null]
 // }
 
@@ -38,7 +38,8 @@ public class AdmIps {
     @Column(
         name = "email_admips",
         length = 255,
-        nullable = false
+        nullable = false,
+        columnDefinition = "email_valido"
     )
     private String email;
 
@@ -54,8 +55,7 @@ public class AdmIps {
     @Column(
         name = "pass_admips",
         length = 256,
-        nullable = false,
-        columnDefinition = "bpchar"
+        nullable = false
     )
     private String password;
 

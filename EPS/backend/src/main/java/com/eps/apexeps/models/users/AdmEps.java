@@ -14,7 +14,7 @@ import lombok.Setter;
 // Table adm_eps {
 //   email_admeps varchar(255) [pk]
 //   nom_admeps varchar(80) [not null]
-//   pass_admeps char(256) [not null]
+//   pass_admeps varchar(256) [not null]
 //   tel_admeps varchar(20) [not null]
 // }
 
@@ -37,7 +37,8 @@ public class AdmEps {
     @Column(
         name = "email_admeps",
         length = 255,
-        nullable = false
+        nullable = false,
+        columnDefinition = "email_valido"
     )
     private String email;
 
@@ -53,8 +54,7 @@ public class AdmEps {
     @Column(
         name = "pass_admeps",
         length = 256,
-        nullable = false,
-        columnDefinition = "bpchar"
+        nullable = false
     )
     private String password;
 

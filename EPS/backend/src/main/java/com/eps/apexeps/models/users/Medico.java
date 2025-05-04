@@ -16,7 +16,7 @@ import lombok.Setter;
 //   dni_medico bigint [pk]
 //   nom_medico varchar(80) [not null]
 //   email_medico varchar(255) [not null, unique]
-//   pass_medico char(256) [not null]
+//   pass_medico varchar(256) [not null]
 //   tel_medico varchar(20) [not null]
 //   activo_medico boolean [not null, default: true]
 // }
@@ -61,6 +61,7 @@ public class Medico {
         name = "email_medico",
         length = 255,
         nullable = false,
+        columnDefinition = "email_valido",
         unique = true
     )
     private String email;
@@ -69,8 +70,7 @@ public class Medico {
     @Column(
         name = "pass_medico",
         length = 256,
-        nullable = false,
-        columnDefinition = "bpchar"
+        nullable = false
     )
     private String password;
 

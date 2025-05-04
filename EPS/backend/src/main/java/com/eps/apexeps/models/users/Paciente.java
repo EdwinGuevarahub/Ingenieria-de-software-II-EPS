@@ -17,9 +17,9 @@ import lombok.Setter;
 //     nom_paciente varchar(80) [not null]
 //     fnac_paciente date [not null]
 //     email_paciente varchar(255) [not null, unique]
-//     pass_paciente char(256) [not null]
-//     tel_paciente varchar(20) [not null]
-//     sexo_paciente char(1) [not null]
+//     pass_paciente varchar(256) [not null]
+//     tel_paciente varchar(20) [null]
+//     sexo_paciente char [not null]
 //     dir_paciente varchar(255) [not null]
 //     admreg_paciente varchar(255) [not null, ref: > adm_eps.email_admeps]
 //     fafili_paciente timestamp [not null]
@@ -73,6 +73,7 @@ public class Paciente {
         name = "email_paciente",
         length = 255,
         nullable = false,
+        columnDefinition = "email_valido",
         unique = true
     )
     private String email;
@@ -81,25 +82,21 @@ public class Paciente {
     @Column(
         name = "pass_paciente",
         length = 256,
-        nullable = false,
-        columnDefinition = "bpchar"
+        nullable = false
     )
     private String password;
 
-    @NotEmpty
     @Column(
         name = "tel_paciente",
-        length = 20,
-        nullable = false
+        length = 20
     )
     private String telefono;
 
     @NotEmpty
     @Column(
         name = "sexo_paciente",
-        length = 1,
         nullable = false,
-        columnDefinition = "bpchar"
+        columnDefinition = "sexo_valido"
     )
     private Character sexo;
 
