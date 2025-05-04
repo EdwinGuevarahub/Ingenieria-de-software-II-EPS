@@ -2,6 +2,8 @@ package com.eps.apexeps.models.users;
 import java.time.Instant;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -78,6 +80,7 @@ public class Paciente {
     )
     private String email;
 
+    @JsonIgnore
     @NotEmpty
     @Column(
         name = "pass_paciente",

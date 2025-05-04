@@ -1,5 +1,7 @@
 package com.eps.apexeps.models.users;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -51,6 +53,7 @@ public class AdmIps {
     )
     private String nombre;
 
+    @JsonIgnore
     @NotEmpty
     @Column(
         name = "pass_admips",

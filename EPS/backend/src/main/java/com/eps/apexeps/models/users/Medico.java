@@ -3,6 +3,7 @@ package com.eps.apexeps.models.users;
 import java.util.List;
 
 import com.eps.apexeps.models.ServicioMedico;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -66,6 +67,7 @@ public class Medico {
     )
     private String email;
 
+    @JsonIgnore
     @NotEmpty
     @Column(
         name = "pass_medico",
