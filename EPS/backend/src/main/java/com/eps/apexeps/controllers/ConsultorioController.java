@@ -32,12 +32,15 @@ public class ConsultorioController {
 
     /**
      * Endpoint para obtener todos los consultorios de la base de datos.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
-    public List<ConsultorioEntradaLista> getAllConsultorios() {
+    public List<ConsultorioEntradaLista> getAllConsultorios(
+        @RequestParam(required = false) String cupsServicioMedico
+    ) {
         return consultorioService
-                .getConsultorios(null)
+                .getConsultorios(null, cupsServicioMedico)
                 .stream()
                 .map(ConsultorioEntradaLista::of)
                 .toList();
@@ -46,12 +49,16 @@ public class ConsultorioController {
     /**
      * Endpoint para obtener todos los consultorios de una IPS por su id.
      * @param idIps El id de la IPS.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")
-    public List<ConsultorioEntradaLista> getConsultoriosByIps(@PathVariable Integer idIps) {
+    public List<ConsultorioEntradaLista> getConsultoriosByIps(
+        @PathVariable Integer idIps,
+        @RequestParam(required = false) String cupsServicioMedico
+    ) {
         return consultorioService
-                .getConsultorios(idIps)
+                .getConsultorios(idIps, cupsServicioMedico)
                 .stream()
                 .map(ConsultorioEntradaLista::of)
                 .toList();

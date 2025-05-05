@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.ConsultorioId;
-import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.repositories.ConsultorioRepository;
 import com.eps.apexeps.repositories.IpsRepository;
@@ -31,13 +30,20 @@ public class ConsultorioService {
     /**
      * Método para obtener todos los consultorios de la base de datos o de una IPS específica.
      * @param idIps El id de la IPS. Si es null, se obtienen todos los consultorios.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
      * @return Una lista de consultorios.
      */
-    public List<Consultorio> getConsultorios(Integer idIps) {
-        if (idIps == null)
+    public List<Consultorio> getConsultorios(Integer idIps, String cupsServicioMedico) {
+        if (idIps == null && cupsServicioMedico == null)
             return consultorioRepository.findAll();
             
-        return consultorioRepository.findAllById_Ips_Id(idIps);
+        if (idIps != null && cupsServicioMedico == null)
+            return consultorioRepository.findAllById_Ips_Id(idIps);
+        
+        if (idIps == null && cupsServicioMedico != null)
+            return consultorioRepository.findAllByServicioMedico_Cups(cupsServicioMedico);
+
+        return consultorioRepository.findAllById_Ips_IdAndServicioMedico_Cups(idIps, cupsServicioMedico);
     }
 
     /**
@@ -48,15 +54,7 @@ public class ConsultorioService {
      */
     public Consultorio getConsultorio(Integer idIps, Integer idConsultorio) {
         return consultorioRepository
-                .findById(ConsultorioId
-                    .builder()
-                    .ips(ipsRepository
-                        .findById(idIps)
-                        .orElse(null)
-                    )
-                    .idConsultorio(idConsultorio)
-                    .build()
-                )
+                .findById_Ips_IdAndId_IdConsultorio(idIps, idConsultorio)
                 .orElse(null);
     }
 
@@ -71,10 +69,10 @@ public class ConsultorioService {
     public Consultorio createConsultorio(
         Integer idIps, Integer idConsultorio, String cupsServicioMedico
     ) {
-        if (this.existsConsultorio(idIps, idConsultorio))
+        if (existsConsultorio(idIps, idConsultorio))
             throw new IllegalArgumentException( "El consultorio ya existe.");
 
-        return this.saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
+        return saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
     }
 
     /**
@@ -88,10 +86,10 @@ public class ConsultorioService {
     public Consultorio updateConsultorio(
         Integer idIps, Integer idConsultorio, String cupsServicioMedico
     ) {
-        if (!this.existsConsultorio(idIps, idConsultorio))
+        if (!existsConsultorio(idIps, idConsultorio))
             throw new IllegalArgumentException( "El consultorio no existe.");
 
-        return this.saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
+        return saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
     }
 
     /**
@@ -101,13 +99,8 @@ public class ConsultorioService {
      * @return true si el consultorio existe, false en caso contrario.
      */
     private boolean existsConsultorio(Integer idIps, Integer idConsultorio) {
-        return this.consultorioRepository.existsById(
-                    ConsultorioId
-                        .builder()
-                        .ips(Ips.builder().id(idIps).build())
-                        .idConsultorio(idConsultorio)
-                        .build()
-                );
+        return consultorioRepository
+            .existsById_Ips_IdAndId_IdConsultorio(idIps, idConsultorio);
     }
 
     /**
