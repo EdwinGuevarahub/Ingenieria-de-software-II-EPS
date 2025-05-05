@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.response.ServicioMedicoEntradaLista;
 import com.eps.apexeps.service.ServicioMedicoService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,8 +34,11 @@ public class ServicioMedicoController {
      * @return Una lista de servicios médicos.
      */
     @GetMapping
-    public List<ServicioMedico> getAllServiciosMedicos() {
-        return servicioMedicoService.getServiciosMedicos();
+    public List<ServicioMedicoEntradaLista> getAllServiciosMedicos() {
+        return servicioMedicoService.getServiciosMedicos()
+                .stream()
+                .map(ServicioMedicoEntradaLista::of)
+                .toList();
     }
 
     /**
