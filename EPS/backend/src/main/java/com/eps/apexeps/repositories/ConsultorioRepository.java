@@ -3,7 +3,9 @@ package com.eps.apexeps.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.eps.apexeps.models.Consultorio;
@@ -18,11 +20,33 @@ import com.eps.apexeps.models.ConsultorioId;
 public interface ConsultorioRepository extends JpaRepository<Consultorio, ConsultorioId> {
 
     /**
-     * Método para encontrar todos los consultorios de una IPS por su id.
+     * Método para encontrar todos los consultorios filtrados por id de IPS, id de consultorio y CUPS del servicio médico.
      * @param idIps El id de la IPS.
-     * @return Una lista de consultorios asociados a la IPS.
+     * @param idConsultorioLike Parte del id del consultorio (opcional).
+     * @param cupsServicioMedico El CUPS del servicio médico (opcional).
+     * @param pageable Objeto Pageable para la paginación.
+     * @return Una lista de consultorios que cumplen con los criterios de búsqueda.
      */
-    List<Consultorio> findAllById_Ips_Id(Integer idIps);
+    @Query("""
+        SELECT c
+        FROM Consultorio c
+        WHERE 
+            (:idIps IS NULL
+                OR :idIps = c.id.ips.id
+            )
+            AND (LENGTH(:idConsultorioLike) = 0
+                OR CAST(c.id.idConsultorio AS String) LIKE CONCAT('%', :idConsultorioLike, '%')
+            )
+            AND (:cupsServicioMedico IS NULL
+                OR c.servicioMedico.cups = :cupsServicioMedico
+            )
+    """)
+    List<Consultorio> findAllFiltered(
+        Integer idIps,
+        String idConsultorioLike,
+        String cupsServicioMedico,
+        Pageable pageable
+    );
 
     /**
      * Método para encontrar un consultorio específico por su id de IPS y el id del consultorio.
@@ -32,20 +56,6 @@ public interface ConsultorioRepository extends JpaRepository<Consultorio, Consul
      */
     Optional<Consultorio> findById_Ips_IdAndId_IdConsultorio(Integer idIps, Integer idConsultorio);
 
-    /**
-     * Método para encontrar todos los consultorios por el CUPS del servicio médico asociado.
-     * @param cupsServicioMedico El CUPS del servicio médico.
-     * @return Una lista de consultorios asociados al servicio médico.
-     */
-    List<Consultorio> findAllByServicioMedico_Cups(String cupsServicioMedico);
-
-    /**
-     * Método para encontrar todos los consultorios de una IPS por su id y el CUPS del servicio médico asociado.
-     * @param idIps El id de la IPS.
-     * @param cupsServicioMedico El CUPS del servicio médico.
-     * @return Una lista de consultorios asociados a la IPS y al servicio médico.
-     */
-    List<Consultorio> findAllById_Ips_IdAndServicioMedico_Cups(Integer idIps, String cupsServicioMedico);
 
     /**
      * Método para verificar si existe un consultorio por su id de IPS y el id del consultorio.

@@ -33,14 +33,26 @@ public class ConsultorioController {
     /**
      * Endpoint para obtener todos los consultorios de la base de datos.
      * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
+     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
+     * @param qSize Tamaño de la página (opcional).
+     * @param qPage Número de la página (opcional).
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
     public List<ConsultorioEntradaLista> getAllConsultorios(
-        @RequestParam(required = false) String cupsServicioMedico
+        @RequestParam(required = false) String cupsServicioMedico,
+        @RequestParam(required = false) Integer idConsultorioLike,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) {
         return consultorioService
-                .getConsultorios(null, cupsServicioMedico)
+                .getConsultorios(
+                    null,
+                    idConsultorioLike,
+                    cupsServicioMedico,
+                    qSize,
+                    qPage
+                )
                 .stream()
                 .map(ConsultorioEntradaLista::of)
                 .toList();
@@ -50,15 +62,27 @@ public class ConsultorioController {
      * Endpoint para obtener todos los consultorios de una IPS por su id.
      * @param idIps El id de la IPS.
      * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
+     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
+     * @param qSize Tamaño de la página (opcional).
+     * @param qPage Número de la página (opcional).
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")
     public List<ConsultorioEntradaLista> getConsultoriosByIps(
         @PathVariable Integer idIps,
-        @RequestParam(required = false) String cupsServicioMedico
+        @RequestParam(required = false) String cupsServicioMedico,
+        @RequestParam(required = false) Integer idConsultorioLike,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) {
         return consultorioService
-                .getConsultorios(idIps, cupsServicioMedico)
+                .getConsultorios(
+                    idIps,
+                    idConsultorioLike,
+                    cupsServicioMedico,
+                    qSize,
+                    qPage
+                )
                 .stream()
                 .map(ConsultorioEntradaLista::of)
                 .toList();

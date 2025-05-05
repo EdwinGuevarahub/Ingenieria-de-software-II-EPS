@@ -2,6 +2,7 @@ package com.eps.apexeps.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
@@ -30,20 +31,31 @@ public class ConsultorioService {
     /**
      * Método para obtener todos los consultorios de la base de datos o de una IPS específica.
      * @param idIps El id de la IPS. Si es null, se obtienen todos los consultorios.
+     * @param idConsultorioLike Cadena que se usará para filtrar los consultorios por su id (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
+     * @param qPage Tamaño de la página (opcional).
+     * @param qSize Número de la página (opcional).
      * @return Una lista de consultorios.
      */
-    public List<Consultorio> getConsultorios(Integer idIps, String cupsServicioMedico) {
-        if (idIps == null && cupsServicioMedico == null)
-            return consultorioRepository.findAll();
-            
-        if (idIps != null && cupsServicioMedico == null)
-            return consultorioRepository.findAllById_Ips_Id(idIps);
-        
-        if (idIps == null && cupsServicioMedico != null)
-            return consultorioRepository.findAllByServicioMedico_Cups(cupsServicioMedico);
+    public List<Consultorio> getConsultorios(
+        Integer idIps,
+        Integer idConsultorioLike,
+        String cupsServicioMedico,
+        Integer qSize,
+        Integer qPage
+    ) {
+        String idConsultorioLikeStr = "";
+        if (idConsultorioLike != null)
+            idConsultorioLikeStr = String.valueOf(idConsultorioLike);
 
-        return consultorioRepository.findAllById_Ips_IdAndServicioMedico_Cups(idIps, cupsServicioMedico);
+        Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
+        return consultorioRepository
+                .findAllFiltered(
+                    idIps,
+                    idConsultorioLikeStr,
+                    cupsServicioMedico,
+                    pageable
+                );
     }
 
     /**
