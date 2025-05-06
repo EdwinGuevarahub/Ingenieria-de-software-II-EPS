@@ -44,9 +44,9 @@ public class ConsultorioService {
         Integer qSize,
         Integer qPage
     ) {
-        String idConsultorioLikeStr = "";
+        String idConsultorioLikeStr = null;
         if (idConsultorioLike != null)
-            idConsultorioLikeStr = String.valueOf(idConsultorioLike);
+            idConsultorioLikeStr = Integer.toString(idConsultorioLike);
 
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
         return consultorioRepository

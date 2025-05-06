@@ -34,8 +34,8 @@ public class ConsultorioController {
      * Endpoint para obtener todos los consultorios de la base de datos.
      * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
      * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
-     * @param qSize Tamaño de la página (opcional).
-     * @param qPage Número de la página (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
@@ -63,8 +63,8 @@ public class ConsultorioController {
      * @param idIps El id de la IPS.
      * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
      * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
-     * @param qSize Tamaño de la página (opcional).
-     * @param qPage Número de la página (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")

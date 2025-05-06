@@ -34,8 +34,8 @@ public interface ConsultorioRepository extends JpaRepository<Consultorio, Consul
             (:idIps IS NULL
                 OR :idIps = c.id.ips.id
             )
-            AND (LENGTH(:idConsultorioLike) = 0
-                OR CAST(c.id.idConsultorio AS String) LIKE CONCAT('%', :idConsultorioLike, '%')
+            AND (:idConsultorioLike IS NULL
+                OR CAST(c.id.idConsultorio AS String) LIKE %:idConsultorioLike%
             )
             AND (:cupsServicioMedico IS NULL
                 OR c.servicioMedico.cups = :cupsServicioMedico
