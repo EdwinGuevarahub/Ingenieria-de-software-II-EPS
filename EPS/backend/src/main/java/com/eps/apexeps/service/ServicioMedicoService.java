@@ -2,6 +2,7 @@ package com.eps.apexeps.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.ServicioMedico;
@@ -23,10 +24,14 @@ public class ServicioMedicoService {
 
     /**
      * Método para obtener todos los servicios médicos de la base de datos.
+     * @param cupsNombreLike Parte del nombre o código CUPS del servicio médico a buscar (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de servicios médicos.
      */
-    public List<ServicioMedico> getServiciosMedicos() {
-        return servicioMedicoRepository.findAll();
+    public List<ServicioMedico> getServiciosMedicos(String cupsNombreLike, Integer qSize, Integer qPage) {
+        Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
+        return servicioMedicoRepository.findAllFiltered(cupsNombreLike, pageable);
     }
     
     /**
