@@ -93,7 +93,7 @@ public class Trabaja {
      * Convierte la cadena de horario a una lista de objetos EntradaHorario.
      * @return Una lista de objetos EntradaHorario que representan los horarios de trabajo.
      */
-    public List<EntradaHorario> getHorarios() {
+    public List<EntradaHorario> getHorario() {
         List<EntradaHorario> entradas = new ArrayList<>();
 
         // Separar la cadena de horario por comas y convertir cada parte a un objeto EntradaHorario.
@@ -110,9 +110,9 @@ public class Trabaja {
      */
     public void addEntradaHorario(EntradaHorario entrada) {
         // Sólo se permite una entrada de horario por día de la semana.
-        int indice = this.horario.indexOf(EntradaHorario.DAY_MAP.get(entrada.getDay()));
+        int indice = this.horario.indexOf(EntradaHorario.CHAR_MAP.get(entrada.getDia()));
         if (indice >= 0)
-            throw new IllegalArgumentException("Ya existe una entrada de horario para el día: " + entrada.getDay());
+            throw new IllegalArgumentException("Ya existe una entrada de horario para el día: " + entrada.getDia());
 
         this.horario += (this.horario.isEmpty() ? "" : ",") + entrada.toString();
     }
@@ -123,16 +123,16 @@ public class Trabaja {
      */
     public void removeEntradaHorario(DayOfWeek dia) {
         // Encontrar la entrada de horario correspondiente al día especificado y eliminarla.
-        List<EntradaHorario> entradas = getHorarios();
+        List<EntradaHorario> entradas = getHorario();
         for (EntradaHorario entrada : entradas) {
-            if (entrada.getDay() == dia) {
+            if (entrada.getDia() == dia) {
                 entradas.remove(entrada);
                 break;
             }
         }
 
         // Si la entrada de horario no se encuentra, lanzar una excepción.
-        if (entradas.size() == this.getHorarios().size())
+        if (entradas.size() == this.getHorario().size())
             throw new IllegalArgumentException("No se encontró la entrada de horario para el día: " + dia);
 
 

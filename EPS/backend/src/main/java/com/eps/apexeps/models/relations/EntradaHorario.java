@@ -23,7 +23,7 @@ import lombok.Setter;
 public class EntradaHorario {
 
     /** Mapa para los valores del enum DayOfWeek a sus caracteres correspondientes. */
-    public static final Map<DayOfWeek, Character> DAY_MAP = Map.of(
+    public static final Map<DayOfWeek, Character> CHAR_MAP = Map.of(
         DayOfWeek.MONDAY, 'L',
         DayOfWeek.TUESDAY, 'M',
         DayOfWeek.WEDNESDAY, 'R',
@@ -34,7 +34,7 @@ public class EntradaHorario {
     );
 
     /** Mapa para los caracteres a sus valores correspondientes del enum DayOfWeek. */
-    public static final Map<Character, DayOfWeek> CHAR_MAP = Map.of(
+    public static final Map<Character, DayOfWeek> DIA_MAP = Map.of(
         'L', DayOfWeek.MONDAY,
         'M', DayOfWeek.TUESDAY,
         'R', DayOfWeek.WEDNESDAY,
@@ -59,7 +59,7 @@ public class EntradaHorario {
     public static final EntradaHorario valueOf(String entry) {
         // Convertir el primer carácter a un valor del enum DayOfWeek.
         char dayChar = entry.charAt(0);
-        DayOfWeek day = CHAR_MAP.get(dayChar);
+        DayOfWeek day = DIA_MAP.get(dayChar);
         if (day == null)
             throw new IllegalArgumentException("Carácter de día inválido: " + dayChar);
 
@@ -82,11 +82,11 @@ public class EntradaHorario {
 
 
     /** El día de la semana para la entrada de horario. */
-    private DayOfWeek day;
+    private DayOfWeek dia;
     /** La hora de inicio de la entrada de horario. Debe ser una hora exacta. */
-    private LocalTime start;
+    private LocalTime inicio;
     /** La hora de fin de la entrada de horario. Debe ser una hora exacta. */
-    private LocalTime end;
+    private LocalTime fin;
 
     /**
      * Convierte el objeto EntradaHorario a una representación en cadena.
@@ -100,11 +100,11 @@ public class EntradaHorario {
      */
     public String toString() {
         // Convertir el valor del enum DayOfWeek a un carácter.
-        char dayChar = DAY_MAP.get(this.getDay());
+        char dayChar = CHAR_MAP.get(this.getDia());
 
         // Crear la cadena de entrada con el formato DHH-HH.
-        String entryStr = dayChar + String.format("%02d", this.getStart().getHour()) + "-" +
-            String.format("%02d", this.getEnd().getHour());
+        String entryStr = dayChar + String.format("%02d", this.getInicio()) + "-" +
+            String.format("%02d", this.getFin().getHour());
         
         return entryStr;
     }
