@@ -32,15 +32,15 @@ public class IPSController {
 
     @Autowired
     private IPSservice ipsService;
-
-    @GetMapping("/nameLike={nombre}")
-    public List<Ips> findByNombreContainingIgnoreCase(@PathVariable String nombre) {
-        return ipsService.findByNombreContainingIgnoreCase(nombre);
-    }
     
     @GetMapping("/all")
     public List<Ips> findAll() {
         return ipsService.findAll();
+    }
+
+    @GetMapping("/nameLike={nombre}")
+    public List<Ips> findByNombreContainingIgnoreCase(@PathVariable String nombre) {
+        return ipsService.findByNombreContainingIgnoreCase(nombre);
     }
 
     @GetMapping("/idLike={id}")
