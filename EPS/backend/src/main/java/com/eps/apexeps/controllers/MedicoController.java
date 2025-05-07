@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.response.MedicoEntradaLista;
-import com.eps.apexeps.service.MedicoService;
+import com.eps.apexeps.services.MedicoService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -72,9 +72,7 @@ public class MedicoController {
                     .toList();
         }
         catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al obtener los médicos: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+            throw new RuntimeException("Error al obtener los médicos: " + t.getMessage(), t);
         }
     }
 
@@ -113,9 +111,7 @@ public class MedicoController {
                     );
         }
         catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al crear el médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+            throw new RuntimeException("Error al crear el médico: " + t.getMessage(), t);
         }
     }
 
@@ -144,9 +140,7 @@ public class MedicoController {
                     );
         }
         catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al actualizar el médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+            throw new RuntimeException("Error al actualizar el médico: " + t.getMessage(), t);
         }
     }
 
