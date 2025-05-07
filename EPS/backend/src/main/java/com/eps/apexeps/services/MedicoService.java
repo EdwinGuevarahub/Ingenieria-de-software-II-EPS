@@ -92,10 +92,10 @@ public class MedicoService {
                         .anyMatch(horario ->
                             horario.getDia().getValue() == codDiaSemana
                             && (horaDeInicio == null
-                                || horario.getFin().getHour() > horaDeInicio
+                                || horario.getInicio().getHour() <= horaDeInicio
                             )
                             && (horaDeFin == null
-                                || horario.getInicio().getHour() < horaDeFin
+                                || horario.getFin().getHour() >= horaDeFin
                             )
                         )
                         
