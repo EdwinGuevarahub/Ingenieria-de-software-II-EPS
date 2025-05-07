@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.response.ServicioMedicoEntradaLista;
-import com.eps.apexeps.service.ServicioMedicoService;
+import com.eps.apexeps.services.ServicioMedicoService;
 
 import lombok.RequiredArgsConstructor;
 

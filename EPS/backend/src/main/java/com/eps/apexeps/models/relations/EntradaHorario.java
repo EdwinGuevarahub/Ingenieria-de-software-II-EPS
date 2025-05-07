@@ -98,6 +98,7 @@ public class EntradaHorario {
      * 
      * @return Una representación en cadena de la entrada de horario.
      */
+    @Override
     public String toString() {
         // Convertir el valor del enum DayOfWeek a un carácter.
         char dayChar = CHAR_MAP.get(this.getDia());

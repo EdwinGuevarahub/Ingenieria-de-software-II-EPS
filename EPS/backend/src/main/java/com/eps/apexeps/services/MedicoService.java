@@ -1,4 +1,4 @@
-package com.eps.apexeps.service;
+package com.eps.apexeps.services;
 
 import java.util.List;
 

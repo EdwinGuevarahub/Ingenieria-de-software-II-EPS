@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.response.ConsultorioEntradaLista;
-import com.eps.apexeps.service.ConsultorioService;
+import com.eps.apexeps.services.ConsultorioService;
 
 import lombok.RequiredArgsConstructor;
 
