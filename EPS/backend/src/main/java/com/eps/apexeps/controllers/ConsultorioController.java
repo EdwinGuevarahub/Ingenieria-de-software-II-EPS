@@ -119,7 +119,7 @@ public class ConsultorioController {
                     );
         }
         catch (Exception e) {
-            throw new RuntimeException("Error al crear el consultorio: " + e.getMessage());
+            throw new RuntimeException("Error al crear el consultorio: " + e.getMessage(), e);
         }
     }
 
@@ -143,7 +143,7 @@ public class ConsultorioController {
                     );
         }
         catch (Exception e) {
-            throw new RuntimeException("Error al actualizar el consultorio: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar el consultorio: " + e.getMessage(), e);
         }
     }   
     

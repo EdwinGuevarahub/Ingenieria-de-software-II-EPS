@@ -74,8 +74,8 @@ public class MedicoController {
                     .map(MedicoEntradaLista::of)
                     .toList();
         }
-        catch (Throwable t) {
-            throw new RuntimeException("Error al obtener los médicos: " + t.getMessage(), t);
+        catch (Exception e) {
+            throw new RuntimeException("Error al obtener los médicos: " + e.getMessage(), e);
         }
     }
 
@@ -113,8 +113,8 @@ public class MedicoController {
                         telefonoMedico
                     );
         }
-        catch (Throwable t) {
-            throw new RuntimeException("Error al crear el médico: " + t.getMessage(), t);
+        catch (Exception e) {
+            throw new RuntimeException("Error al obtener el médico: " + e.getMessage(), e);
         }
     }
 
@@ -142,8 +142,8 @@ public class MedicoController {
                         telefonoMedico
                     );
         }
-        catch (Throwable t) {
-            throw new RuntimeException("Error al actualizar el médico: " + t.getMessage(), t);
+        catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el médico: " + e.getMessage(), e);
         }
     }
     
@@ -158,10 +158,8 @@ public class MedicoController {
         try {
             return medicoService.getAllDominiosMedico(Long.valueOf(dniMedico));
         }
-        catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al obtener los servicios médicos del médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+        catch (Exception e) {
+            throw new RuntimeException("Error al obtener los dominios: " + e.getMessage(), e);
         }
     }
 
@@ -177,10 +175,8 @@ public class MedicoController {
         try {
             return medicoService.getDominioMedico(dniMedico, cupsServicioMedico);
         }
-        catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al obtener el servicio médico del médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+        catch (Exception e) {
+            throw new RuntimeException("Error al obtener el dominio: " + e.getMessage(), e);
         }
     }
     
@@ -195,10 +191,9 @@ public class MedicoController {
     public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
         try {
             return medicoService.addDominioMedico(dniMedico, cupsServicioMedico);
-        } catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al agregar el servicio médico al médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error al agregar el dominio: " + e.getMessage(), e);
         }
     }
 
@@ -213,10 +208,9 @@ public class MedicoController {
     public List<ServicioMedico> deleteDominioMedico(@PathVariable Long dniMedico, String cupsServicioMedico) {
         try {
             return medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico);
-        } catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Error al eliminar el servicio médico del médico: " + t.getMessage());
-            e.initCause(t);
-            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error al eliminar el dominio: " + e.getMessage(), e);
         }
     }
 
