@@ -97,6 +97,7 @@ public class Medico {
      * Esta relación es de muchos a muchos, ya que un médico puede dominar varios servicios.
      * Se utiliza la tabla 'domina' para mapear esta relación.
      */
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "domina",

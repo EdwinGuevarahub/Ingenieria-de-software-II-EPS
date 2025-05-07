@@ -2,13 +2,16 @@ package com.eps.apexeps.controllers;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.response.MedicoEntradaLista;
 import com.eps.apexeps.service.MedicoService;
@@ -84,8 +87,8 @@ public class MedicoController {
      * @return El médico correspondiente al DNI o null si no existe.
      */
     @GetMapping("/{dniMedico}")
-    public Medico getMedico(@RequestParam Long dniMedico) {
-        return medicoService.getMedico(dniMedico);
+    public Medico getMedico(@PathVariable Long dniMedico) {
+        return medicoService.getMedico(Long.valueOf(dniMedico));
     }
 
     /**
@@ -145,6 +148,79 @@ public class MedicoController {
         }
         catch (Throwable t) {
             RuntimeException e = new RuntimeException("Error al actualizar el médico: " + t.getMessage());
+            e.initCause(t);
+            throw e;
+        }
+    }
+    
+    /**
+     * Endpoint para obtener los servicios médicos dominados por un médico.
+     * @param dniMedico El DNI del médico.
+     * @return Una lista de servicios médicos asociados al médico.
+     * @throws RuntimeException Si ocurre un error al obtener los servicios médicos del médico.
+     */
+    @GetMapping("/{dniMedico}/dominio")
+    public List<ServicioMedico> getAllDominiosMedico(@PathVariable Long dniMedico) {
+        try {
+            return medicoService.getAllDominiosMedico(Long.valueOf(dniMedico));
+        }
+        catch (Throwable t) {
+            RuntimeException e = new RuntimeException("Error al obtener los servicios médicos del médico: " + t.getMessage());
+            e.initCause(t);
+            throw e;
+        }
+    }
+
+    /**
+     * Endpoint para obtener un servicio médico específico dominado por un médico.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return El servicio médico correspondiente al CUPS o null si el médico no lo domina.
+     * @throws RuntimeException Si ocurre un error al obtener el servicio médico del médico.
+     */
+    @GetMapping("/{dniMedico}/dominio/{cupsServicioMedico}")
+    public ServicioMedico getDominioMedico(@PathVariable Long dniMedico, @PathVariable String cupsServicioMedico) {
+        try {
+            return medicoService.getDominioMedico(dniMedico, cupsServicioMedico);
+        }
+        catch (Throwable t) {
+            RuntimeException e = new RuntimeException("Error al obtener el servicio médico del médico: " + t.getMessage());
+            e.initCause(t);
+            throw e;
+        }
+    }
+    
+    /**
+     * Endpoint para agregar un nuevo dominio de servicio médico a un médico.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return Una lista de servicios médicos asociados al médico.
+     * @throws RuntimeException Si ocurre un error al agregar el servicio médico al médico.
+     */
+    @PutMapping("/{dniMedico}/dominio")
+    public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        try {
+            return medicoService.addDominioMedico(dniMedico, cupsServicioMedico);
+        } catch (Throwable t) {
+            RuntimeException e = new RuntimeException("Error al agregar el servicio médico al médico: " + t.getMessage());
+            e.initCause(t);
+            throw e;
+        }
+    }
+
+    /**
+     * Endpoint para eliminar un dominio de servicio médico de un médico.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return Una lista de servicios médicos restantes asociados al médico.
+     * @throws RuntimeException Si ocurre un error al eliminar el servicio médico del médico.
+     */
+    @DeleteMapping("/{dniMedico}/dominio")
+    public List<ServicioMedico> deleteDominioMedico(@PathVariable Long dniMedico, String cupsServicioMedico) {
+        try {
+            return medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico);
+        } catch (Throwable t) {
+            RuntimeException e = new RuntimeException("Error al eliminar el servicio médico del médico: " + t.getMessage());
             e.initCause(t);
             throw e;
         }

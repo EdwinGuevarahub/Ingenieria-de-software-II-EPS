@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.repositories.MedicoRepository;
+import com.eps.apexeps.repositories.ServicioMedicoRepository;
 import com.eps.apexeps.repositories.TrabajaRepository;
 
 import jakarta.transaction.Transactional;
@@ -26,6 +28,9 @@ public class MedicoService {
 
     /** Repositorio de Trabaja para acceder a la base de datos. */
     private final TrabajaRepository trabajaRepository;
+
+    /** Repositorio de ServicioMedico para acceder a la base de datos. */
+    private final ServicioMedicoRepository servicioMedicoRepository;
 
     /**
      * Método para obtener todos los médicos de la base de datos filtrarlos por diferentes criterios.
@@ -102,20 +107,13 @@ public class MedicoService {
 
     /**
      * Método para obtener un médico específico por su DNI.
-     * Se anota con @Transactional para permitir la carga perezosa de los dominios del médico.
      * @param dniMedico El DNI del médico que se desea obtener.
      * @return El médico correspondiente al DNI proporcionado.
      */
-    @Transactional
     public Medico getMedico(Long dniMedico) {
-        Medico medico = medicoRepository
-                        .findById(dniMedico)
-                        .orElse(null);
-        
-        // Cargar los dominios del médico para evitar problemas de LazyInitializationException.
-        medico.getDominios().size();
-
-        return medico;
+        return medicoRepository
+                .findById(dniMedico)
+                .orElse(null);
     }
 
     /**
@@ -201,6 +199,122 @@ public class MedicoService {
                         .telefono(telefonoMedico)
                         .build()
                 );
+    }
+
+    /**
+     * Método para obtener todos los servicios médicos dominados por un médico.
+     * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
+     * durante la ejecución del método.
+     * @param dniMedico El DNI del médico.
+     * @return Una lista de servicios médicos dominados por el médico.
+     * @throws IllegalArgumentException Si el médico no existe.
+     */
+    @Transactional
+    public List<ServicioMedico> getAllDominiosMedico(Long dniMedico) {
+        Medico medico = medicoRepository
+                            .findById(dniMedico)
+                            .orElse(null);
+
+        if (medico == null)
+            throw new IllegalArgumentException("El médico no existe.");
+        
+        List<ServicioMedico> dominios = medico.getDominios();
+        dominios.size(); // Inicializa la colección para evitar LazyInitializationException.
+        return dominios;
+    }
+
+    /**
+     * Método para obtener un servicio médico específico dominado por un médico.
+     * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
+     * durante la ejecución del método.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return El servicio médico correspondiente al CUPS o null si el médico no lo domina.
+     * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
+     */
+    @Transactional
+    public ServicioMedico getDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
+        Medico medico = (Medico) validados[0];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
+        
+        if (!medico.getDominios().contains(servicioMedico))
+            return null;
+        
+        return servicioMedico;
+    }
+
+    /**
+     * Método para agregar un servicio médico a los dominios de un médico.
+     * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
+     * durante la ejecución del método.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return Una lista de servicios médicos restantes asociados al médico.
+     * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
+     */
+    @Transactional
+    public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
+        Medico medico = (Medico) validados[0];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
+
+        List<ServicioMedico> dominios = medico.getDominios();
+        if (dominios.contains(servicioMedico))
+            throw new IllegalArgumentException("El médico ya tiene este servicio médico como dominio.");
+
+        dominios.add(servicioMedico);
+        medico = medicoRepository.save(medico);
+        return dominios;
+    }
+
+    /**
+     * Método para eliminar un servicio médico de los dominios de un médico.
+     * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
+     * durante la ejecución del método.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return Una lista de servicios médicos restantes asociados al médico.
+     * @throws IllegalArgumentException Si el médico o el servicio médico no existen o si el médico no lo domina.
+     */
+    @Transactional
+    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
+        Medico medico = (Medico) validados[0];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
+
+        List<ServicioMedico> dominios = medico.getDominios();
+        if (!dominios.contains(servicioMedico))
+            throw new IllegalArgumentException("El médico no tiene este servicio médico como dominio.");
+
+        dominios.remove(servicioMedico);
+        medico = medicoRepository.save(medico);
+        return dominios;
+    }
+
+    /**
+     * Método privado para validar la existencia de un médico y un servicio médico.
+     * @param dniMedico El DNI del médico.
+     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @return Un array con el médico y el servicio médico validados.
+     * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
+     */
+    private Object[] validarMedicoAndServicio(Long dniMedico, String cupsServicioMedico) {
+        Medico medico = medicoRepository
+                            .findById(dniMedico)
+                            .orElse(null);
+
+        if (medico == null)
+            throw new IllegalArgumentException("El médico no existe.");
+
+        ServicioMedico servicioMedico = servicioMedicoRepository
+                                            .findById(cupsServicioMedico)
+                                            .orElse(null);
+
+        if (servicioMedico == null)
+            throw new IllegalArgumentException("El servicio médico no existe.");
+
+        return new Object[] { medico, servicioMedico };
     }
 
 }
