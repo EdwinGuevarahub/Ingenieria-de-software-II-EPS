@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.eps.apexeps.models.ServicioMedico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -70,8 +71,8 @@ public class Medico {
     )
     private String email;
 
-    /** Contraseña del médico. */
-    @JsonIgnore
+    /** Cpontraseña del médico. */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotEmpty
     @Column(
         name = "pass_medico",

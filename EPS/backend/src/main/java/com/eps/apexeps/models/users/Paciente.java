@@ -2,7 +2,7 @@ package com.eps.apexeps.models.users;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -80,7 +80,7 @@ public class Paciente {
     )
     private String email;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotEmpty
     @Column(
         name = "pass_paciente",

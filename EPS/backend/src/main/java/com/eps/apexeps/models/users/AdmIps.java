@@ -1,6 +1,6 @@
 package com.eps.apexeps.models.users;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,7 +53,7 @@ public class AdmIps {
     )
     private String nombre;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotEmpty
     @Column(
         name = "pass_admips",
