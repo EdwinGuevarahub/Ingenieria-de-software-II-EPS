@@ -3,6 +3,7 @@ package com.eps.apexeps.models.users;
 import java.util.List;
 
 import com.eps.apexeps.models.ServicioMedico;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -41,6 +42,7 @@ import lombok.Setter;
 @Table(name = "medico")
 public class Medico {
 
+    /** Número de identificación del médico. */
     @Id
     @Column(
         name = "dni_medico",
@@ -48,6 +50,7 @@ public class Medico {
     )
     private Long dni;
 
+    /** Nombre del médico. */
     @NotEmpty
     @Column(
         name = "nom_medico",
@@ -56,6 +59,7 @@ public class Medico {
     )
     private String nombre;
 
+    /** Correo electrónico del médico. */
     @NotEmpty
     @Column(
         name = "email_medico",
@@ -66,6 +70,8 @@ public class Medico {
     )
     private String email;
 
+    /** Contraseña del médico. */
+    @JsonIgnore
     @NotEmpty
     @Column(
         name = "pass_medico",
@@ -74,6 +80,7 @@ public class Medico {
     )
     private String password;
 
+    /** Número de teléfono del médico. */
     @NotEmpty
     @Column(
         name = "tel_medico",
@@ -82,6 +89,7 @@ public class Medico {
     )
     private String telefono;
 
+    /** Indica si el médico está activo o no. */
     @Column(
         name = "activo_medico",
         nullable = false,
@@ -95,6 +103,7 @@ public class Medico {
      * Esta relación es de muchos a muchos, ya que un médico puede dominar varios servicios.
      * Se utiliza la tabla 'domina' para mapear esta relación.
      */
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "domina",
