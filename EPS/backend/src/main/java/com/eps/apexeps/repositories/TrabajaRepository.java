@@ -15,12 +15,12 @@ import com.eps.apexeps.models.users.Medico;
  */
 @Repository
 public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
-    
+
     /**
-     * Método para encontrar todas las relaciones de trabajo de un médico específico.
-     * @param medico El médico del que se desean obtener las relaciones de trabajo.
-     * @return Una lista de relaciones de trabajo asociadas al médico.
+     * Método para encontrar todas las relaciones de trabajo asociadas a un conjunto de médicos.
+     * @param medicos Una lista de médicos para los cuales se desean encontrar las relaciones de trabajo.
+     * @return Una lista de relaciones de trabajo asociadas a los médicos proporcionados.
      */
-    List<Trabaja> findByMedico(Medico medico);
+    List<Trabaja> findByMedicoIn(List<Medico> medicos);
     
 }

@@ -80,27 +80,24 @@ public class MedicoService {
         if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
             throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
 
-        // Para cada médico, eliminarlo si,
-        medicos.removeIf(medico ->
-            // entre sus trabaja
-            trabajaRepository.findByMedico(medico).stream()
-                // no hay ninguno que,
-                .noneMatch(trabaja ->
-                    // entre sus horarios
-                    trabaja.getHorario().stream()
-                        // hay alguno que cumple con el día de la semana y las horas especificadas.
-                        .anyMatch(horario ->
-                            horario.getDia().getValue() == codDiaSemana
-                            && (horaDeInicio == null
-                                || horario.getInicio().getHour() <= horaDeInicio
-                            )
-                            && (horaDeFin == null
-                                || horario.getFin().getHour() >= horaDeFin
-                            )
+        // Para cada trabaja que tenga algún medico de la lista.
+        trabajaRepository.findByMedicoIn(medicos).stream()
+            // no hay ninguno que,
+            .noneMatch(trabaja ->
+                // entre sus horarios
+                trabaja.getHorario().stream()
+                    // hay alguno que cumple con el día de la semana y las horas especificadas.
+                    .anyMatch(horario ->
+                        horario.getDia().getValue() == codDiaSemana
+                        && (horaDeInicio == null
+                            || horario.getInicio().getHour() <= horaDeInicio
                         )
-                        
-                )
-        );
+                        && (horaDeFin == null
+                            || horario.getFin().getHour() >= horaDeFin
+                        )
+                    )
+                    
+            );
 
         return medicos;
     }   
