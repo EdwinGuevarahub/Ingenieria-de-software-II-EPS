@@ -8,6 +8,7 @@ package com.eps.apexeps.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.eps.apexeps.models.users.AdmIps;
 import com.eps.apexeps.repositories.AdmIpsRespository;
@@ -16,6 +17,7 @@ import com.eps.apexeps.repositories.AdmIpsRespository;
  *
  * @author Alexander
  */
+@Component
 public class AdmIpsService {
 
     @Autowired
