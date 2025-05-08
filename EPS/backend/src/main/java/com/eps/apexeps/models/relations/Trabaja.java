@@ -32,7 +32,7 @@ import lombok.Setter;
 //   horario_trabaja varchar(48) [not null, note: 'L00-23,M00-23,R00-23,J00-23,V00-23,S00-23,D00-23']
 
 //   Indexes {
-//     (ips_trabaja, consultorio_trabaja) [unique]
+//     (ips_trabaja, consultorio_trabaja)
 //   }
 // }
 // ref: trabaja.(ips_trabaja, consultorio_trabaja) > consultorio.(ips_consultorio, id_consultorio)
@@ -106,6 +106,16 @@ public class Trabaja {
             entradas.add(EntradaHorario.valueOf(entradaStr));
 
         return entradas;
+    }
+
+    /**
+     * Establece la cadena de horario a partir de una lista de objetos EntradaHorario.
+     * @param entradas La lista de objetos EntradaHorario que representan los horarios de trabajo.
+     */
+    public void setHorario(List<EntradaHorario> entradas) {
+        this.horario = "";
+        for (EntradaHorario entrada : entradas)
+            this.horario += (this.horario.isEmpty() ? "" : ",") + entrada.toString();
     }
 
     /**

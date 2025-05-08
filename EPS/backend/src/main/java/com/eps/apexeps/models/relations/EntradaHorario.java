@@ -101,11 +101,13 @@ public class EntradaHorario {
     @Override
     public String toString() {
         // Convertir el valor del enum DayOfWeek a un carácter.
-        char dayChar = CHAR_MAP.get(this.getDia());
+        Character dayChar = CHAR_MAP.get(this.getDia());
 
         // Crear la cadena de entrada con el formato DHH-HH.
-        String entryStr = dayChar + String.format("%02d", this.getInicio()) + "-" +
-            String.format("%02d", this.getFin().getHour());
+        String entryStr = dayChar.toString();
+        entryStr += String.format("%02d", this.getInicio().getHour());
+        entryStr += "-";
+        entryStr += String.format("%02d", this.getFin().getHour());
         
         return entryStr;
     }
