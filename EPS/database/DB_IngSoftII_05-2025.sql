@@ -1,3 +1,7 @@
+-- Eliminar el esquema public y recrearlo para subir todas las tablas.
+DROP SCHEMA IF EXISTS "public" CASCADE;
+CREATE SCHEMA "public";
+
 -- Dominios
 CREATE DOMAIN sexo_valido AS char CONSTRAINT ch_sexo CHECK (VALUE IN ('M', 'F'));
 
@@ -152,8 +156,6 @@ CREATE TABLE "despacha" (
   "f_despacha" timestamp,
   PRIMARY KEY ("paciente_despacha", "inventaria_despacha", "f_despacha")
 );
-
-CREATE UNIQUE INDEX ON "trabaja" ("ips_trabaja", "consultorio_trabaja");
 
 CREATE UNIQUE INDEX ON "inventaria" ("ips_inventaria", "medicamento_inventaria");
 
