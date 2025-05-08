@@ -3,51 +3,61 @@ package com.eps.apexeps.models.relations;
 import com.eps.apexeps.models.Diagnostico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.Serializable;
+import jakarta.persistence.*;
 
-// Table genera {
-//   agenda_genera integer [pk, ref: > agenda.id_agenda]
-//   diagnostico_genera varchar(10) [pk, ref: > diagnostico.cie_diagnostico]
-//   obs_genera text [null]
-// }
-
-/**
- * Esta clase representa la clave primaria compuesta de la relación Genera en la base de datos.
- * Se utiliza para mapear la tabla 'genera' y sus columnas a un objeto Java.
- * Incluye anotaciones de JPA para la persistencia y validaciones de datos.
- * @author Nicolás Sabogal
- */
+// Clase para la clave compuesta de Genera
 @Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class GeneraId {
+public class GeneraId implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    // Se ignora la relación para evitar problemas de recursividad al serializar a JSON.
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(
-        name = "agenda_genera",
-        referencedColumnName = "id_agenda",
-        nullable = false
-    )
-    private Agenda agenda;
+    @Column(name = "agenda_genera")
+    private Long agendaGenera;
 
-    @ManyToOne
-    @JoinColumn(
-        name = "diagnostico_genera",
-        referencedColumnName = "cie_diagnostico",
-        nullable = false
-    )
-    private Diagnostico diagnostico;
-    
+    @Column(name = "diagnostico_genera")
+    private String diagnosticoGenera;
+
+    // Constructor vacío necesario para JPA
+    public GeneraId() {
+    }
+
+    public GeneraId(Long agendaGenera, String diagnosticoGenera) {
+        this.agendaGenera = agendaGenera;
+        this.diagnosticoGenera = diagnosticoGenera;
+    }
+
+    // Getters y setters
+    public Long getAgendaGenera() {
+        return agendaGenera;
+    }
+
+    public void setAgendaGenera(Long agendaGenera) {
+        this.agendaGenera = agendaGenera;
+    }
+
+    public String getDiagnosticoGenera() {
+        return diagnosticoGenera;
+    }
+
+    public void setDiagnosticoGenera(String diagnosticoGenera) {
+        this.diagnosticoGenera = diagnosticoGenera;
+    }
+
+    // equals y hashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GeneraId generaId = (GeneraId) o;
+        return agendaGenera.equals(generaId.agendaGenera) &&
+               diagnosticoGenera.equals(generaId.diagnosticoGenera);
+    }
+
+    @Override
+    public int hashCode() {
+        return agendaGenera.hashCode() + diagnosticoGenera.hashCode();
+    }
 }
