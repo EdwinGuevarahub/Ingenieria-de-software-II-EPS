@@ -5,12 +5,11 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
-import com.eps.apexeps.repositories.MedicoRepository;
-import com.eps.apexeps.repositories.ServicioMedicoRepository;
-import com.eps.apexeps.repositories.TrabajaRepository;
-
+import com.eps.apexeps.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -26,11 +25,17 @@ public class MedicoService {
     /** Repositorio de médicos para acceder a la base de datos. */
     private final MedicoRepository medicoRepository;
 
+    /** Repositorio de consultorios para acceder a la base de datos. */
+    private final ConsultorioRepository consultorioRepository;
+
     /** Repositorio de Trabaja para acceder a la base de datos. */
     private final TrabajaRepository trabajaRepository;
 
     /** Repositorio de ServicioMedico para acceder a la base de datos. */
     private final ServicioMedicoRepository servicioMedicoRepository;
+
+    /** Repositorio de IPS para acceder a la base de datos. */
+    private final IpsRepository ipsRepository;
 
     /**
      * Método para obtener todos los médicos de la base de datos filtrarlos por diferentes criterios.
@@ -115,87 +120,44 @@ public class MedicoService {
 
     /**
      * Método para crear un nuevo médico.
-     * @param dniMedico El DNI del médico.
-     * @param nombreMedico El nombre del médico.
-     * @param emailMedico El correo electrónico del médico.
-     * @param telefonoMedico El número de teléfono del médico.
-     * @return El médico creado.
-     * @throws IllegalArgumentException Si el médico ya existe.
+     * @param trabaja El objeto que contiene el médico a crear y un consultorio y horario de trabajo.
+     * @return El objeto Trabaja que representa la relación entre el médico y el consultorio.
+     * @throws IllegalArgumentException Si el médico ya existe, si el consultorio no existe o si algún horario es inválido.
      */
-    public Medico createMedico(
-        Long dniMedico,
-        String nombreMedico,
-        String emailMedico,
-        String telefonoMedico
-    ) {
-        if (existsMedico(dniMedico))
+    public Trabaja createMedico(Trabaja trabaja) {
+        if (medicoRepository.existsById(trabaja.getMedico().getDni()))
             throw new IllegalArgumentException("El médico ya existe.");
 
-        return saveMedico(
-                dniMedico,
-                nombreMedico,
-                emailMedico,
-                telefonoMedico
+        Consultorio consultorio = consultorioRepository
+                .findById(trabaja.getConsultorio().getId())
+                .orElse(null);
+        if (consultorio == null)
+            throw new IllegalArgumentException("El consultorio no existe.");
+            
+        trabaja.setConsultorio(consultorio);
+        consultorio.getId().setIps(
+                ipsRepository
+                    .findById(consultorio.getId().getIps().getId())
+                    .orElse(null)
             );
+                
+        // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
+
+        medicoRepository.save(trabaja.getMedico());
+        return trabajaRepository.save(trabaja);
     }
 
     /**
      * Método para actualizar un médico existente.
-     * @param dniMedico El DNI del médico.
-     * @param nombreMedico El nombre del médico.
-     * @param emailMedico El correo electrónico del médico.
-     * @param telefonoMedico El número de teléfono del médico.
+     * @param medico El médico a actualizar.
      * @return El médico actualizado.
      * @throws IllegalArgumentException Si el médico no existe.
      */
-    public Medico updateMedico(
-        Long dniMedico,
-        String nombreMedico,
-        String emailMedico,
-        String telefonoMedico
-    ) {
-        if (!existsMedico(dniMedico))
+    public Medico updateMedico(Medico medico) {
+        if (!medicoRepository.existsById(medico.getDni()))
             throw new IllegalArgumentException("El médico no existe.");
 
-        return saveMedico(
-                dniMedico,
-                nombreMedico,
-                emailMedico,
-                telefonoMedico
-            );
-    }
-
-    /**
-     * Método para comprobar si un médico existe en la base de datos.
-     * @param dniMedico El DNI del médico.
-     * @return true si el médico existe, false en caso contrario.
-     */
-    private boolean existsMedico(Long dniMedico) {
-        return medicoRepository.existsById(dniMedico);
-    }
-
-    /**
-     * Método para guardar un médico en la base de datos.
-     * @param dniMedico El DNI del médico.
-     * @param nombreMedico El nombre del médico.
-     * @param emailMedico El correo electrónico del médico.
-     * @param telefonoMedico El número de teléfono del médico.
-     * @return El médico guardado.
-     */
-    private Medico saveMedico(
-        Long dniMedico,
-        String nombreMedico,
-        String emailMedico,
-        String telefonoMedico
-    ) {
-        return medicoRepository.save(
-                    Medico.builder()
-                        .dni(dniMedico)
-                        .nombre(nombreMedico)
-                        .email(emailMedico)
-                        .telefono(telefonoMedico)
-                        .build()
-                );
+        return medicoRepository.save(medico);
     }
 
     /**
@@ -221,40 +183,19 @@ public class MedicoService {
     }
 
     /**
-     * Método para obtener un servicio médico específico dominado por un médico.
-     * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
-     * durante la ejecución del método.
-     * @param dniMedico El DNI del médico.
-     * @param cupsServicioMedico El CUPS del servicio médico.
-     * @return El servicio médico correspondiente al CUPS o null si el médico no lo domina.
-     * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
-     */
-    @Transactional
-    public ServicioMedico getDominioMedico(Long dniMedico, String cupsServicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
-        Medico medico = (Medico) validados[0];
-        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
-        
-        if (!medico.getDominios().contains(servicioMedico))
-            return null;
-        
-        return servicioMedico;
-    }
-
-    /**
      * Método para agregar un servicio médico a los dominios de un médico.
      * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
      * durante la ejecución del método.
      * @param dniMedico El DNI del médico.
-     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @param servicioMedico El servicio médico a agregar.
      * @return Una lista de servicios médicos restantes asociados al médico.
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
     @Transactional
-    public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
+    public List<ServicioMedico> addDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
         Medico medico = (Medico) validados[0];
-        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
+        servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (dominios.contains(servicioMedico))
@@ -270,15 +211,15 @@ public class MedicoService {
      * Se anota con @Transactional para asegurar que la sesión de Hibernate esté abierta
      * durante la ejecución del método.
      * @param dniMedico El DNI del médico.
-     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @param servicioMedico El servicio médico a eliminar.
      * @return Una lista de servicios médicos restantes asociados al médico.
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen o si el médico no lo domina.
      */
     @Transactional
-    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, String cupsServicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
+    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
         Medico medico = (Medico) validados[0];
-        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
+        servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (!dominios.contains(servicioMedico))
@@ -291,12 +232,12 @@ public class MedicoService {
 
     /**
      * Método privado para validar la existencia de un médico y un servicio médico.
-     * @param dniMedico El DNI del médico.
-     * @param cupsServicioMedico El CUPS del servicio médico.
+     * @param dniMedico El DNI del médico a validar.
+     * @param servicioMedico El servicio médico a validar.
      * @return Un array con el médico y el servicio médico validados.
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
-    private Object[] validarMedicoAndServicio(Long dniMedico, String cupsServicioMedico) {
+    private Object[] validarMedicoAndServicio(Long dniMedico, ServicioMedico servicioMedico) {
         Medico medico = medicoRepository
                             .findById(dniMedico)
                             .orElse(null);
@@ -304,9 +245,9 @@ public class MedicoService {
         if (medico == null)
             throw new IllegalArgumentException("El médico no existe.");
 
-        ServicioMedico servicioMedico = servicioMedicoRepository
-                                            .findById(cupsServicioMedico)
-                                            .orElse(null);
+        servicioMedico = servicioMedicoRepository
+                            .findById(servicioMedico.getCups())
+                            .orElse(null);
 
         if (servicioMedico == null)
             throw new IllegalArgumentException("El servicio médico no existe.");
