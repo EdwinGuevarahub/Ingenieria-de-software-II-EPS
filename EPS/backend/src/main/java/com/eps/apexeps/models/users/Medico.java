@@ -42,6 +42,7 @@ import lombok.Setter;
 @Table(name = "medico")
 public class Medico {
 
+    /** Número de identificación del médico. */
     @Id
     @Column(
         name = "dni_medico",
@@ -49,6 +50,7 @@ public class Medico {
     )
     private Long dni;
 
+    /** Nombre del médico. */
     @NotEmpty
     @Column(
         name = "nom_medico",
@@ -57,6 +59,7 @@ public class Medico {
     )
     private String nombre;
 
+    /** Correo electrónico del médico. */
     @NotEmpty
     @Column(
         name = "email_medico",
@@ -67,6 +70,7 @@ public class Medico {
     )
     private String email;
 
+    /** Contraseña del médico. */
     @JsonIgnore
     @NotEmpty
     @Column(
@@ -76,6 +80,7 @@ public class Medico {
     )
     private String password;
 
+    /** Número de teléfono del médico. */
     @NotEmpty
     @Column(
         name = "tel_medico",
@@ -84,6 +89,7 @@ public class Medico {
     )
     private String telefono;
 
+    /** Indica si el médico está activo o no. */
     @Column(
         name = "activo_medico",
         nullable = false,

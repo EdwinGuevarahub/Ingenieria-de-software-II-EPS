@@ -52,11 +52,13 @@ import lombok.Setter;
 @Table(name = "trabaja")
 public class Trabaja {
 
+    /** Identificador único de la relación Trabaja. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_trabaja")
     private Integer id;
 
+    /** Médico asociado a la relación Trabaja. */
     @ManyToOne
     @JoinColumn(
         name = "medico_trabaja",
@@ -65,6 +67,7 @@ public class Trabaja {
     )
     private Medico medico;
 
+    /** IPS asociada a la relación Trabaja. */
     @ManyToOne
     @JoinColumns({
         @JoinColumn(
@@ -80,6 +83,7 @@ public class Trabaja {
     })
     private Consultorio consultorio;
 
+    /** Horario de trabajo del médico en la relación Trabaja. */
     @NotEmpty
     @Getter(AccessLevel.NONE)
     @Column(

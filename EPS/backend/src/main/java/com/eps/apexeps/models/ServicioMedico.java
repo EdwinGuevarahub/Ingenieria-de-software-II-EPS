@@ -32,6 +32,7 @@ import lombok.Setter;
 @Table(name = "servicio_medico")
 public class ServicioMedico {
 
+    /** Código Único de Prestación de Salud (CUPS) del servicio médico. */
     @Id
     @Column(
         name = "cups_sermed",
@@ -40,6 +41,7 @@ public class ServicioMedico {
     )
     private String cups;
 
+    /** Nombre del servicio médico. */
     @Column(
         name = "nom_sermed",
         length = 100,
@@ -47,12 +49,14 @@ public class ServicioMedico {
     )
     private String nombre;
 
+    /** Descripción del servicio médico. */
     @Column(
         name = "desc_sermed",
         columnDefinition = "text"
     )
     private String descripcion;
 
+    /** Tarifa del servicio médico. */
     @Column(
         name = "tarifa_sermed",
         nullable = false,
