@@ -47,77 +47,26 @@ public class ServicioMedicoService {
 
     /**
      * Método para crear un nuevo servicio médico.
-     * @param cupsServicioMedico El código CUPS del servicio médico.
-     * @param nombreServicioMedico El nombre del servicio médico.
-     * @param descripcionServicioMedico La descripción del servicio médico.
-     * @param tarifaServicioMedico La tarifa del servicio médico.
+     * @param servicioMedico El servicio médico a crear.
      * @return El servicio médico creado.
      * @throws IllegalArgumentException Si el servicio médico ya existe.
      */
-    public ServicioMedico createServicioMedico(
-        String cupsServicioMedico,
-        String nombreServicioMedico,
-        String descripcionServicioMedico,
-        Double tarifaServicioMedico
-    ) {
-        if (servicioMedicoRepository.existsById(cupsServicioMedico))
+    public ServicioMedico createServicioMedico(ServicioMedico servicioMedico) {
+        if (servicioMedicoRepository.existsById(servicioMedico.getCups()))
             throw new IllegalArgumentException("El servicio médico ya existe.");
 
-        return saveServicioMedico(
-                    cupsServicioMedico,
-                    nombreServicioMedico,
-                    descripcionServicioMedico,
-                    tarifaServicioMedico
-                );
+        return servicioMedicoRepository.save(servicioMedico);
     }
 
     /**
      * Método para actualizar un servicio médico existente.
-     * @param cupsServicioMedico El código CUPS del servicio médico.
-     * @param nombreServicioMedico El nuevo nombre del servicio médico.
-     * @param descripcionServicioMedico La nueva descripción del servicio médico.
-     * @param tarifaServicioMedico La nueva tarifa del servicio médico.
+     * @param servicioMedico El servicio médico a actualizar.
      * @return El servicio médico actualizado.
      * @throws IllegalArgumentException Si el servicio médico no existe.
      */
-    public ServicioMedico updateServicioMedico(
-        String cupsServicioMedico,
-        String nombreServicioMedico,
-        String descripcionServicioMedico,
-        Double tarifaServicioMedico
-    ) {
-        if (!servicioMedicoRepository.existsById(cupsServicioMedico))
+    public ServicioMedico updateServicioMedico(ServicioMedico servicioMedico) {
+        if (!servicioMedicoRepository.existsById(servicioMedico.getCups()))
             throw new IllegalArgumentException("El servicio médico no existe.");
-
-        return saveServicioMedico(
-                    cupsServicioMedico,
-                    nombreServicioMedico,
-                    descripcionServicioMedico,
-                    tarifaServicioMedico
-                );
-    }
-
-    /**
-     * Método privado para guardar un servicio médico en la base de datos.
-     * @param cupsServicioMedico El código CUPS del servicio médico.
-     * @param nombreServicioMedico El nombre del servicio médico.
-     * @param descripcionServicioMedico La descripción del servicio médico.
-     * @param tarifaServicioMedico La tarifa del servicio médico.
-     * @return El servicio médico guardado.
-     */
-    private ServicioMedico saveServicioMedico(
-        String cupsServicioMedico,
-        String nombreServicioMedico,
-        String descripcionServicioMedico,
-        Double tarifaServicioMedico
-    ) {
-        ServicioMedico servicioMedico =
-            ServicioMedico.builder()
-                .cups(cupsServicioMedico)
-                .nombre(nombreServicioMedico)
-                .descripcion(descripcionServicioMedico)
-                .tarifa(tarifaServicioMedico)
-                .build();
 
         return servicioMedicoRepository.save(servicioMedico);
     }
