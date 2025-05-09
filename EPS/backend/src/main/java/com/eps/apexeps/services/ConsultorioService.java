@@ -6,10 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.ConsultorioId;
-import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.repositories.ConsultorioRepository;
-import com.eps.apexeps.repositories.IpsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +21,6 @@ public class ConsultorioService {
 
     /** Repositorio de consultorios para acceder a la base de datos. */
     private final ConsultorioRepository consultorioRepository;
-
-    /** Repositorio de IPS para acceder a la base de datos. */
-    private final IpsRepository ipsRepository;
 
     /**
      * Método para obtener todos los consultorios de la base de datos o de una IPS específica.
@@ -78,71 +72,24 @@ public class ConsultorioService {
      * @return El consultorio creado.
      * @throws IllegalArgumentException Si el consultorio ya existe.
      */
-    public Consultorio createConsultorio(
-        Integer idIps, Integer idConsultorio, String cupsServicioMedico
-    ) {
-        if (existsConsultorio(idIps, idConsultorio))
+    public Consultorio createConsultorio(Consultorio consultorio) {
+        if (consultorioRepository.existsById(consultorio.getId()))
             throw new IllegalArgumentException( "El consultorio ya existe.");
 
-        return saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
+        return consultorioRepository.save(consultorio);
     }
 
     /**
      * Método para actualizar un consultorio existente.
-     * @param idIps El id de la IPS.
-     * @param idConsultorio El id del consultorio.
-     * @param cupsServicioMedico El CUPS del servicio médico que presta el consultorio.
+     * @param Consultorio El objeto Consultorio que contiene la información del consultorio a actualizar.
      * @return El consultorio actualizado.
      * @throws IllegalArgumentException Si el consultorio no existe.
      */
-    public Consultorio updateConsultorio(
-        Integer idIps, Integer idConsultorio, String cupsServicioMedico
-    ) {
-        if (!existsConsultorio(idIps, idConsultorio))
+    public Consultorio updateConsultorio(Consultorio consultorio) {
+        if (!consultorioRepository.existsById(consultorio.getId()))
             throw new IllegalArgumentException( "El consultorio no existe.");
 
-        return saveConsultorio(idIps, idConsultorio, cupsServicioMedico);
-    }
-
-    /**
-     * Método para comprobar si un consultorio existe en la base de datos.
-     * @param idIps El id de la IPS.
-     * @param idConsultorio El id del consultorio.
-     * @return true si el consultorio existe, false en caso contrario.
-     */
-    private boolean existsConsultorio(Integer idIps, Integer idConsultorio) {
-        return consultorioRepository
-            .existsById_Ips_IdAndId_IdConsultorio(idIps, idConsultorio);
-    }
-
-    /**
-     * Método para guardar un consultorio en la base de datos.
-     * @param idIps El id de la IPS.
-     * @param idConsultorio El id del consultorio.
-     * @param cupsServicioMedico El CUPS del servicio médico que presta el consultorio.
-     * @return El consultorio guardado.
-     */
-    private Consultorio saveConsultorio(
-        Integer idIps, Integer idConsultorio, String cupsServicioMedico
-    ) {
-        return consultorioRepository.save(
-                    Consultorio.builder()
-                        .id(ConsultorioId
-                            .builder()
-                            .ips(ipsRepository
-                                .findById(idIps)
-                                .orElse(null)
-                            )
-                            .idConsultorio(idConsultorio)
-                            .build()
-                        )
-                        .servicioMedico(ServicioMedico
-                            .builder()
-                            .cups(cupsServicioMedico)
-                            .build()
-                        )
-                        .build()
-                );
+        return consultorioRepository.save(consultorio);
     }
     
 }

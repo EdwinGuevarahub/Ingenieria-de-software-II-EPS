@@ -1,10 +1,10 @@
 package com.eps.apexeps.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Consultorio;
+import com.eps.apexeps.request.ConsultorioListaSolicitud;
 import com.eps.apexeps.response.ConsultorioEntradaLista;
 import com.eps.apexeps.services.ConsultorioService;
 
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Controlador REST para manejar las operaciones relacionadas con los consultorios de una IPS.
@@ -26,32 +27,26 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequiredArgsConstructor
 @RequestMapping("/api/consultorio")
 public class ConsultorioController {
-    
+
     /** Servicio de consultorios para manejar la lógica de negocio. */
     private final ConsultorioService consultorioService;
 
     /**
      * Endpoint para obtener todos los consultorios de la base de datos.
-     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
-     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
-     * @param qSize Tamaño de la página (por defecto, 10).
-     * @param qPage Número de la página (por defecto, 0).
+     * @param consultorioListaSolicitud Objeto que contiene los parámetros de búsqueda.
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
     public List<ConsultorioEntradaLista> getAllConsultorios(
-        @RequestParam(required = false) String cupsServicioMedico,
-        @RequestParam(required = false) Integer idConsultorioLike,
-        @RequestParam(defaultValue = "10") Integer qSize,
-        @RequestParam(defaultValue = "0") Integer qPage
+        @RequestBody ConsultorioListaSolicitud consultorioListaSolicitud
     ) {
         return consultorioService
                 .getConsultorios(
                     null,
-                    idConsultorioLike,
-                    cupsServicioMedico,
-                    qSize,
-                    qPage
+                    consultorioListaSolicitud.getIdConsultorioLike(),
+                    consultorioListaSolicitud.getCupsServicioMedico(),
+                    consultorioListaSolicitud.getQSize(),
+                    consultorioListaSolicitud.getQPage()
                 )
                 .stream()
                 .map(ConsultorioEntradaLista::of)
@@ -61,27 +56,21 @@ public class ConsultorioController {
     /**
      * Endpoint para obtener todos los consultorios de una IPS por su id.
      * @param idIps El id de la IPS.
-     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
-     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
-     * @param qSize Tamaño de la página (por defecto, 10).
-     * @param qPage Número de la página (por defecto, 0).
+     * @param consultorioListaSolicitud Objeto que contiene los parámetros de búsqueda.
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")
     public List<ConsultorioEntradaLista> getConsultoriosByIps(
         @PathVariable Integer idIps,
-        @RequestParam(required = false) String cupsServicioMedico,
-        @RequestParam(required = false) Integer idConsultorioLike,
-        @RequestParam(defaultValue = "10") Integer qSize,
-        @RequestParam(defaultValue = "0") Integer qPage
+        @RequestBody ConsultorioListaSolicitud consultorioListaSolicitud
     ) {
         return consultorioService
                 .getConsultorios(
                     idIps,
-                    idConsultorioLike,
-                    cupsServicioMedico,
-                    qSize,
-                    qPage
+                    consultorioListaSolicitud.getIdConsultorioLike(),
+                    consultorioListaSolicitud.getCupsServicioMedico(),
+                    consultorioListaSolicitud.getQSize(),
+                    consultorioListaSolicitud.getQPage()
                 )
                 .stream()
                 .map(ConsultorioEntradaLista::of)
@@ -101,22 +90,16 @@ public class ConsultorioController {
 
     /**
      * Endpoint para crear un nuevo consultorio en una IPS.
-     * @param idIps El id de la IPS.
-     * @param idConsultorio El id del consultorio.
-     * @param cupsServicioMedico El CUPS del servicio médico asociado al consultorio.
+     * @param Consultorio El objeto Consultorio que contiene la información del nuevo consultorio.
      * @return El consultorio creado.
      * @throws RuntimeException Si no se pudo crear el consultorio.
      */
     @PostMapping
     public Consultorio createConsultorio(
-        @RequestParam Integer idIps,
-        @RequestParam Integer idConsultorio,
-        @RequestParam String cupsServicioMedico
+        @RequestBody Consultorio consultorio
     ) {
         try {
-            return consultorioService.createConsultorio(
-                        idIps, idConsultorio, cupsServicioMedico
-                    );
+            return consultorioService.createConsultorio(consultorio);
         }
         catch (Exception e) {
             throw new RuntimeException("Error al crear el consultorio: " + e.getMessage(), e);
@@ -125,22 +108,16 @@ public class ConsultorioController {
 
     /**
      * Endpoint para actualizar un consultorio existente de una IPS.
-     * @param idIps El id de la IPS.
-     * @param idConsultorio El id del consultorio.
-     * @param cupsServicioMedico El CUPS del servicio médico asociado al consultorio.
+     * @param consultorio El objeto Consultorio que contiene la información del consultorio a actualizar.
      * @return El consultorio actualizado.
      * @throws RuntimeException Si no se pudo actualizar el consultorio.
      */
     @PutMapping
     public Consultorio updateConsultorio(
-        @RequestParam Integer idIps,
-        @RequestParam Integer idConsultorio,
-        @RequestParam String cupsServicioMedico
+        @RequestBody Consultorio consultorio
     ) {
         try {
-            return consultorioService.updateConsultorio(
-                        idIps, idConsultorio, cupsServicioMedico
-                    );
+            return consultorioService.updateConsultorio(consultorio);
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el consultorio: " + e.getMessage(), e);
