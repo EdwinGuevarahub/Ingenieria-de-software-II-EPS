@@ -38,7 +38,7 @@ public class MedicoController {
      * @param idIps El id de la IPS (opcional).
      * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS de un servicio médico asociado al médico (opcional).
-     * @param codDiaSemana Código del día de la semana en el que el médico está disponible (opcional, 1 = Lunes -> 7 = Domingo).
+     * @param DiaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsuclas (opcional).
      * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional, 0 a 23).
      * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
      * @param estaActivo Indica si el médico está activo o no (opcional).
@@ -46,13 +46,14 @@ public class MedicoController {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de médicos.
      * @throws RuntimeException Si ocurre un error al obtener los médicos.
+     * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     @GetMapping
     public List<MedicoEntradaLista> getAllMedicos(
         @RequestParam(required = false) Integer idIps,
         @RequestParam(required = false) String dniNombreLike,
         @RequestParam(required = false) String cupsServicioMedico,
-        @RequestParam(required = false) Integer codDiaSemana,
+        @RequestParam(required = false) String DiaSemanaIngles,
         @RequestParam(required = false) Integer horaDeInicio,
         @RequestParam(required = false) Integer horaDeFin,
         @RequestParam(required = false) Boolean estaActivo,
@@ -65,7 +66,7 @@ public class MedicoController {
                         idIps,
                         dniNombreLike,
                         cupsServicioMedico,
-                        codDiaSemana,
+                        DiaSemanaIngles,
                         horaDeInicio,
                         horaDeFin,
                         estaActivo,

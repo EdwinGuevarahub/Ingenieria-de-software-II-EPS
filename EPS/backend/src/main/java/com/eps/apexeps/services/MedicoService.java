@@ -1,5 +1,6 @@
 package com.eps.apexeps.services;
 
+import java.time.DayOfWeek;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -42,7 +43,7 @@ public class MedicoService {
      * @param idIps El id de la IPS que se usará para filtrar los médicos (opcional).
      * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico que se usará para filtrar los médicos (opcional).
-     * @param codDiaSemana El día de la semana en el que el médico está disponible (opcional, 1 = Lunes -> 7 = Domingo).
+     * @param DiaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsculas (opcional).
      * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional).
      * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
      * @param estaActivo Indica si el médico está activo o no (opcional, 0 a 23).
@@ -50,12 +51,13 @@ public class MedicoService {
      * @param qPage Número de la página (opcional).
      * @return Una lista de médicos.
      * @throws IllegalArgumentException Si el día de la semana no está entre 1 y 7 o si las horas no están entre 0 y 23.
+     * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     public List<Medico> getMedicos(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,
-        Integer codDiaSemana,
+        String DiaSemanaIngles,
         Integer horaDeInicio,
         Integer horaDeFin,
         Boolean estaActivo,
@@ -72,12 +74,15 @@ public class MedicoService {
                     pageable
                 );
         
-        if (codDiaSemana == null)
+        if (DiaSemanaIngles == null)
             return medicos;
 
         // Filtrar los médicos que no tienen el horario disponible para el día de la semana y las horas especificadas.
-        if (codDiaSemana < 1 || codDiaSemana > 7)
-            throw new IllegalArgumentException("El día de la semana debe estar entre 1 y 7.");
+        try {
+            DayOfWeek.valueOf(DiaSemanaIngles);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("No se reconoce el día de la semana: " + DiaSemanaIngles);
+        }
         
         if (horaDeInicio != null && (horaDeInicio < 0 || horaDeInicio > 23))
             throw new IllegalArgumentException("La hora de inicio debe estar entre 0 y 23.");
@@ -93,7 +98,7 @@ public class MedicoService {
                 trabaja.getHorario().stream()
                     // hay alguno que cumple con el día de la semana y las horas especificadas.
                     .anyMatch(horario ->
-                        horario.getDia().getValue() == codDiaSemana
+                        horario.getDia() == DayOfWeek.valueOf(DiaSemanaIngles)
                         && (horaDeInicio == null
                             || horario.getInicio().getHour() <= horaDeInicio
                         )
