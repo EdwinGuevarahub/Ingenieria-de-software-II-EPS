@@ -16,6 +16,7 @@ import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.response.MedicoEntradaLista;
+import com.eps.apexeps.response.ServicioMedicoEntradaLista;
 import com.eps.apexeps.services.MedicoService;
 
 import lombok.RequiredArgsConstructor;
@@ -132,9 +133,12 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al obtener los servicios médicos del médico.
      */
     @GetMapping("/{dniMedico}/dominio")
-    public List<ServicioMedico> getAllDominiosMedico(@PathVariable Long dniMedico) {
+    public List<ServicioMedicoEntradaLista> getAllDominiosMedico(@PathVariable Long dniMedico) {
         try {
-            return medicoService.getAllDominiosMedico(Long.valueOf(dniMedico));
+            return medicoService.getAllDominiosMedico(Long.valueOf(dniMedico))
+                    .stream()
+                    .map(ServicioMedicoEntradaLista::of)
+                    .toList();
         }
         catch (Exception e) {
             throw new RuntimeException("Error al obtener los dominios: " + e.getMessage(), e);
