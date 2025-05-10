@@ -202,10 +202,10 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
     @Transactional
-    public List<ServicioMedico> addDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
+    public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
         Medico medico = (Medico) validados[0];
-        servicioMedico = (ServicioMedico) validados[1];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (dominios.contains(servicioMedico))
@@ -226,10 +226,10 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen o si el médico no lo domina.
      */
     @Transactional
-    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
+    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
         Medico medico = (Medico) validados[0];
-        servicioMedico = (ServicioMedico) validados[1];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (!dominios.contains(servicioMedico))
@@ -247,7 +247,7 @@ public class MedicoService {
      * @return Un array con el médico y el servicio médico validados.
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
-    private Object[] validarMedicoAndServicio(Long dniMedico, ServicioMedico servicioMedico) {
+    private Object[] validarMedicoAndServicio(Long dniMedico, String cupsServicioMedico) {
         Medico medico = medicoRepository
                             .findById(dniMedico)
                             .orElse(null);
@@ -255,9 +255,9 @@ public class MedicoService {
         if (medico == null)
             throw new IllegalArgumentException("El médico no existe.");
 
-        servicioMedico = servicioMedicoRepository
-                            .findById(servicioMedico.getCups())
-                            .orElse(null);
+        ServicioMedico servicioMedico = servicioMedicoRepository
+                                            .findById(cupsServicioMedico)
+                                            .orElse(null);
 
         if (servicioMedico == null)
             throw new IllegalArgumentException("El servicio médico no existe.");
