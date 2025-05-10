@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.request.ServicioMedicoListaSolicitud;
 import com.eps.apexeps.response.ServicioMedicoEntradaLista;
 import com.eps.apexeps.services.ServicioMedicoService;
 
@@ -32,16 +32,21 @@ public class ServicioMedicoController {
 
     /**
      * Endpoint para obtener todos los servicios médicos de la base de datos.
+     * @param cupsNombreLike Parte del nombre o código CUPS del servicio médico a buscar (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de servicios médicos.
      */
     @GetMapping
     public List<ServicioMedicoEntradaLista> getAllServiciosMedicos(
-        @RequestBody ServicioMedicoListaSolicitud servicioMedicoListaSolicitud
+        @RequestParam(required = false) String cupsNombreLike,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) { 
         return servicioMedicoService.getServiciosMedicos(
-                    servicioMedicoListaSolicitud.getCupsNombreLike(),
-                    servicioMedicoListaSolicitud.getQSize(),
-                    servicioMedicoListaSolicitud.getQPage()
+                    cupsNombreLike,
+                    qSize,
+                    qPage
                 )
                 .stream()
                 .map(ServicioMedicoEntradaLista::of)

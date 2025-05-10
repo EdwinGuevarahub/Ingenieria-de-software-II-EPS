@@ -1,10 +1,10 @@
 package com.eps.apexeps.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.request.ConsultorioListaSolicitud;
 import com.eps.apexeps.response.ConsultorioEntradaLista;
 import com.eps.apexeps.services.ConsultorioService;
 
@@ -33,20 +33,26 @@ public class ConsultorioController {
 
     /**
      * Endpoint para obtener todos los consultorios de la base de datos.
-     * @param consultorioListaSolicitud Objeto que contiene los parámetros de búsqueda.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
+     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
     public List<ConsultorioEntradaLista> getAllConsultorios(
-        @RequestBody ConsultorioListaSolicitud consultorioListaSolicitud
+        @RequestParam(required = false) String cupsServicioMedico,
+        @RequestParam(required = false) Integer idConsultorioLike,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) {
         return consultorioService
                 .getConsultorios(
                     null,
-                    consultorioListaSolicitud.getIdConsultorioLike(),
-                    consultorioListaSolicitud.getCupsServicioMedico(),
-                    consultorioListaSolicitud.getQSize(),
-                    consultorioListaSolicitud.getQPage()
+                    idConsultorioLike,
+                    cupsServicioMedico,
+                    qSize,
+                    qPage
                 )
                 .stream()
                 .map(ConsultorioEntradaLista::of)
@@ -56,21 +62,27 @@ public class ConsultorioController {
     /**
      * Endpoint para obtener todos los consultorios de una IPS por su id.
      * @param idIps El id de la IPS.
-     * @param consultorioListaSolicitud Objeto que contiene los parámetros de búsqueda.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a los consultorios (opcional).
+     * @param idConsultorioLike Número que se usará para filtrar los consultorios por su id (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")
     public List<ConsultorioEntradaLista> getConsultoriosByIps(
         @PathVariable Integer idIps,
-        @RequestBody ConsultorioListaSolicitud consultorioListaSolicitud
+        @RequestParam(required = false) String cupsServicioMedico,
+        @RequestParam(required = false) Integer idConsultorioLike,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) {
         return consultorioService
                 .getConsultorios(
                     idIps,
-                    consultorioListaSolicitud.getIdConsultorioLike(),
-                    consultorioListaSolicitud.getCupsServicioMedico(),
-                    consultorioListaSolicitud.getQSize(),
-                    consultorioListaSolicitud.getQPage()
+                    idConsultorioLike,
+                    cupsServicioMedico,
+                    qSize,
+                    qPage
                 )
                 .stream()
                 .map(ConsultorioEntradaLista::of)

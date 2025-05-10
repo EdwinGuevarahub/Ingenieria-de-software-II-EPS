@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
-import com.eps.apexeps.request.MedicoListaSolicitud;
 import com.eps.apexeps.response.MedicoEntradaLista;
 import com.eps.apexeps.services.MedicoService;
 
@@ -35,34 +35,42 @@ public class MedicoController {
 
     /**
      * Endpoint para obtener todos los médicos de la base de datos.
-     * @param idIps 
-     * @param dniNombreLike 
-     * @param cupsServicioMedico 
-     * @param codDiaSemana 
-     * @param horaDeInicio 
-     * @param horaDeFin 
-     * @param estaActivo 
-     * @param qSize 
-     * @param qPage 
+     * @param idIps El id de la IPS (opcional).
+     * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
+     * @param cupsServicioMedico El CUPS de un servicio médico asociado al médico (opcional).
+     * @param codDiaSemana Código del día de la semana en el que el médico está disponible (opcional, 1 = Lunes -> 7 = Domingo).
+     * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional, 0 a 23).
+     * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
+     * @param estaActivo Indica si el médico está activo o no (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de médicos.
      * @throws RuntimeException Si ocurre un error al obtener los médicos.
      */
     @GetMapping
     public List<MedicoEntradaLista> getAllMedicos(
-        @RequestBody MedicoListaSolicitud medicoListaSolicitud
+        @RequestParam(required = false) Integer idIps,
+        @RequestParam(required = false) String dniNombreLike,
+        @RequestParam(required = false) String cupsServicioMedico,
+        @RequestParam(required = false) Integer codDiaSemana,
+        @RequestParam(required = false) Integer horaDeInicio,
+        @RequestParam(required = false) Integer horaDeFin,
+        @RequestParam(required = false) Boolean estaActivo,
+        @RequestParam(defaultValue = "10") Integer qSize,
+        @RequestParam(defaultValue = "0") Integer qPage
     ) {
         try{
             return medicoService
                     .getMedicos(
-                        medicoListaSolicitud.getIdIps(),
-                        medicoListaSolicitud.getDniNombreLike(),
-                        medicoListaSolicitud.getCupsServicioMedico(),
-                        medicoListaSolicitud.getCodDiaSemana(),
-                        medicoListaSolicitud.getHoraDeInicio(),
-                        medicoListaSolicitud.getHoraDeFin(),
-                        medicoListaSolicitud.getEstaActivo(),
-                        medicoListaSolicitud.getQSize(),
-                        medicoListaSolicitud.getQPage()
+                        idIps,
+                        dniNombreLike,
+                        cupsServicioMedico,
+                        codDiaSemana,
+                        horaDeInicio,
+                        horaDeFin,
+                        estaActivo,
+                        qSize,
+                        qPage
                     )
                     .stream()
                     .map(MedicoEntradaLista::of)
@@ -72,6 +80,7 @@ public class MedicoController {
             throw new RuntimeException("Error al obtener los médicos: " + e.getMessage(), e);
         }
     }
+
 
     /**
      * Endpoint para obtener un médico por su DNI.
