@@ -48,10 +48,10 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
             AND (:diaSemanaParam IS NULL
                 OR (t.horario LIKE %:diaSemanaParam%
                     AND (:inicioParam IS NULL
-                        OR CAST(SUBSTRING(t.horario, LOCATE(:diaSemanaParam, t.horario) + 1, 2) AS Integer) <= :inicioParam
+                        OR CAST(SUBSTRING(t.horario, POSITION(CAST(:diaSemanaParam AS String) IN t.horario) + 1, 2) AS Integer) <= :inicioParam
                     )
                     AND (:finParam IS NULL
-                        OR CAST(SUBSTRING(t.horario, LOCATE(:diaSemanaParam, t.horario) + 4, 2) AS Integer) >= :finParam
+                        OR CAST(SUBSTRING(t.horario, POSITION(CAST(:diaSemanaParam AS String) IN t.horario) + 4, 2) AS Integer) >= :finParam
                     )
                 )
             )
