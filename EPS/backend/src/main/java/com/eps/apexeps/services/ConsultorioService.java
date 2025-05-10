@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
+import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.repositories.ConsultorioRepository;
+import com.eps.apexeps.repositories.IpsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +23,9 @@ public class ConsultorioService {
 
     /** Repositorio de consultorios para acceder a la base de datos. */
     private final ConsultorioRepository consultorioRepository;
+
+    /** Repositorio de IPS para acceder a la base de datos. */
+    private final IpsRepository ipsRepository;
 
     /**
      * Método para obtener todos los consultorios de la base de datos o de una IPS específica.
@@ -76,7 +81,7 @@ public class ConsultorioService {
         if (consultorioRepository.existsById(consultorio.getId()))
             throw new IllegalArgumentException( "El consultorio ya existe.");
 
-        return consultorioRepository.save(consultorio);
+        return saveConsultorio(consultorio);
     }
 
     /**
@@ -89,6 +94,15 @@ public class ConsultorioService {
         if (!consultorioRepository.existsById(consultorio.getId()))
             throw new IllegalArgumentException( "El consultorio no existe.");
 
+        return saveConsultorio(consultorio);
+    }
+
+    private Consultorio saveConsultorio(Consultorio consultorio) {
+        Ips ips = ipsRepository
+                .findById(consultorio.getId().getIps().getId())
+                .orElseThrow(() -> new IllegalArgumentException("La IPS no existe."));
+
+        consultorio.getId().setIps(ips);
         return consultorioRepository.save(consultorio);
     }
     
