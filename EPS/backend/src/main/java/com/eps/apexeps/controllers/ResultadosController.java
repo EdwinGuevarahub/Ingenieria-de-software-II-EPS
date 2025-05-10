@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.eps.apexeps.models.Diagnostico;
 import com.eps.apexeps.models.Medicamento;
-import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.response.ApiResponse;
-import com.eps.apexeps.models.DTOs.Orden;
+import com.eps.apexeps.models.DTOs.OrdenaDTO;
+import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnostico;
 
 import com.eps.apexeps.services.ResultadosService;
@@ -29,8 +29,27 @@ public class ResultadosController {
 
         // Obtener las citas (agenda) en estado PENDIENTE de un paciente
         @GetMapping("/citas")
-        public List<Agenda> getCitasPaciente(@RequestParam Long dniPaciente) {
-                return resultadosService.getCitasPaciente(dniPaciente);
+        public ResponseEntity<ApiResponse> getCitasPaciente(@RequestParam Long dniPaciente) {
+                try {
+                        PacienteCitasDTO pacienteCitas = resultadosService.getCitasPaciente(dniPaciente);
+                        return ResponseEntity.ok(new ApiResponse(
+                                        HttpStatus.OK.value(),
+                                        true,
+                                        "Resultados actualizados y registrados correctamente.",
+                                        pacienteCitas));
+                } catch (RuntimeException ex) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
+                                        HttpStatus.NOT_FOUND.value(),
+                                        false,
+                                        ex.getMessage(),
+                                        null));
+                } catch (Exception ex) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
+                                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                        false,
+                                        "Error inesperado al procesar la solicitud.",
+                                        null));
+                }
         }
 
         // Obtener lista de diagnosticos
@@ -75,7 +94,7 @@ public class ResultadosController {
 
         // Crear las ordenes (Resmisión o Examen) asociadas a una cita (agenda)
         @PostMapping("/ordenes")
-        public ResponseEntity<ApiResponse> crearOrdenes(@RequestBody List<Orden> ordenes) {
+        public ResponseEntity<ApiResponse> crearOrdenes(@RequestBody List<OrdenaDTO> ordenes) {
                 try {
                         resultadosService.crearOrdenes(ordenes);
 

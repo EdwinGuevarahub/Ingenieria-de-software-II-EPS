@@ -1,6 +1,6 @@
 package com.eps.apexeps.models.DTOs;
 
-public class Orden {
+public class OrdenaDTO {
     private Long agendaId;
     private String codigoServicio;
 

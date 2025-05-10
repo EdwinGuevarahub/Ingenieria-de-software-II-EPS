@@ -2,7 +2,6 @@ package com.eps.apexeps.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 
 import com.eps.apexeps.models.Diagnostico;
 import com.eps.apexeps.models.Medicamento;
@@ -16,9 +15,12 @@ import com.eps.apexeps.models.relations.Genera;
 import com.eps.apexeps.models.relations.GeneraId;
 import com.eps.apexeps.models.relations.Ordena;
 import com.eps.apexeps.models.relations.OrdenaId;
+import com.eps.apexeps.models.users.Paciente;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnostico;
+
 import com.eps.apexeps.models.DTOs.FormulaMedica;
-import com.eps.apexeps.models.DTOs.Orden;
+import com.eps.apexeps.models.DTOs.OrdenaDTO;
+import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 import com.eps.apexeps.repositories.AgendaRepository;
 import com.eps.apexeps.repositories.GeneraRepository;
 import com.eps.apexeps.repositories.FormulaRepository;
@@ -26,6 +28,7 @@ import com.eps.apexeps.repositories.MedicamentoRepository;
 import com.eps.apexeps.repositories.DiagnosticoRepository;
 import com.eps.apexeps.repositories.DetalleFormulaRepository;
 import com.eps.apexeps.repositories.OrdenaRepository;
+import com.eps.apexeps.repositories.PacienteRepository;
 import com.eps.apexeps.repositories.ServicioMedicoRepository;
 
 import java.util.ArrayList;
@@ -53,25 +56,29 @@ public class ResultadosService {
         private OrdenaRepository ordenaRepository;
 
         @Autowired
+        private PacienteRepository pacienteRepository;
+
+        @Autowired
         private DetalleFormulaRepository detalleFormulaRepository;
 
         @Autowired
         private ServicioMedicoRepository servicioMedicoRepository;
 
         // Obtener las citas (agenda) en estado PENDIENTE de un paciente
-        @GetMapping("/citas")
-        public List<Agenda> getCitasPaciente(@RequestParam Long dniPaciente) {
-                return agendaRepository.findByPacienteDniAndEstado(dniPaciente, "PENDIENTE");
+        public PacienteCitasDTO getCitasPaciente(Long dniPaciente) {
+                Paciente paciente = pacienteRepository.findById(dniPaciente)
+                                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+                List<Agenda> agendas = agendaRepository.findByPacienteDniAndEstado(dniPaciente, "PENDIENTE");
+                return new PacienteCitasDTO(paciente, agendas);
         }
 
         // Obtener lista de diagnosticos
-        @GetMapping("/lista-diagnosticos")
         public List<Diagnostico> getListaDiagnosticos() {
                 return diagnosticoRepository.findAll();
         }
 
         // Obtener lista de medicamentos
-        @GetMapping("/lista-medicamentos")
         public List<Medicamento> getListaMedicamentos() {
                 return medicamentoRepository.findAll();
         }
@@ -79,8 +86,7 @@ public class ResultadosService {
         // Registrar resultados de una cita (agenda)
         // Actualizando el resultado general de una cita y
         // Registrando diagnosticos con sus respectivos medicamentos
-        @PostMapping("/actualizar-resultados")
-        public void actualizarResultados(@RequestBody ResultadoDiagnostico resultados) {
+        public void actualizarResultados(ResultadoDiagnostico resultados) {
 
                 // Actualizacion del resultado de la agenda
                 Agenda agenda = agendaRepository.findById(resultados.getAgendaId())
@@ -139,11 +145,10 @@ public class ResultadosService {
         }
 
         // Crear las ordenes (Resmisión o Examen) asociadas a una cita (agenda)
-        @PostMapping("/ordenes")
-        public void crearOrdenes(@RequestBody List<Orden> ordenes) {
+        public void crearOrdenes(List<OrdenaDTO> ordenes) {
                 List<Ordena> ordenesCreacion = new ArrayList<>();
 
-                for (Orden orden : ordenes) {
+                for (OrdenaDTO orden : ordenes) {
                         Agenda agenda = agendaRepository
                                         .findById(orden.getAgendaId())
                                         .orElseThrow(() -> new RuntimeException("Agenda no encontrada"));

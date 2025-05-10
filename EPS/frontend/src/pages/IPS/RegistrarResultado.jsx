@@ -12,9 +12,13 @@ import {
   Grid,
   IconButton,
   Divider,
+  FormHelperText,
+  CircularProgress,
 } from "@mui/material";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { obtenerPacienteCitas } from "../../services/resultadosService";
 
 // Lista de medicamentos para el ejemplo
 const MEDICAMENTOS = [
@@ -52,6 +56,11 @@ function MedicalOrderForm() {
   const [diagnostico, setDiagnostico] = useState("");
   const [tipoOrden, setTipoOrden] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [dniError, setDniError] = useState(false);
+  const [dniErrorMessage, setDniErrorMessage] = useState("");
+  const [pacienteCitas, setPacienteCitas] = useState([]);
+  const [selectedAgendaId, setSelectedAgendaId] = useState("");
+  const [loadingFechas, setLoadingFechas] = useState(false);
 
   // Campos para Fórmula médica
   const [observacionesFormula, setObservacionesFormula] = useState("");
@@ -63,15 +72,44 @@ function MedicalOrderForm() {
   const [especialidad, setEspecialidad] = useState("");
   const [observacionesRemision, setObservacionesRemision] = useState("");
 
-  const handleSubmitId = (event) => {
+  const handleSubmitId = async (event) => {
     event.preventDefault();
-    setShowOrderForm(true);
+
+    if (!documentId.trim()) {
+      setDniError(true);
+      setDniErrorMessage("Por favor digite el documento del paciente");
+      return;
+    }
+
+    setDniError(false);
+
+    try {
+      setLoadingFechas(true);
+      const response = await obtenerPacienteCitas(documentId);
+      const pacienteCitas = response.data.data;
+
+      if (
+        pacienteCitas?.paciente &&
+        pacienteCitas?.citasPendientes?.length > 0
+      ) {
+        setPacienteCitas(pacienteCitas);
+        setShowOrderForm(true);
+      } else {
+        setDniError(true);
+        setDniErrorMessage("El paciente no tiene citas pendientes");
+      }
+    } catch (error) {
+      setDniError(true);
+      setDniErrorMessage("El paciente no esta registrado");
+    } finally {
+      setLoadingFechas(false);
+    }
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !loadingFechas) {
       event.preventDefault();
-      setShowOrderForm(true);
+      handleSubmitId(event);
     }
   };
 
@@ -121,7 +159,7 @@ function MedicalOrderForm() {
                     handleMedicamentoChange(
                       index,
                       "medicamento",
-                      e.target.value,
+                      e.target.value
                     )
                   }
                 >
@@ -225,14 +263,15 @@ function MedicalOrderForm() {
         component="h1"
         gutterBottom
       >
-        Sistema de Órdenes Médicas
+        Sistema de Resultados Médicos
       </Typography>
 
       {!showOrderForm ? (
         <Box component="form" onSubmit={handleSubmitId} noValidate>
           <TextField
             fullWidth
-            label="Documento de Identificación del Paciente"
+            label="Documento Nacional de Identidad del paciente"
+            type="number"
             variant="outlined"
             value={documentId}
             onChange={(e) => setDocumentId(e.target.value)}
@@ -240,12 +279,22 @@ function MedicalOrderForm() {
             margin="normal"
             required
             autoFocus
+            disabled={loadingFechas}
           />
+          {dniError && (
+            <FormHelperText
+              sx={{ display: "flex", alignItems: "center", color: "#e57373" }}
+            >
+              <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.5 }} />
+              {dniErrorMessage}
+            </FormHelperText>
+          )}
 
           <Button
             type="submit"
             variant="contained"
             maxWidth="sm"
+            disabled={loadingFechas}
             sx={{
               mt: 3,
               mb: 2,
@@ -255,64 +304,127 @@ function MedicalOrderForm() {
               },
             }}
           >
-            Verificar
+            {loadingFechas ? (
+              <>
+                <CircularProgress size={24} sx={{ color: "white", mr: 1 }} />
+                Buscando...
+              </>
+            ) : (
+              "Verificar"
+            )}
           </Button>
         </Box>
       ) : (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Paciente ID: <strong>{documentId}</strong>
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Diagnóstico"
-            variant="outlined"
-            multiline
-            rows={4}
-            value={diagnostico}
-            onChange={(e) => setDiagnostico(e.target.value)}
-            margin="normal"
-            required
-          />
+        <>
+          <Box
+            sx={{
+              p: 2,
+              mb: 3,
+              borderLeft: "4px solid #0a87be",
+              // backgroundColor: '#fafafa',
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 500, color: "#0a87be", mb: 1 }}
+            >
+              Información del Paciente
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body1" sx={{ mb: 0.5 }}>
+                  <span style={{ color: "#666" }}>Nombre:</span>{" "}
+                  {pacienteCitas?.paciente?.nombre || ""}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body1">
+                  <span style={{ color: "#666" }}>Documento:</span> {documentId}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Tipo de Orden</InputLabel>
+            <InputLabel>Fecha cita actual</InputLabel>
             <Select
-              value={tipoOrden}
-              label="Tipo de Orden"
-              onChange={(e) => setTipoOrden(e.target.value)}
+              value={selectedAgendaId}
+              label="Fecha cita actual"
+              onChange={(e) => setSelectedAgendaId(e.target.value)}
             >
-              {TIPOS_ORDEN.map((tipo) => (
-                <MenuItem key={tipo} value={tipo}>
-                  {tipo}
+              {pacienteCitas?.citasPendientes?.map(({ id, fecha }) => (
+                <MenuItem key={id} value={id}>
+                  {new Date(fecha.replace("Z", "")).toLocaleDateString(
+                    "es-ES",
+                    {
+                      timeZone: "America/Bogota",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    }
+                  )}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {tipoOrden === "Fórmula médica" && renderFormulaMedica()}
-          {(tipoOrden === "Remisión" || tipoOrden === "Toma de exámenes") &&
-            renderRemisionExamenes()}
+          {selectedAgendaId && (
+            <Box sx={{ mt: 3 }}>
+              <TextField
+                fullWidth
+                label="Diagnóstico"
+                variant="outlined"
+                multiline
+                rows={4}
+                value={diagnostico}
+                onChange={(e) => setDiagnostico(e.target.value)}
+                margin="normal"
+                required
+              />
 
-          {tipoOrden && (
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{
-                mt: 4,
-                mb: 2,
-                bgcolor: "#4CAF50",
-                "&:hover": {
-                  bgcolor: "#388E3C",
-                },
-              }}
-            >
-              Guardar Orden Médica
-            </Button>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Tipo de Orden</InputLabel>
+                <Select
+                  value={tipoOrden}
+                  label="Tipo de Orden"
+                  onChange={(e) => setTipoOrden(e.target.value)}
+                >
+                  {TIPOS_ORDEN.map((tipo) => (
+                    <MenuItem key={tipo} value={tipo}>
+                      {tipo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {tipoOrden === "Fórmula médica" && renderFormulaMedica()}
+              {(tipoOrden === "Remisión" || tipoOrden === "Toma de exámenes") &&
+                renderRemisionExamenes()}
+
+              {tipoOrden && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{
+                    mt: 4,
+                    mb: 2,
+                    bgcolor: "#4CAF50",
+                    "&:hover": {
+                      bgcolor: "#388E3C",
+                    },
+                  }}
+                >
+                  Guardar Orden Médica
+                </Button>
+              )}
+            </Box>
           )}
-        </Box>
+        </>
       )}
     </Container>
   );

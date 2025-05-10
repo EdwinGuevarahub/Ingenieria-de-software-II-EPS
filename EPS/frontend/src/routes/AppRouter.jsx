@@ -8,7 +8,7 @@ const AppRouter = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/IPS" element={<IPS />} />
-    <Route path="/registrar-resultado" element={<RegistrarResultado />} />
+    <Route path="/registrar-resultados" element={<RegistrarResultado />} />
   </Routes>
 );
 
