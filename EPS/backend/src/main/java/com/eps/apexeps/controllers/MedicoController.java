@@ -148,7 +148,7 @@ public class MedicoController {
      * @return Una lista de servicios médicos asociados al médico.
      * @throws RuntimeException Si ocurre un error al agregar el servicio médico al médico.
      */
-    @PutMapping("/{dniMedico}/dominio")
+    @PostMapping("/{dniMedico}/dominio")
     public List<ServicioMedico> addDominioMedico(
         @PathVariable Long dniMedico,
         @RequestBody ServicioMedico servicioMedico
