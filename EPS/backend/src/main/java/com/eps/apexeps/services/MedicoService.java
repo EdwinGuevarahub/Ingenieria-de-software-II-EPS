@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.relations.EntradaHorario;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.repositories.*;
@@ -43,7 +44,7 @@ public class MedicoService {
      * @param idIps El id de la IPS que se usará para filtrar los médicos (opcional).
      * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico que se usará para filtrar los médicos (opcional).
-     * @param DiaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsculas (opcional).
+     * @param diaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsculas (opcional).
      * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional).
      * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
      * @param estaActivo Indica si el médico está activo o no (opcional, 0 a 23).
@@ -57,62 +58,47 @@ public class MedicoService {
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,
-        String DiaSemanaIngles,
+        String diaSemanaIngles,
         Integer horaDeInicio,
         Integer horaDeFin,
         Boolean estaActivo,
         Integer qSize,
         Integer qPage
     ) {
+        // Validar los parámetros temporales.
+        String diaSemanaParam = null;
+        Integer inicioParam = null;
+        Integer finParam = null;
+        if (diaSemanaIngles != null) {
+            try {
+                diaSemanaParam = EntradaHorario.CHAR_MAP.get(DayOfWeek.valueOf(diaSemanaIngles)).toString();
+            }
+            catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("No se reconoce el día de la semana: " + diaSemanaIngles);
+            }
+
+            if (horaDeInicio != null && (horaDeInicio < 0 || horaDeInicio > 23))
+                throw new IllegalArgumentException("La hora de inicio debe estar entre 0 y 23.");
+            if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
+                throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
+
+            inicioParam = horaDeInicio;
+            finParam = horaDeFin;
+        }
+
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
         List<Medico> medicos = medicoRepository
                 .findAllFiltered(
                     idIps,
                     dniNombreLike,
                     cupsServicioMedico,
+                    diaSemanaParam,
+                    inicioParam,
+                    finParam,
                     estaActivo,
                     pageable
                 );
         
-        if (DiaSemanaIngles == null)
-            return medicos;
-
-        // Filtrar los médicos que no tienen el horario disponible para el día de la semana y las horas especificadas.
-        try {
-            DayOfWeek.valueOf(DiaSemanaIngles);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("No se reconoce el día de la semana: " + DiaSemanaIngles);
-        }
-        
-        if (horaDeInicio != null && (horaDeInicio < 0 || horaDeInicio > 23))
-            throw new IllegalArgumentException("La hora de inicio debe estar entre 0 y 23.");
-
-        if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
-            throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
-
-        // Para cada trabaja que tenga algún médico encontrado,
-        medicos = trabajaRepository.findByMedicoIn(medicos).stream()
-            // obtener sólo los que,
-            .filter(trabaja ->
-                // para cada entrada del horario,
-                trabaja.getHorario().stream()
-                    // alguno cumple con los los filtros de día y horas
-                    .anyMatch(horario ->
-                        horario.getDia().name().equals(DiaSemanaIngles)
-                        && (horaDeInicio == null
-                            || horario.getInicio().getHour() <= horaDeInicio
-                        )
-                        && (horaDeFin == null
-                            || horario.getFin().getHour() >= horaDeFin
-                        )
-                    )
-            )
-            // para obtener los médicos de los que cumplen con los filtros
-            .map(trabaja ->
-                trabaja.getMedico()
-            )
-            .toList();
-
         return medicos;
     }   
 

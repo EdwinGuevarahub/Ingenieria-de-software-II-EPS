@@ -38,7 +38,7 @@ public class MedicoController {
      * @param idIps El id de la IPS (opcional).
      * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS de un servicio médico asociado al médico (opcional).
-     * @param DiaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsuclas (opcional).
+     * @param diaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsuclas (opcional).
      * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional, 0 a 23).
      * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
      * @param estaActivo Indica si el médico está activo o no (opcional).
@@ -53,7 +53,7 @@ public class MedicoController {
         @RequestParam(required = false) Integer idIps,
         @RequestParam(required = false) String dniNombreLike,
         @RequestParam(required = false) String cupsServicioMedico,
-        @RequestParam(required = false) String DiaSemanaIngles,
+        @RequestParam(required = false) String diaSemanaIngles,
         @RequestParam(required = false) Integer horaDeInicio,
         @RequestParam(required = false) Integer horaDeFin,
         @RequestParam(required = false) Boolean estaActivo,
@@ -66,7 +66,7 @@ public class MedicoController {
                         idIps,
                         dniNombreLike,
                         cupsServicioMedico,
-                        DiaSemanaIngles,
+                        diaSemanaIngles,
                         horaDeInicio,
                         horaDeFin,
                         estaActivo,
