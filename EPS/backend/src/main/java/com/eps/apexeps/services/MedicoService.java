@@ -90,15 +90,15 @@ public class MedicoService {
         if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
             throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
 
-        // Para cada trabaja que tenga algún medico de la lista.
-        trabajaRepository.findByMedicoIn(medicos).stream()
-            // no hay ninguno que,
-            .noneMatch(trabaja ->
-                // entre sus horarios
+        // Para cada trabaja que tenga algún médico encontrado,
+        medicos = trabajaRepository.findByMedicoIn(medicos).stream()
+            // obtener sólo los que,
+            .filter(trabaja ->
+                // para cada entrada del horario,
                 trabaja.getHorario().stream()
-                    // hay alguno que cumple con el día de la semana y las horas especificadas.
+                    // alguno cumple con los los filtros de día y horas
                     .anyMatch(horario ->
-                        horario.getDia() == DayOfWeek.valueOf(DiaSemanaIngles)
+                        horario.getDia().name().equals(DiaSemanaIngles)
                         && (horaDeInicio == null
                             || horario.getInicio().getHour() <= horaDeInicio
                         )
@@ -106,8 +106,12 @@ public class MedicoService {
                             || horario.getFin().getHour() >= horaDeFin
                         )
                     )
-                    
-            );
+            )
+            // para obtener los médicos de los que cumplen con los filtros
+            .map(trabaja ->
+                trabaja.getMedico()
+            )
+            .toList();
 
         return medicos;
     }   
