@@ -149,10 +149,25 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico no existe.
      */
     public Medico updateMedico(Medico medico) {
-        if (!medicoRepository.existsById(medico.getDni()))
+        Medico medicoExistente = medicoRepository
+                                    .findById(medico.getDni())
+                                    .orElse(null);
+        if (medicoExistente == null)
             throw new IllegalArgumentException("El médico no existe.");
+        
+        if (medico.getNombre() != null)
+            medicoExistente.setNombre(medico.getNombre());
+        
+        if (medico.getEmail() != null)
+            medicoExistente.setEmail(medico.getEmail());
+        
+        if (medico.getTelefono() != null)
+            medicoExistente.setTelefono(medico.getTelefono());
+        
+        if (medico.getActivo() != null)
+            medicoExistente.setActivo(medico.getActivo());
 
-        return medicoRepository.save(medico);
+        return medicoRepository.save(medicoExistente);
     }
 
     /**
