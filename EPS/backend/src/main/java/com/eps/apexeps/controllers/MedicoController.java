@@ -94,7 +94,7 @@ public class MedicoController {
     }
 
     /**
-     * Endpoint para crear un nuevo médico.
+     * Endpoint para crear un nuevo médico dado un horario inicial.
      * @param trabaja objeto que contiene el médico a crear y un consultorio y horario de trabajo.
      * @return El objeto Trabaja que representa la relación entre el médico y el consultorio.
      * @throws RuntimeException Si ocurre un error al crear el médico.
