@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -35,10 +36,10 @@ import lombok.Setter;
  * @author Nicolás Sabogal
  */
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 @Table(name = "ips")
 public class Ips {
@@ -85,5 +86,11 @@ public class Ips {
         nullable = false
     )
     private Instant fechaRegistro;
-
+    
+    @PrePersist
+    public void prePersist() {
+        if (fechaRegistro == null) {
+            fechaRegistro = Instant.now();
+        }
+    }
 }

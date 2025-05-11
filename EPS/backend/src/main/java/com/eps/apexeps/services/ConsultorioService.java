@@ -9,7 +9,7 @@ import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.ConsultorioId;
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.repositories.ConsultorioRepository;
-import com.eps.apexeps.repositories.IpsRepository;
+import com.eps.apexeps.repositories.IPSRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +26,7 @@ public class ConsultorioService {
     private final ConsultorioRepository consultorioRepository;
 
     /** Repositorio de IPS para acceder a la base de datos. */
-    private final IpsRepository ipsRepository;
+    private final IPSRepository ipsRepository;
 
     /**
      * Método para obtener todos los consultorios de la base de datos o de una IPS específica.
