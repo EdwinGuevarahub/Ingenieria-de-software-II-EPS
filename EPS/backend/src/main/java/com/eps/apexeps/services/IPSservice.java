@@ -11,11 +11,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Ips;
@@ -26,26 +24,49 @@ import com.eps.apexeps.repositories.IPSRepository;
  * @author Alexander
  */
 @Service
-public class IPSservice {
+public class IPSService {
 
     @Autowired
-    private IPSRepository ipsRespository;
+    private IPSRepository ipsRepository;
 
     public List<Ips> findByNombreContainingIgnoreCase(String nombre) {
-        return ipsRespository.findByNombreContainingIgnoreCase(nombre);
+        return ipsRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
     public List<Ips> findAll() {
-        return ipsRespository.findAll();
+        return ipsRepository.findAll();
     }
 
-    public ResponseEntity<?> filtrarIps(
+    /**
+     * Filtra las IPS según los parámetros proporcionados.
+     * 
+     * @param nombre        Nombre de la IPS (opcional)..
+     * @param telefono      Teléfono de la IPS (opcional).
+     * @param direccion     Dirección de la IPS (opcional).
+     * @param fechaRegistro Fecha de registro de la IPS (opcional).
+     * @return Lista de IPS que cumplen con los criterios de búsqueda.
+     */
+    /*
+    public List<Ips> filtrarIps(String nombre, String telefono, String direccion) {
+        nombre = hasText(nombre) ? nombre.trim() : null;
+        telefono = hasText(telefono) ? telefono.trim() : null;
+        direccion = hasText(direccion) ? direccion.trim() : null;
+
+        // Banderas de depuración
+        System.out.println(">> FILTRO nombre: " + nombre);
+        System.out.println(">> FILTRO telefono: " + telefono);
+        System.out.println(">> FILTRO direccion: " + direccion);
+
+        return ipsRepository.findAllFiltered(nombre, telefono, direccion);
+    }
+    */
+
+    public List<Ips> filtrarIps(
             String nombre,
             String email,
             String telefono,
             String direccion,
-            String fechaRegistro
-    ) {
+            String fechaRegistro) {
         try {
             List<Ips> resultado;
 
@@ -58,58 +79,76 @@ public class IPSservice {
 
             // Filtros por prioridad
             if (nombre != null) {
-                resultado = ipsRespository.findByNombreContainingIgnoreCase(nombre);
+                resultado = ipsRepository.findByNombreContainingIgnoreCase(nombre);
             } else if (email != null) {
-                resultado = ipsRespository.findByAdmEps_EmailIgnoreCase(email);
+                resultado = ipsRepository.findByAdmEps_EmailIgnoreCase(email);
             } else if (telefono != null) {
-                resultado = ipsRespository.findByTelefono(telefono);
+                resultado = ipsRepository.findByTelefono(telefono);
             } else if (direccion != null) {
-                resultado = ipsRespository.findByDireccionContainingIgnoreCase(direccion);
+                resultado = ipsRepository.findByDireccionContainingIgnoreCase(direccion);
             } else if (fechaRegistro != null) {
                 Instant fecha = parseFechaSegura(fechaRegistro);
                 if (fecha == null) {
-                    return ResponseEntity.badRequest().body(Map.of(
-                        "error", "Formato de fecha inválido",
-                        "detalle", "Usa formatos como: '2024-05-10T14:30:00Z', '2024-05-10', '10/05/2024'"
-                    ));
+                    throw new IllegalArgumentException("Formato de fecha no válido");
                 }
-                resultado = ipsRespository.findByFechaRegistro(fecha);
+                resultado = ipsRepository.findByFechaRegistro(fecha);
             } else {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "No se proporcionó ningún parámetro de búsqueda"
-                ));
+                resultado = ipsRepository.findAll();
             }
 
             if (resultado.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "No se encontraron resultados"));
+                throw new IllegalArgumentException("No se encontraron IPS");
             }
 
-            return ResponseEntity.ok(resultado);
+            return resultado;
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error interno del servidor", "detalle", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error al filtrar las IPS: " + e.getMessage(), e);
         }
     }
 
-    public Ips findById(Integer id) {
-        return ipsRespository.findById(id).orElse(null);
+    public List<Ips> filtrarIpsMulti(String nombre, String telefono, String direccion, String fechaRegistro) {
+        try {
+            // Limpieza de datos
+            nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
+            telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
+            direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
+            Instant fecha = (fechaRegistro != null && !fechaRegistro.trim().isEmpty()) 
+                ? parseFechaSegura(fechaRegistro) 
+                : null;
+            System.out.println(">> service FILTRO nombre: " + nombre);
+            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fecha);
+            
+            if (resultado.isEmpty()) {
+                throw new IllegalArgumentException("No se encontraron IPS");
+            }
+
+            return resultado;
+
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error al filtrar las IPS: " + e.getMessage(), e);
+        }
     }
+
+    public Optional<Ips> findById(Integer id) {
+        return ipsRepository.findById(id);
+    }
+
     public Ips save(Ips ips) {
-        return ipsRespository.save(ips);
-    } 
-    public void deleteById(Integer id) {
-        ipsRespository.deleteById(id);
+        return ipsRepository.save(ips);
     }
-    
+
+    public void deleteById(Integer id) {
+        ipsRepository.deleteById(id);
+    }
+
     public List<Ips> obtenerIpsPorServicio(String nombreServicio) {
         System.out.println("Nombre del servicio: " + nombreServicio);
-        return ipsRespository.buscarIpsPorNombreServicio(nombreServicio);
+        return ipsRepository.buscarIpsPorNombreServicio(nombreServicio);
     }
 
     public Ips actualizarIps(Ips ips) {
-        return ipsRespository.save(ips);
+        return ipsRepository.save(ips);
     }
 
     private Instant parseFechaSegura(String fechaStr) {

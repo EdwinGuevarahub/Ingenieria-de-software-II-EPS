@@ -39,17 +39,26 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
     // Búsqueda por correo del administrador registrado
     List<Ips> findByAdmEps_EmailIgnoreCase(String email);
 
-    // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre similar
-    @Query(
-        value = """
-            SELECT DISTINCT i.*
-            FROM ips i
-            JOIN consultorio c ON c.ips_consultorio = i.id_ips
-            JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
-            WHERE LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
-            ORDER BY i.nom_ips
-        """,
-        nativeQuery = true
-    )
+    @Query("SELECT i FROM Ips i WHERE " +
+            "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
+            "(:telefono IS NULL OR i.telefono like LOWER(CONCAT('%', :telefono, '%'))) AND " +
+            "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%'))) AND " +
+            "(:fechaRegistro IS NULL OR i.fechaRegistro = :fechaRegistro)")
+    List<Ips> filtrarIpsMultiples(
+            @Param("nombre") String nombre,
+            @Param("telefono") String telefono,
+            @Param("direccion") String direccion,
+            @Param("fechaRegistro") Instant fechaRegistro);
+
+    // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
+    // similar
+    @Query(value = """
+                SELECT DISTINCT i.*
+                FROM ips i
+                JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                WHERE LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
+                ORDER BY i.nom_ips
+            """, nativeQuery = true)
     List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
 }

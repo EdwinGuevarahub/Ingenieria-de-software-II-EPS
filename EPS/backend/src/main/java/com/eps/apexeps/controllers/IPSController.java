@@ -5,7 +5,10 @@
 
 package com.eps.apexeps.controllers;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,9 +25,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Ips;
-import com.eps.apexeps.services.IPSservice;
-
-
+import com.eps.apexeps.response.IpsEntradaLista;
+import com.eps.apexeps.services.IPSService;
 
 /**
  * Controlador para manejar las operaciones relacionadas con las IPS.
@@ -35,26 +37,45 @@ import com.eps.apexeps.services.IPSservice;
 @CrossOrigin(origins = "http://localhost:3000")
 public class IPSController {
 
-    @Autowired  
-    private IPSservice ipsService;
-    
+    @Autowired
+    private IPSService ipsService;
+
     @GetMapping("/all")
     public List<Ips> findAll() {
         return ipsService.findAll();
     }
 
     @GetMapping
-    public List<Ips> findIps(
+    public List<IpsEntradaLista> findIps(
             @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) String email,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
-            @RequestParam(required = false) String fechaRegistro
-    ) {
+            @RequestParam(required = false) String fechaRegistro) {
+        try {
+            return ipsService
+                    .filtrarIpsMulti(nombre, telefono, direccion, fechaRegistro)
+                    .stream()
+                    .map(IpsEntradaLista::of)
+                    .toList();
+        } catch (Throwable t) {
+            throw new RuntimeException("Error al obtener las IPS: " + t.getMessage(), t);
+        }
+    }
 
-        
-        return null;
+    @GetMapping("/filtrado")
+    public ResponseEntity<List<Ips>> filtrarIps(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String direccion,
+            @RequestParam(required = false) String fechaRegistro) {
 
+        try {
+            System.out.println(">> FILTRO nombre: " + nombre);
+            List<Ips> resultado = ipsService.filtrarIpsMulti(nombre, telefono, direccion, fechaRegistro);
+            return ResponseEntity.ok(resultado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @GetMapping("/nombre/{nombre}")
@@ -63,8 +84,10 @@ public class IPSController {
     }
 
     @GetMapping("/id/{id}")
-    public Ips findById(@PathVariable Integer id) {
-        return ipsService.findById(id);
+    public ResponseEntity<Ips> findById(@PathVariable Integer id) {
+        return ipsService.findById(id)
+                .map(ResponseEntity::ok) // ahora Optional.map existe
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping
@@ -72,15 +95,15 @@ public class IPSController {
         return ipsService.save(ips);
     }
 
-    @PutMapping    
+    @PutMapping
     public ResponseEntity<?> updateIps(
-        @RequestBody  Ips ipsData) {
-        Ips antiguaIps = ipsService.findById(ipsData.getId());
+            @RequestBody Ips ipsData) {
+        Optional<Ips> antiguaIps = ipsService.findById(ipsData.getId());
         Ips nuevaIps;
         if (antiguaIps == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No se encontró la IPS con ID: " + ipsData.getId());
-        }else{
+        } else {
             nuevaIps = ipsService.actualizarIps(ipsData);
         }
 
