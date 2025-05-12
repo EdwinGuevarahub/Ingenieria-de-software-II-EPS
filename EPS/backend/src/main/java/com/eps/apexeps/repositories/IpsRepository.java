@@ -40,15 +40,16 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
     List<Ips> findByAdmEps_EmailIgnoreCase(String email);
 
     @Query("SELECT i FROM Ips i WHERE " +
-            "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
-            "(:telefono IS NULL OR i.telefono like LOWER(CONCAT('%', :telefono, '%'))) AND " +
-            "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%'))) AND " +
-            "(:fechaRegistro IS NULL OR i.fechaRegistro = :fechaRegistro)")
+        "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
+        "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', :telefono, '%'))) AND " +
+        "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%')))")
+            //"AND " + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro)  = TO_TIMESTAMP(:fechaRegistro, 'DD-MM-YYYY'))"")"
     List<Ips> filtrarIpsMultiples(
             @Param("nombre") String nombre,
             @Param("telefono") String telefono,
-            @Param("direccion") String direccion,
-            @Param("fechaRegistro") Instant fechaRegistro);
+            @Param("direccion") String direccion
+            //@Param("fechaRegistro") String fechaRegistro
+            );
 
     // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
     // similar
@@ -61,4 +62,14 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
                 ORDER BY i.nom_ips
             """, nativeQuery = true)
     List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
+
+    @Query(value = """
+                SELECT DISTINCT sm.nom_sermed
+                FROM ips i
+                JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                WHERE LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
+                ORDER BY i.nom_ips
+            """, nativeQuery = true)
+    List<Ips> buscarServicioPorNombreIps(@Param("nombreIps") String nombreIps);
 }

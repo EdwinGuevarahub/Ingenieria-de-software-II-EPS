@@ -47,19 +47,20 @@ public class IPSService {
      * @return Lista de IPS que cumplen con los criterios de búsqueda.
      */
     /*
-    public List<Ips> filtrarIps(String nombre, String telefono, String direccion) {
-        nombre = hasText(nombre) ? nombre.trim() : null;
-        telefono = hasText(telefono) ? telefono.trim() : null;
-        direccion = hasText(direccion) ? direccion.trim() : null;
-
-        // Banderas de depuración
-        System.out.println(">> FILTRO nombre: " + nombre);
-        System.out.println(">> FILTRO telefono: " + telefono);
-        System.out.println(">> FILTRO direccion: " + direccion);
-
-        return ipsRepository.findAllFiltered(nombre, telefono, direccion);
-    }
-    */
+     * public List<Ips> filtrarIps(String nombre, String telefono, String direccion)
+     * {
+     * nombre = hasText(nombre) ? nombre.trim() : null;
+     * telefono = hasText(telefono) ? telefono.trim() : null;
+     * direccion = hasText(direccion) ? direccion.trim() : null;
+     * 
+     * // Banderas de depuración
+     * System.out.println(">> FILTRO nombre: " + nombre);
+     * System.out.println(">> FILTRO telefono: " + telefono);
+     * System.out.println(">> FILTRO direccion: " + direccion);
+     * 
+     * return ipsRepository.findAllFiltered(nombre, telefono, direccion);
+     * }
+     */
 
     public List<Ips> filtrarIps(
             String nombre,
@@ -113,12 +114,14 @@ public class IPSService {
             nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
             telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
-            Instant fecha = (fechaRegistro != null && !fechaRegistro.trim().isEmpty()) 
-                ? parseFechaSegura(fechaRegistro) 
-                : null;
+            /*
+             * Instant fecha = (fechaRegistro != null && !fechaRegistro.trim().isEmpty())
+             * ? parseFechaSegura(fechaRegistro)
+             * : null;
+             */
             System.out.println(">> service FILTRO nombre: " + nombre);
-            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fecha);
-            
+            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion);
+
             if (resultado.isEmpty()) {
                 throw new IllegalArgumentException("No se encontraron IPS");
             }

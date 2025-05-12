@@ -5,9 +5,7 @@
 
 package com.eps.apexeps.controllers;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +46,19 @@ public class IPSController {
     @GetMapping
     public List<IpsEntradaLista> findIps(
             @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String email,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro) {
         try {
             return ipsService
-                    .filtrarIpsMulti(nombre, telefono, direccion, fechaRegistro)
+                    .filtrarIps(
+                        nombre, 
+                        email, 
+                        telefono, 
+                        direccion, 
+                        fechaRegistro
+                    )
                     .stream()
                     .map(IpsEntradaLista::of)
                     .toList();
@@ -62,19 +67,18 @@ public class IPSController {
         }
     }
 
-    @GetMapping("/filtrado")
-    public ResponseEntity<List<Ips>> filtrarIps(
+    @GetMapping("/filtrar")
+    public <T> ResponseEntity<List<Ips>> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro) {
 
         try {
-            System.out.println(">> FILTRO nombre: " + nombre);
             List<Ips> resultado = ipsService.filtrarIpsMulti(nombre, telefono, direccion, fechaRegistro);
             return ResponseEntity.ok(resultado);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
         }
     }
 
@@ -120,9 +124,16 @@ public class IPSController {
         ipsService.deleteById(id);
     }
 
-    @GetMapping("/servicio={nombreServicio}")
+    @GetMapping("/servicio/{nombreServicio}")
     public List<Ips> obtenerIpsPorServicio(@PathVariable String nombreServicio) {
         return ipsService.obtenerIpsPorServicio(nombreServicio);
     }
 
+    /*
+    @GetMapping("/servicio/ips/")
+    public List<Ips> obtenerIpsPorServicio(@RequestParam Integer Id) {
+        return ipsService.obtenerIpsPorServicio(Id);
+    }
+
+    */
 }
