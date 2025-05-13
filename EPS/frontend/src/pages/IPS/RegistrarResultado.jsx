@@ -18,7 +18,10 @@ import {
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { obtenerPacienteCitas } from "../../services/resultadosService";
+import {
+  obtenerPacienteCitas,
+  obtenerDiagnosticos,
+} from "../../services/resultadosService";
 
 // Lista de medicamentos para el ejemplo
 const MEDICAMENTOS = [
@@ -53,7 +56,8 @@ const TIPOS_ORDEN = ["Fórmula médica", "Remisión", "Toma de exámenes"];
 
 function MedicalOrderForm() {
   const [documentId, setDocumentId] = useState("");
-  const [diagnostico, setDiagnostico] = useState("");
+  const [resultado, setResultado] = useState("");
+  const [diagnosticos, setDiagnosticos] = useState([]);
   const [tipoOrden, setTipoOrden] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [dniError, setDniError] = useState(false);
@@ -64,6 +68,10 @@ function MedicalOrderForm() {
 
   // Campos para Fórmula médica
   const [observacionesFormula, setObservacionesFormula] = useState("");
+  const [observacionesDiag, setObservacionesDiag] = useState({
+    diagnostico: "",
+    observacion: "",
+  });
   const [medicamentos, setMedicamentos] = useState([
     { medicamento: "", receta: "" },
   ]);
@@ -106,6 +114,21 @@ function MedicalOrderForm() {
     }
   };
 
+  const handleDiags = async () => {
+    try {
+      const response = await obtenerDiagnosticos();
+      const resDiagnosticos = response.data;
+
+      if (!resDiagnosticos?.length > 0) {
+        console.log("No se pudieron obtener los Diagnósticos");
+      } else {
+        setDiagnosticos(resDiagnosticos);
+      }
+    } catch (error) {
+      console.log("No se pudieron obtener los Diagnósticos");
+    }
+  };
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !loadingFechas) {
       event.preventDefault();
@@ -129,19 +152,56 @@ function MedicalOrderForm() {
     setMedicamentos(newMedicamentos);
   };
 
+  const handleDiagChange = (field, value) => {
+    setObservacionesDiag((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const renderFormulaMedica = () => (
     <Box sx={{ mt: 3 }}>
-      <TextField
-        fullWidth
-        label="Observaciones de la fórmula"
-        variant="outlined"
-        multiline
-        rows={3}
-        value={observacionesFormula}
-        onChange={(e) => setObservacionesFormula(e.target.value)}
-        margin="normal"
-      />
+      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        Diagnóstico
+      </Typography>
 
+      <Box sx={{ mb: 2 }}>
+        <Grid container spacing={2} alignItems="flex-start">
+          <Grid size={4} item xs={12} md={5}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Diagnóstico</InputLabel>
+              <Select
+                value={observacionesDiag.diagnostico}
+                label={"Diagnóstico"}
+                onChange={(e) =>
+                  handleDiagChange("diagnostico", e.target.value)
+                }
+              >
+                {diagnosticos.map((diag) => (
+                  <MenuItem key={diag.cie} value={diag.nombre}>
+                    {diag.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={7} item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Observaciones del Diagnóstico"
+              variant="outlined"
+              multiline
+              rows={2}
+              value={observacionesDiag.observacion}
+              onChange={(e) => handleDiagChange("observacion", e.target.value)}
+              margin="normal"
+              placeholder="Ej: Asma leve, parcialmente controlada."
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Apartado de medicamentos */}
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
         Medicamentos
       </Typography>
@@ -159,7 +219,7 @@ function MedicalOrderForm() {
                     handleMedicamentoChange(
                       index,
                       "medicamento",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 >
@@ -351,7 +411,10 @@ function MedicalOrderForm() {
             <Select
               value={selectedAgendaId}
               label="Fecha cita actual"
-              onChange={(e) => setSelectedAgendaId(e.target.value)}
+              onChange={(e) => {
+                setSelectedAgendaId(e.target.value);
+                handleDiags();
+              }}
             >
               {pacienteCitas?.citasPendientes?.map(({ id, fecha }) => (
                 <MenuItem key={id} value={id}>
@@ -365,7 +428,7 @@ function MedicalOrderForm() {
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: true,
-                    }
+                    },
                   )}
                 </MenuItem>
               ))}
@@ -376,12 +439,12 @@ function MedicalOrderForm() {
             <Box sx={{ mt: 3 }}>
               <TextField
                 fullWidth
-                label="Diagnóstico"
+                label="Resultado General"
                 variant="outlined"
                 multiline
                 rows={4}
-                value={diagnostico}
-                onChange={(e) => setDiagnostico(e.target.value)}
+                value={resultado}
+                onChange={(e) => setResultado(e.target.value)}
                 margin="normal"
                 required
               />
@@ -405,23 +468,21 @@ function MedicalOrderForm() {
               {(tipoOrden === "Remisión" || tipoOrden === "Toma de exámenes") &&
                 renderRemisionExamenes()}
 
-              {tipoOrden && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  sx={{
-                    mt: 4,
-                    mb: 2,
-                    bgcolor: "#4CAF50",
-                    "&:hover": {
-                      bgcolor: "#388E3C",
-                    },
-                  }}
-                >
-                  Guardar Orden Médica
-                </Button>
-              )}
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{
+                  mt: 4,
+                  mb: 2,
+                  bgcolor: "#4CAF50",
+                  "&:hover": {
+                    bgcolor: "#388E3C",
+                  },
+                }}
+              >
+                Guardar Resultado
+              </Button>
             </Box>
           )}
         </>
