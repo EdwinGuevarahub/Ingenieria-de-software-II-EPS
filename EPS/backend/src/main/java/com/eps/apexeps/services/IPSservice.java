@@ -29,38 +29,55 @@ public class IPSService {
     @Autowired
     private IPSRepository ipsRepository;
 
-    public List<Ips> findByNombreContainingIgnoreCase(String nombre) {
-        return ipsRepository.findByNombreContainingIgnoreCase(nombre);
-    }
-
     public List<Ips> findAll() {
         return ipsRepository.findAll();
     }
 
-    /**
-     * Filtra las IPS según los parámetros proporcionados.
-     * 
-     * @param nombre        Nombre de la IPS (opcional)..
-     * @param telefono      Teléfono de la IPS (opcional).
-     * @param direccion     Dirección de la IPS (opcional).
-     * @param fechaRegistro Fecha de registro de la IPS (opcional).
-     * @return Lista de IPS que cumplen con los criterios de búsqueda.
-     */
-    /*
-     * public List<Ips> filtrarIps(String nombre, String telefono, String direccion)
-     * {
-     * nombre = hasText(nombre) ? nombre.trim() : null;
-     * telefono = hasText(telefono) ? telefono.trim() : null;
-     * direccion = hasText(direccion) ? direccion.trim() : null;
-     * 
-     * // Banderas de depuración
-     * System.out.println(">> FILTRO nombre: " + nombre);
-     * System.out.println(">> FILTRO telefono: " + telefono);
-     * System.out.println(">> FILTRO direccion: " + direccion);
-     * 
-     * return ipsRepository.findAllFiltered(nombre, telefono, direccion);
-     * }
-     */
+    public List<Ips> filtrarIpsMulti(String nombre, String telefono, String direccion, String fechaRegistro) {
+        try {
+            // Limpieza de datos
+            nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
+            telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
+            direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
+            System.out.println(">> service FILTRO nombre: " + nombre);
+            // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
+            // direccion, fechaRegistro);
+            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion);
+            return resultado;
+
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error al filtrar las IPS: " + e.getMessage(), e);
+        }
+    }
+
+    public Optional<Ips> findById(Integer id) {
+        return ipsRepository.findById(id);
+    }
+
+    public List<Ips> findByNombreContainingIgnoreCase(String nombre) {
+        return ipsRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    public Ips save(Ips ips) {
+        return ipsRepository.save(ips);
+    }
+
+    public void deleteById(Integer id) {
+        ipsRepository.deleteById(id);
+    }
+
+    public Ips actualizarIps(Ips ips) {
+        return ipsRepository.save(ips);
+    }
+
+    public List<Ips> obtenerIpsPorServicio(String nombreServicio) {
+        System.out.println("Nombre del servicio: " + nombreServicio);
+        return ipsRepository.buscarIpsPorNombreServicio(nombreServicio);
+    }
+
+    public List<String> obtenerServiciosPorNombreOIdIps(String nombreIps, Integer idIps) {
+        return ipsRepository.buscarServicioPorNombreOIdIps(nombreIps, idIps);
+    }
 
     public List<Ips> filtrarIps(
             String nombre,
@@ -106,52 +123,6 @@ public class IPSService {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Error al filtrar las IPS: " + e.getMessage(), e);
         }
-    }
-
-    public List<Ips> filtrarIpsMulti(String nombre, String telefono, String direccion, String fechaRegistro) {
-        try {
-            // Limpieza de datos
-            nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
-            telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
-            direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
-            /*
-             * Instant fecha = (fechaRegistro != null && !fechaRegistro.trim().isEmpty())
-             * ? parseFechaSegura(fechaRegistro)
-             * : null;
-             */
-            System.out.println(">> service FILTRO nombre: " + nombre);
-            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion);
-
-            if (resultado.isEmpty()) {
-                throw new IllegalArgumentException("No se encontraron IPS");
-            }
-
-            return resultado;
-
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Error al filtrar las IPS: " + e.getMessage(), e);
-        }
-    }
-
-    public Optional<Ips> findById(Integer id) {
-        return ipsRepository.findById(id);
-    }
-
-    public Ips save(Ips ips) {
-        return ipsRepository.save(ips);
-    }
-
-    public void deleteById(Integer id) {
-        ipsRepository.deleteById(id);
-    }
-
-    public List<Ips> obtenerIpsPorServicio(String nombreServicio) {
-        System.out.println("Nombre del servicio: " + nombreServicio);
-        return ipsRepository.buscarIpsPorNombreServicio(nombreServicio);
-    }
-
-    public Ips actualizarIps(Ips ips) {
-        return ipsRepository.save(ips);
     }
 
     private Instant parseFechaSegura(String fechaStr) {

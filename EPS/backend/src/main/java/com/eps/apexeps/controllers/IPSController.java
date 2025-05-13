@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -82,13 +81,13 @@ public class IPSController {
         }
     }
 
-    @GetMapping("/nombre/{nombre}")
-    public List<Ips> findByNombreContainingIgnoreCase(@PathVariable String nombre) {
+    @GetMapping("/nombre")
+    public List<Ips> findByNombreContainingIgnoreCase(@RequestParam(required = true) String nombre) {
         return ipsService.findByNombreContainingIgnoreCase(nombre);
     }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<Ips> findById(@PathVariable Integer id) {
+    @GetMapping("/id")
+    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
         return ipsService.findById(id)
                 .map(ResponseEntity::ok) // ahora Optional.map existe
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -119,21 +118,22 @@ public class IPSController {
         return ResponseEntity.ok(nuevaIps);
     }
 
-    @DeleteMapping("/idLike={id}")
-    public void deleteById(@PathVariable Integer id) {
+    @DeleteMapping
+    public void deleteById(@RequestParam(required = true) Integer id) {
         ipsService.deleteById(id);
     }
 
-    @GetMapping("/servicio/{nombreServicio}")
-    public List<Ips> obtenerIpsPorServicio(@PathVariable String nombreServicio) {
+    @GetMapping("/servicio")
+    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String nombreServicio) {
         return ipsService.obtenerIpsPorServicio(nombreServicio);
     }
 
-    /*
-    @GetMapping("/servicio/ips/")
-    public List<Ips> obtenerIpsPorServicio(@RequestParam Integer Id) {
-        return ipsService.obtenerIpsPorServicio(Id);
-    }
+    @GetMapping("/servicio/ips")
+    public ResponseEntity<List<String>> buscarServicios(
+            @RequestParam(required = false) String nombreIps,
+            @RequestParam(required = false) Integer idIps) {
 
-    */
+        List<String> servicios = ipsService.obtenerServiciosPorNombreOIdIps(nombreIps, idIps);
+        return ResponseEntity.ok(servicios);
+    }
 }

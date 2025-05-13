@@ -24,52 +24,54 @@ import com.eps.apexeps.models.Ips;
 @Repository
 public interface IPSRepository extends JpaRepository<Ips, Integer> {
 
-    // Búsqueda por nombre (contiene, sin importar mayúsculas/minúsculas)
-    List<Ips> findByNombreContainingIgnoreCase(String nombre);
+        // Búsqueda por nombre (contiene, sin importar mayúsculas/minúsculas)
+        List<Ips> findByNombreContainingIgnoreCase(String nombre);
 
-    // Búsqueda por dirección
-    List<Ips> findByDireccionContainingIgnoreCase(String direccion);
+        // Búsqueda por dirección
+        List<Ips> findByDireccionContainingIgnoreCase(String direccion);
 
-    // Búsqueda exacta por teléfono
-    List<Ips> findByTelefono(String telefono);
+        // Búsqueda exacta por teléfono
+        List<Ips> findByTelefono(String telefono);
 
-    // Búsqueda exacta por fecha de registro
-    List<Ips> findByFechaRegistro(Instant fechaRegistro);
+        // Búsqueda exacta por fecha de registro
+        List<Ips> findByFechaRegistro(Instant fechaRegistro);
 
-    // Búsqueda por correo del administrador registrado
-    List<Ips> findByAdmEps_EmailIgnoreCase(String email);
+        // Búsqueda por correo del administrador registrado
+        List<Ips> findByAdmEps_EmailIgnoreCase(String email);
 
-    @Query("SELECT i FROM Ips i WHERE " +
-        "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
-        "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', :telefono, '%'))) AND " +
-        "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%')))")
-            //"AND " + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro)  = TO_TIMESTAMP(:fechaRegistro, 'DD-MM-YYYY'))"")"
-    List<Ips> filtrarIpsMultiples(
-            @Param("nombre") String nombre,
-            @Param("telefono") String telefono,
-            @Param("direccion") String direccion
-            //@Param("fechaRegistro") String fechaRegistro
-            );
+        @Query("SELECT i FROM Ips i WHERE "
+                        + "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND "
+                        + "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', :telefono, '%'))) AND "
+                        + "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%')))"
+                        // + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro) =
+                        // TO_TIMESTAMP(CAST(:fechaRegistro AS String), 'DD-MM-YYYY'))"
+                        + "ORDER BY i.nombre")
+        List<Ips> filtrarIpsMultiples(
+                        @Param("nombre") String nombre,
+                        @Param("telefono") String telefono,
+                        @Param("direccion") String direccion
+        // ,@Param("fechaRegistro") String fechaRegistro
+        );
 
-    // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
-    // similar
-    @Query(value = """
-                SELECT DISTINCT i.*
-                FROM ips i
-                JOIN consultorio c ON c.ips_consultorio = i.id_ips
-                JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
-                WHERE LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
-                ORDER BY i.nom_ips
-            """, nativeQuery = true)
-    List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
+        // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
+        // similar
+        @Query(value = """
+                            SELECT DISTINCT i.*
+                            FROM ips i
+                            JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                            JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                            WHERE LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
+                            ORDER BY i.nom_ips
+                        """, nativeQuery = true)
+        List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
 
-    @Query(value = """
-                SELECT DISTINCT sm.nom_sermed
-                FROM ips i
-                JOIN consultorio c ON c.ips_consultorio = i.id_ips
-                JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
-                WHERE LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
-                ORDER BY i.nom_ips
-            """, nativeQuery = true)
-    List<Ips> buscarServicioPorNombreIps(@Param("nombreIps") String nombreIps);
+        @Query(value = """
+                            SELECT DISTINCT sm.nom_sermed
+                            FROM ips i
+                            JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                            JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                            WHERE (:nombreIps IS NULL OR LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', :nombreIps, '%')))
+                              OR (:idIps IS NOT NULL AND i.id_ips = :idIps)
+                        """, nativeQuery = true)
+        List<String> buscarServicioPorNombreOIdIps(@Param("nombreIps") String nombreIps, @Param("idIps") Integer idIps);
 }
