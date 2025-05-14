@@ -9,3 +9,9 @@ export const obtenerPacienteCitas = async (dniPaciente) =>
 export const obtenerDiagnosticos = async () =>
   await axios.get(`${API_URL}/lista-diagnosticos`);
 
+export const obtenerMedicamentos = async () =>
+  await axios.get(`${API_URL}/lista-medicamentos`);
+
+export const obtenerServiciosMedicos = async () =>
+  await axios.get(`${API_URL}/lista-servicios`);
+

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.eps.apexeps.models.Diagnostico;
 import com.eps.apexeps.models.Medicamento;
+import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.response.ApiResponse;
 import com.eps.apexeps.models.DTOs.OrdenaDTO;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
@@ -26,6 +27,24 @@ public class ResultadosController {
 
         @Autowired
         private ResultadosService resultadosService;
+
+        // Obtener lista de diagnosticos
+        @GetMapping("/lista-diagnosticos")
+        public List<Diagnostico> getListaDiagnosticos() {
+                return resultadosService.getListaDiagnosticos();
+        }
+
+        // Obtener lista de medicamentos
+        @GetMapping("/lista-medicamentos")
+        public List<Medicamento> getListaMedicamentos() {
+                return resultadosService.getListaMedicamentos();
+        }
+
+        // Obtener lista de servicios medicos
+        @GetMapping("/lista-servicios")
+        public List<ServicioMedico> getListaServiciosMedicos() {
+                return resultadosService.getListaServiciosMedicos();
+        }
 
         // Obtener las citas (agenda) en estado PENDIENTE de un paciente
         @GetMapping("/citas")
@@ -50,18 +69,6 @@ public class ResultadosController {
                                         "Error inesperado al procesar la solicitud.",
                                         null));
                 }
-        }
-
-        // Obtener lista de diagnosticos
-        @GetMapping("/lista-diagnosticos")
-        public List<Diagnostico> getListaDiagnosticos() {
-                return resultadosService.getListaDiagnosticos();
-        }
-
-        // Obtener lista de medicamentos
-        @GetMapping("/lista-medicamentos")
-        public List<Medicamento> getListaMedicamentos() {
-                return resultadosService.getListaMedicamentos();
         }
 
         // Registrar resultados de una cita (agenda)

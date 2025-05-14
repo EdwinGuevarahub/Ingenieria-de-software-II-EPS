@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   TextField,
   Button,
@@ -21,113 +21,36 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   obtenerPacienteCitas,
   obtenerDiagnosticos,
+  obtenerMedicamentos,
+  obtenerServiciosMedicos
 } from "../../services/resultadosService";
-
-// Lista de medicamentos para el ejemplo
-const MEDICAMENTOS = [
-  "Acetaminofén 500mg",
-  "Ibuprofeno 400mg",
-  "Omeprazol 20mg",
-  "Amoxicilina 500mg",
-  "Loratadina 10mg",
-  "Metformina 850mg",
-  "Enalapril 10mg",
-  "Losartán 50mg",
-  "Diclofenaco 50mg",
-  "Ranitidina 150mg",
-];
-
-// Lista de especialidades médicas
-const ESPECIALIDADES = [
-  "Cardiología",
-  "Dermatología",
-  "Gastroenterología",
-  "Neurología",
-  "Oftalmología",
-  "Oncología",
-  "Pediatría",
-  "Psiquiatría",
-  "Traumatología",
-  "Urología",
-];
 
 // Tipos de órdenes médicas
 const TIPOS_ORDEN = ["Fórmula médica", "Remisión", "Toma de exámenes"];
 
 function MedicalOrderForm() {
-  const [documentId, setDocumentId] = useState("");
-  const [resultado, setResultado] = useState("");
-  const [diagnosticos, setDiagnosticos] = useState([]);
+  const [dniPaciente, setDniPaciente] = useState("");
+  const [idAgenda, setIdAgenda] = useState("");
+  const [resultadoGeneral, setResultadoGeneral] = useState("");
   const [tipoOrden, setTipoOrden] = useState("");
-  const [showOrderForm, setShowOrderForm] = useState(false);
-  const [dniError, setDniError] = useState(false);
-  const [dniErrorMessage, setDniErrorMessage] = useState("");
-  const [pacienteCitas, setPacienteCitas] = useState([]);
-  const [selectedAgendaId, setSelectedAgendaId] = useState("");
-  const [loadingFechas, setLoadingFechas] = useState(false);
-
-  // Campos para Fórmula médica
-  const [observacionesFormula, setObservacionesFormula] = useState("");
-  const [observacionesDiag, setObservacionesDiag] = useState({
-    diagnostico: "",
-    observacion: "",
-  });
+  const [diagnostico, setDiagnostico] = useState("");
+  const [obsDiagnostico, setObsDiagnostico] = useState("");
   const [medicamentos, setMedicamentos] = useState([
     { medicamento: "", receta: "" },
   ]);
+   const [servicioMedico, setServicioMedico] = useState("");
+  
+  const [pacienteCitas, setPacienteCitas] = useState([]);
+  const [listaDiagnosticos, setListaDiagnosticos] = useState([]);
+  const [listaMedicamentos, setListaMedicamentos] = useState([]);
+  const [listaServicios, setListaServicios] = useState([]);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [dniError, setDniError] = useState(false);
+  const [dniErrorMensaje, setDniErrorMensaje] = useState("");
+  const [loadingFechas, setLoadingFechas] = useState(false);
 
   // Campos para Remisión/Toma de exámenes
-  const [especialidad, setEspecialidad] = useState("");
-  const [observacionesRemision, setObservacionesRemision] = useState("");
-
-  const handleSubmitId = async (event) => {
-    event.preventDefault();
-
-    if (!documentId.trim()) {
-      setDniError(true);
-      setDniErrorMessage("Por favor digite el documento del paciente");
-      return;
-    }
-
-    setDniError(false);
-
-    try {
-      setLoadingFechas(true);
-      const response = await obtenerPacienteCitas(documentId);
-      const pacienteCitas = response.data.data;
-
-      if (
-        pacienteCitas?.paciente &&
-        pacienteCitas?.citasPendientes?.length > 0
-      ) {
-        setPacienteCitas(pacienteCitas);
-        setShowOrderForm(true);
-      } else {
-        setDniError(true);
-        setDniErrorMessage("El paciente no tiene citas pendientes");
-      }
-    } catch (error) {
-      setDniError(true);
-      setDniErrorMessage("El paciente no esta registrado");
-    } finally {
-      setLoadingFechas(false);
-    }
-  };
-
-  const handleDiags = async () => {
-    try {
-      const response = await obtenerDiagnosticos();
-      const resDiagnosticos = response.data;
-
-      if (!resDiagnosticos?.length > 0) {
-        console.log("No se pudieron obtener los Diagnósticos");
-      } else {
-        setDiagnosticos(resDiagnosticos);
-      }
-    } catch (error) {
-      console.log("No se pudieron obtener los Diagnósticos");
-    }
-  };
+  // const [observacionesRemision, setObservacionesRemision] = useState("");
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !loadingFechas) {
@@ -136,27 +59,131 @@ function MedicalOrderForm() {
     }
   };
 
+  // Al ingresar el DNI del pacinte
+  const handleSubmitId = async (event) => {
+    event.preventDefault();
+
+    if (!dniPaciente.trim()) {
+      setDniError(true);
+      setDniErrorMensaje("Por favor digite el documento del paciente");
+      return;
+    }
+
+    setDniError(false);
+
+    try {
+      setLoadingFechas(true);
+      const { data } = await obtenerPacienteCitas(dniPaciente);
+      const { paciente, citasPendientes } = data?.data;
+
+      if (paciente && citasPendientes?.length > 0) {
+        setPacienteCitas(data?.data);
+        setShowOrderForm(true);
+      } else {
+        setDniError(true);
+        setDniErrorMensaje("El paciente no tiene citas pendientes");
+      }
+    } catch (error) {
+      setDniError(true);
+      setDniErrorMensaje("El paciente no esta registrado");
+    } finally {
+      setLoadingFechas(false);
+    }
+  };
+
+  // Obtener la lista de Diagnosticos
+  const handleDiags = async () => {
+    try {
+      const { data: resDiagnosticos } = await obtenerDiagnosticos();
+
+      if (Array.isArray(resDiagnosticos) && resDiagnosticos.length > 0) {
+        setListaDiagnosticos(resDiagnosticos);
+      } else {
+        console.log("No se pudieron obtener los diagnósticos");
+      }
+    } catch (error) {
+      console.log("No se pudieron obtener los diagnósticos");
+    }
+  };
+
+  // Obtener lista de me Medicamentos
+  const handleMedicamentos = async () => {
+    try {
+      const { data: listaMedicamentos } = await obtenerMedicamentos();
+
+      if (Array.isArray(listaMedicamentos) && listaMedicamentos.length > 0) {
+        setListaMedicamentos(listaMedicamentos);
+      } else {
+        console.warn("No se pudieron obtener los medicamentos");
+      }
+    } catch (error) {
+      console.error("Error al obtener los medicamentos:", error);
+    }
+  };
+
+  // Obtener lista de me servicios medicos
+  const handleServiciosMedicos = async () => {
+    try {
+      const { data: listaServicios } = await obtenerServiciosMedicos();
+
+      if (Array.isArray(listaServicios) && listaServicios.length > 0) {
+        setListaServicios(listaServicios);
+      } else {
+        console.warn("No se pudieron obtener los servicios medicos");
+      }
+    } catch (error) {
+      console.error("Error al obtener los servicios medicos:", error);
+    }
+  };
+
+  // Añadir un nuevo medicamento para el diangnostico (interfaz)
   const handleAddMedicamento = () => {
     setMedicamentos([...medicamentos, { medicamento: "", receta: "" }]);
   };
 
+  // Eliminar un medicamento del diangnostico (interfaz)
   const handleRemoveMedicamento = (index) => {
     const newMedicamentos = [...medicamentos];
     newMedicamentos.splice(index, 1);
     setMedicamentos(newMedicamentos);
   };
 
+  // Asignar el medicamento seleccionado de la lista desplegable
   const handleMedicamentoChange = (index, field, value) => {
     const newMedicamentos = [...medicamentos];
     newMedicamentos[index][field] = value;
     setMedicamentos(newMedicamentos);
   };
 
-  const handleDiagChange = (field, value) => {
-    setObservacionesDiag((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // Guardar el Resultado (General, diagnostico y medicamentos u Ordenes)
+  const handleGuardarResultado = () => {
+    const medicamentosFormateados = medicamentos.map((med) => {
+      const medicamentoSeleccionado = listaMedicamentos.find(
+        (medicamento) => medicamento.nombre === med.medicamento
+      );
+      const medicamentoId = medicamentoSeleccionado?.id || "";
+
+      return {
+        medicamento: {
+          id: medicamentoId,
+          nombre: med.medicamento,
+        },
+        cantidad: 0, // Valor por defecto
+        dosis: med.receta || "",
+        duracion: "", // Valor por defecto
+      };
+    });
+
+    const resultadoJSON = {
+      agendaId: parseInt(idAgenda) || null,
+      resultadoAgenda: resultadoGeneral || null,
+      diagnostico: diagnostico || null,
+      observacion: obsDiagnostico || null,
+      medicamentos: medicamentosFormateados,
+    };
+
+    // Imprimir el resultado en consola
+    console.log(JSON.stringify(resultadoJSON, null, 2));
   };
 
   const renderFormulaMedica = () => (
@@ -167,18 +194,16 @@ function MedicalOrderForm() {
 
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="flex-start">
-          <Grid size={4} item xs={12} md={5}>
+          <Grid size={5} item xs={12} md={5}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Diagnóstico</InputLabel>
               <Select
-                value={observacionesDiag.diagnostico}
+                value={diagnostico}
                 label={"Diagnóstico"}
-                onChange={(e) =>
-                  handleDiagChange("diagnostico", e.target.value)
-                }
+                onChange={(e) => setDiagnostico(e.target.value)}
               >
-                {diagnosticos.map((diag) => (
-                  <MenuItem key={diag.cie} value={diag.nombre}>
+                {listaDiagnosticos.map((diag) => (
+                  <MenuItem key={diag.cie} value={diag.cie}>
                     {diag.nombre}
                   </MenuItem>
                 ))}
@@ -192,8 +217,8 @@ function MedicalOrderForm() {
               variant="outlined"
               multiline
               rows={2}
-              value={observacionesDiag.observacion}
-              onChange={(e) => handleDiagChange("observacion", e.target.value)}
+              value={obsDiagnostico}
+              onChange={(e) => setObsDiagnostico(e.target.value)}
               margin="normal"
               placeholder="Ej: Asma leve, parcialmente controlada."
             />
@@ -219,13 +244,13 @@ function MedicalOrderForm() {
                     handleMedicamentoChange(
                       index,
                       "medicamento",
-                      e.target.value,
+                      e.target.value
                     )
                   }
                 >
-                  {MEDICAMENTOS.map((med) => (
-                    <MenuItem key={med} value={med}>
-                      {med}
+                  {listaMedicamentos.map((medicamento) => (
+                    <MenuItem key={medicamento.id} value={medicamento.nombre}>
+                      {medicamento.nombre}
                     </MenuItem>
                   ))}
                 </Select>
@@ -289,19 +314,19 @@ function MedicalOrderForm() {
       <FormControl fullWidth margin="normal">
         <InputLabel>Especialidad</InputLabel>
         <Select
-          value={especialidad}
+          value={servicioMedico}
           label="Especialidad"
-          onChange={(e) => setEspecialidad(e.target.value)}
+          onChange={(e) => setServicioMedico(e.target.value)}
         >
-          {ESPECIALIDADES.map((esp) => (
-            <MenuItem key={esp} value={esp}>
-              {esp}
+          {listaServicios.map((servicio) => (
+            <MenuItem key={servicio.cups} value={servicio.cups}>
+              {servicio.nombre} - {servicio.descripcion}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <TextField
+      {/* <TextField
         fullWidth
         label="Observaciones"
         variant="outlined"
@@ -310,7 +335,7 @@ function MedicalOrderForm() {
         value={observacionesRemision}
         onChange={(e) => setObservacionesRemision(e.target.value)}
         margin="normal"
-      />
+      /> */}
     </Box>
   );
 
@@ -333,8 +358,8 @@ function MedicalOrderForm() {
             label="Documento Nacional de Identidad del paciente"
             type="number"
             variant="outlined"
-            value={documentId}
-            onChange={(e) => setDocumentId(e.target.value)}
+            value={dniPaciente}
+            onChange={(e) => setDniPaciente(e.target.value)}
             onKeyDown={handleKeyDown}
             margin="normal"
             required
@@ -346,7 +371,7 @@ function MedicalOrderForm() {
               sx={{ display: "flex", alignItems: "center", color: "#e57373" }}
             >
               <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.5 }} />
-              {dniErrorMessage}
+              {dniErrorMensaje}
             </FormHelperText>
           )}
 
@@ -400,7 +425,8 @@ function MedicalOrderForm() {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body1">
-                  <span style={{ color: "#666" }}>Documento:</span> {documentId}
+                  <span style={{ color: "#666" }}>Documento:</span>{" "}
+                  {dniPaciente}
                 </Typography>
               </Grid>
             </Grid>
@@ -409,12 +435,9 @@ function MedicalOrderForm() {
           <FormControl fullWidth margin="normal">
             <InputLabel>Fecha cita actual</InputLabel>
             <Select
-              value={selectedAgendaId}
+              value={idAgenda}
               label="Fecha cita actual"
-              onChange={(e) => {
-                setSelectedAgendaId(e.target.value);
-                handleDiags();
-              }}
+              onChange={(e) => setIdAgenda(e.target.value)}
             >
               {pacienteCitas?.citasPendientes?.map(({ id, fecha }) => (
                 <MenuItem key={id} value={id}>
@@ -428,14 +451,14 @@ function MedicalOrderForm() {
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: true,
-                    },
+                    }
                   )}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {selectedAgendaId && (
+          {idAgenda && (
             <Box sx={{ mt: 3 }}>
               <TextField
                 fullWidth
@@ -443,8 +466,8 @@ function MedicalOrderForm() {
                 variant="outlined"
                 multiline
                 rows={4}
-                value={resultado}
-                onChange={(e) => setResultado(e.target.value)}
+                value={resultadoGeneral}
+                onChange={(e) => setResultadoGeneral(e.target.value)}
                 margin="normal"
                 required
               />
@@ -454,7 +477,16 @@ function MedicalOrderForm() {
                 <Select
                   value={tipoOrden}
                   label="Tipo de Orden"
-                  onChange={(e) => setTipoOrden(e.target.value)}
+                  onChange={(e) => {
+                    const tipo = e.target.value;
+                    setTipoOrden(tipo);
+                    if (tipo === "Fórmula médica") {
+                      if (listaDiagnosticos.length === 0) handleDiags();
+                      if (listaMedicamentos.length === 0) handleMedicamentos();
+                    } else if (tipo === "Remisión") {
+                      if (listaServicios.length === 0) handleServiciosMedicos();
+                    }
+                  }}
                 >
                   {TIPOS_ORDEN.map((tipo) => (
                     <MenuItem key={tipo} value={tipo}>
@@ -472,6 +504,7 @@ function MedicalOrderForm() {
                 variant="contained"
                 color="primary"
                 fullWidth
+                onClick={handleGuardarResultado}
                 sx={{
                   mt: 4,
                   mb: 2,

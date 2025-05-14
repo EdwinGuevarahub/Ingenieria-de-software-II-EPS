@@ -2,11 +2,15 @@ package com.eps.apexeps.models.DTOs;
 
 import java.util.List;
 
+import com.eps.apexeps.models.relations.DetalleFormula;
+
 // Resultado de la cita (agenda) y diagnosticos generados
 public class ResultadoDiagnostico {
     private Long agendaId;
     private String resultadoAgenda;
-    private List<FormulaMedica> diagnosticos;
+    private String diagnostico;
+    private String observacion;
+    private List<DetalleFormula> medicamentos;
 
     public Long getAgendaId() {
         return agendaId;
@@ -24,11 +28,27 @@ public class ResultadoDiagnostico {
         this.resultadoAgenda = resultado_agenda;
     }
 
-    public List<FormulaMedica> getDiagnosticos() {
-        return diagnosticos;
+        public String getDiagnostico() {
+        return diagnostico;
     }
 
-    public void setDiagnosticos(List<FormulaMedica> diagnosticos) {
-        this.diagnosticos = diagnosticos;
+    public void setDiagnostico(String diagnostico) {
+        this.diagnostico = diagnostico;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
+    }
+
+    public List<DetalleFormula> getMedicamentos() {
+        return medicamentos;
+    }
+
+    public void setMedicamentos(List<DetalleFormula> medicamentos) {
+        this.medicamentos = medicamentos;
     }
 }
