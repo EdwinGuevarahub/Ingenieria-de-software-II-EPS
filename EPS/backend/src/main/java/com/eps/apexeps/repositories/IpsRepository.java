@@ -39,18 +39,20 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
         // Búsqueda por correo del administrador registrado
         List<Ips> findByAdmEps_EmailIgnoreCase(String email);
 
+        /*
+         * Consulta personalizada: filtrar IPS por nombre, teléfono, dirección y fecha
+         * de registro.
+         */
         @Query("SELECT i FROM Ips i WHERE "
-                        + "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND "
-                        + "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', :telefono, '%'))) AND "
-                        + "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', :direccion, '%')))"
-                        // + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro) =
-                        // TO_TIMESTAMP(CAST(:fechaRegistro AS String), 'DD-MM-YYYY'))"
-                        + "ORDER BY i.nombre")
+                        + "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', CAST(:nombre AS String), '%'))) AND "
+                        + "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', CAST(:telefono AS String), '%'))) AND "
+                        + "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', CAST(:direccion AS String), '%'))) AND"
+                        + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro) = TO_TIMESTAMP(CAST(:fechaRegistro AS String), 'DD-MM-YYYY'))")
         List<Ips> filtrarIpsMultiples(
                         @Param("nombre") String nombre,
                         @Param("telefono") String telefono,
-                        @Param("direccion") String direccion
-        // ,@Param("fechaRegistro") String fechaRegistro
+                        @Param("direccion") String direccion,
+                        @Param("fechaRegistro") String fechaRegistro
         );
 
         // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
@@ -65,6 +67,10 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
                         """, nativeQuery = true)
         List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
 
+        /**
+         * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID de
+         * IPS. 
+         */
         @Query(value = """
                             SELECT DISTINCT sm.nom_sermed
                             FROM ips i

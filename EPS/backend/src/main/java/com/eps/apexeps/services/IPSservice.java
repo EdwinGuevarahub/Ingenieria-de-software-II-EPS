@@ -33,6 +33,16 @@ public class IPSService {
         return ipsRepository.findAll();
     }
 
+    /**
+     * Filtra las IPS según los parámetros proporcionados. Los parámetros son
+     * opcionales y se aplican en orden de prioridad.
+     *
+     * @param nombre         Nombre de la IPS (opcional)
+     * @param telefono       Teléfono de la IPS (opcional)
+     * @param direccion      Dirección de la IPS (opcional)
+     * @param fechaRegistro  Fecha de registro de la IPS (opcional)
+     * @return Lista de IPS que cumplen con los criterios de búsqueda
+     */
     public List<Ips> filtrarIpsMulti(String nombre, String telefono, String direccion, String fechaRegistro) {
         try {
             // Limpieza de datos
@@ -40,9 +50,8 @@ public class IPSService {
             telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
             System.out.println(">> service FILTRO nombre: " + nombre);
-            // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
-            // direccion, fechaRegistro);
-            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion);
+            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro);
+            //List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion);
             return resultado;
 
         } catch (IllegalArgumentException e) {
@@ -70,15 +79,39 @@ public class IPSService {
         return ipsRepository.save(ips);
     }
 
+    /**
+     * Busca las IPS que ofrecen un servicio médico específico.
+     *
+     * @param nombreServicio Nombre del servicio médico
+     * @return Lista de IPS que ofrecen el servicio médico
+     */
     public List<Ips> obtenerIpsPorServicio(String nombreServicio) {
         System.out.println("Nombre del servicio: " + nombreServicio);
         return ipsRepository.buscarIpsPorNombreServicio(nombreServicio);
     }
 
+    /**
+     * Busca los servicios médicos ofrecidos por una IPS específica.
+     *
+     * @param nombreIps Nombre de la IPS
+     * @param idIps    ID de la IPS
+     * @return Lista de servicios médicos ofrecidos por la IPS
+     */
     public List<String> obtenerServiciosPorNombreOIdIps(String nombreIps, Integer idIps) {
         return ipsRepository.buscarServicioPorNombreOIdIps(nombreIps, idIps);
     }
 
+    /**
+     * Filtra las IPS según los parámetros proporcionados. Los parámetros son
+     * opcionales y se aplican en orden de prioridad.
+     *
+     * @param nombre         Nombre de la IPS (opcional)
+     * @param email          Correo electrónico del administrador (opcional)
+     * @param telefono       Teléfono de la IPS (opcional)
+     * @param direccion      Dirección de la IPS (opcional)
+     * @param fechaRegistro  Fecha de registro de la IPS (opcional)
+     * @return Lista de IPS que cumplen con los criterios de búsqueda
+     */
     public List<Ips> filtrarIps(
             String nombre,
             String email,
@@ -125,6 +158,13 @@ public class IPSService {
         }
     }
 
+    /**
+     * Intenta analizar una fecha en varios formatos seguros.
+     *
+     * @param fechaStr La cadena de fecha a analizar
+     * @return Un objeto Instant si se analiza correctamente, o null si no se puede
+     *         analizar
+     */
     private Instant parseFechaSegura(String fechaStr) {
         try {
             // Intentar con ISO-8601 (Instant.parse)

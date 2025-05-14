@@ -42,7 +42,7 @@ public class IPSController {
         return ipsService.findAll();
     }
 
-    @GetMapping
+    @GetMapping("/one")
     public List<IpsEntradaLista> findIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String email,
@@ -66,7 +66,7 @@ public class IPSController {
         }
     }
 
-    @GetMapping("/filtrar")
+    @GetMapping
     public <T> ResponseEntity<List<Ips>> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
@@ -128,6 +128,10 @@ public class IPSController {
         return ipsService.obtenerIpsPorServicio(nombreServicio);
     }
 
+    /*
+     * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID
+     * de IPS.
+     */
     @GetMapping("/servicio/ips")
     public ResponseEntity<List<String>> buscarServicios(
             @RequestParam(required = false) String nombreIps,
