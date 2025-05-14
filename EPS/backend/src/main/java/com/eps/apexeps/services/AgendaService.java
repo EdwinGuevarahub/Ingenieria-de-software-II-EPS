@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.relations.Agenda;
+import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.repositories.AgendaRepository;
+import com.eps.apexeps.repositories.TrabajaRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,9 @@ public class AgendaService {
 
     /** Repositorio de agendas para acceder a la base de datos. */
     private final AgendaRepository agendaRepository;
+
+    /** Repositorio de relaciones trabaja para acceder a la base de datos. */
+    private final TrabajaRepository trabajaRepository;
 
     /**
      * Método para obtener todas las agendas de la base de datos asociadas a un paciente.
@@ -73,6 +78,39 @@ public class AgendaService {
         agenda.getGeneraciones().size();
         agenda.getOrdenes().size();
         return agenda;
+    }
+
+    /**
+     * Método para actualizar la fecha y la relación trabaja de una agenda.
+     * @param agenda La agenda a actualizar.
+     * @return La agenda actualizada.
+     * @throws IllegalArgumentException Si la agenda no existe.
+     */
+    public Agenda updateTrabajaFechaAgenda(Agenda agenda) {
+        if (!agendaRepository.existsById(agenda.getId()))
+            throw new IllegalArgumentException("La agenda no existe");
+
+        if (agenda.getFecha() == null)
+            throw new IllegalArgumentException("La fecha no puede ser nula");
+        
+        Trabaja trabaja = trabajaRepository.findById(agenda.getTrabaja().getId()).orElseThrow( () ->
+                                new IllegalArgumentException("La relación trabaja no existe")
+                            );
+        
+        if (    agenda.getTrabaja().getConsultorio().getId() != null
+             && agenda.getTrabaja().getConsultorio().getId() != trabaja.getConsultorio().getId()
+           )
+            throw new IllegalArgumentException("El consultorio de la relación trabaja no coincide con el de la agenda");
+        
+        if (    agenda.getTrabaja().getMedico().getDni() != null
+             && agenda.getTrabaja().getMedico().getDni() != trabaja.getMedico().getDni()
+           )
+            throw new IllegalArgumentException("El médico de la relación trabaja no coincide con el de la agenda");
+
+        Agenda agendaActualizada = agendaRepository.findById(agenda.getId()).orElse(null);
+        agendaActualizada.setFecha(agenda.getFecha());
+        agendaActualizada.setTrabaja(agenda.getTrabaja());
+        return agendaRepository.save(agendaActualizada);
     }
 
 }
