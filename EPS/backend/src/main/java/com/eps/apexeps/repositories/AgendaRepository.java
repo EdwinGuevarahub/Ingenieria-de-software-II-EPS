@@ -17,6 +17,18 @@ import com.eps.apexeps.models.relations.Agenda;
 @Repository
 public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
 
+    /**
+     * Método para obtener todas las agendas de la base de datos con filtros opcionales.
+     * @param dniPaciente El DNI del paciente.
+     * @param dniMedico El DNI del médico.
+     * @param dniNombrePacienteLike Cadena que se usará para filtrar los pacientes por su DNI o nombre (opcional).
+     * @param dniNombreMedicoLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda (opcional).
+     * @param fecha La fecha de la cita (opcional).
+     * @param horaDeInicio Inicio del filtro por hora (opcional).
+     * @param horaDeFin Fin del filtro por hora (opcional).
+     * @return Una lista de agendas filtradas según los parámetros proporcionados.
+     */
     @Query("""
         SELECT a
         FROM Agenda a
@@ -25,7 +37,16 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
         JOIN c.servicioMedico s
         JOIN t.medico m
         WHERE
-            a.paciente.dni = :dniPaciente
+            (   :dniPaciente IS NULL
+                OR a.paciente.dni = :dniPaciente
+            )
+            AND (:dniMedico IS NULL
+                OR t.medico.dni = :dniMedico
+            )
+            AND (:dniNombrePacienteLike IS NULL
+                OR CAST(a.paciente.dni AS String) LIKE %:dniNombrePacienteLike%
+                OR a.paciente.nombre LIKE %:dniNombrePacienteLike%
+            )
             AND (:dniNombreMedicoLike IS NULL
                 OR CAST(m.dni AS String) LIKE %:dniNombreMedicoLike%
                 OR m.nombre LIKE %:dniNombreMedicoLike%
@@ -49,8 +70,10 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
                 )
             )
     """)
-    public List<Agenda> findAllFilteredByPaciente(
+    public List<Agenda> findAllFiltered(
         Long dniPaciente,
+        Long dniMedico,
+        String dniNombrePacienteLike,
         String dniNombreMedicoLike,
         String cupsServicioMedico,
         String fecha,

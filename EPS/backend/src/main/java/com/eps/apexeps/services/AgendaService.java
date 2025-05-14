@@ -1,5 +1,8 @@
 package com.eps.apexeps.services;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -31,6 +34,8 @@ public class AgendaService {
     /**
      * Método para obtener todas las agendas de la base de datos asociadas a un paciente.
      * @param dniPaciente El DNI del paciente.
+     * @param dniMedico El DNI del médico.
+     * @param dniNombrePacienteLike Cadena que se usará para filtrar los pacientes por su DNI o nombre (opcional).
      * @param dniNombreMedicoLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda (opcional).
      * @param fecha La fecha de la cita (opcional).
@@ -40,8 +45,10 @@ public class AgendaService {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una colección de entradas de agenda.
      */
-    public List<Agenda> getAgendasPaciente(
+    public List<Agenda> getAgendas(
         Long dniPaciente,
+        Long dniMedico,
+        String dniNombrePacienteLike,
         String dniNombreMedicoLike,
         String cupsServicioMedico,
         String fecha,
@@ -50,9 +57,32 @@ public class AgendaService {
         Integer qSize,
         Integer qPage
     ) {
+        if (fecha != null)
+            try {
+                LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Fecha inválida. Formato esperado: dd-MM-yyyy");
+            }
+
+        if (horaDeInicio != null)
+            try {
+                LocalTime.parse(horaDeInicio, DateTimeFormatter.ofPattern("HH:mm"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Hora de inicio inválida. Formato esperado: HH:mm");
+            }
+
+        if (horaDeFin != null)
+            try {
+                LocalTime.parse(horaDeFin, DateTimeFormatter.ofPattern("HH:mm"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Hora de fin inválida. Formato esperado: HH:mm");
+            }
+
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
-        return agendaRepository.findAllFilteredByPaciente(
+        return agendaRepository.findAllFiltered(
                     dniPaciente,
+                    dniMedico,
+                    dniNombrePacienteLike,
                     dniNombreMedicoLike,
                     cupsServicioMedico,
                     fecha,
