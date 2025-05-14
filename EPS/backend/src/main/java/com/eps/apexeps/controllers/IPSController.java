@@ -42,6 +42,48 @@ public class IPSController {
         return ipsService.findAll();
     }
 
+    @GetMapping
+    public List<IpsEntradaLista> filtrarIps(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String direccion,
+            @RequestParam(required = false) String fechaRegistro) {
+
+        try {
+            return ipsService
+                    .filtrarIpsMulti(
+                        nombre, 
+                        telefono, 
+                        direccion, 
+                        fechaRegistro
+                    )
+                    .stream()
+                    .map(IpsEntradaLista::of)
+                    .toList();
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
+        }
+    }
+
+    @GetMapping("/bynombre-id")
+    public List<Ips> findByNombreContainingIgnoreCaseOrId(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Integer id) {
+        return ipsService.findByNombreContainingIgnoreCaseOrId(nombre, id);
+    }
+
+    @GetMapping("/o-nombre")
+    public List<Ips> findByNombreContainingIgnoreCase(@RequestParam(required = true) String nombre) {
+        return ipsService.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    @GetMapping("/o-id")
+    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
+        return ipsService.findById(id)
+                .map(ResponseEntity::ok) // ahora Optional.map existe
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
     @GetMapping("/one")
     public List<IpsEntradaLista> findIps(
             @RequestParam(required = false) String nombre,
@@ -64,33 +106,6 @@ public class IPSController {
         } catch (Throwable t) {
             throw new RuntimeException("Error al obtener las IPS: " + t.getMessage(), t);
         }
-    }
-
-    @GetMapping
-    public <T> ResponseEntity<List<Ips>> filtrarIps(
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) String telefono,
-            @RequestParam(required = false) String direccion,
-            @RequestParam(required = false) String fechaRegistro) {
-
-        try {
-            List<Ips> resultado = ipsService.filtrarIpsMulti(nombre, telefono, direccion, fechaRegistro);
-            return ResponseEntity.ok(resultado);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
-        }
-    }
-
-    @GetMapping("/nombre")
-    public List<Ips> findByNombreContainingIgnoreCase(@RequestParam(required = true) String nombre) {
-        return ipsService.findByNombreContainingIgnoreCase(nombre);
-    }
-
-    @GetMapping("/id")
-    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
-        return ipsService.findById(id)
-                .map(ResponseEntity::ok) // ahora Optional.map existe
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping
@@ -127,6 +142,7 @@ public class IPSController {
     public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String nombreServicio) {
         return ipsService.obtenerIpsPorServicio(nombreServicio);
     }
+    
 
     /*
      * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID

@@ -30,6 +30,8 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
         // Búsqueda por dirección
         List<Ips> findByDireccionContainingIgnoreCase(String direccion);
 
+        List<Ips> findByNombreContainingIgnoreCaseOrId(String nombre, Integer id);
+
         // Búsqueda exacta por teléfono
         List<Ips> findByTelefono(String telefono);
 

@@ -59,6 +59,10 @@ public class IPSService {
         }
     }
 
+    public List<Ips> findByNombreContainingIgnoreCaseOrId(String nombre, Integer id) {
+        return ipsRepository.findByNombreContainingIgnoreCaseOrId(nombre, id);
+    }
+
     public Optional<Ips> findById(Integer id) {
         return ipsRepository.findById(id);
     }
