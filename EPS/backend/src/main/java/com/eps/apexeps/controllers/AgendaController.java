@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.response.AgendaEntradaLista;
 import com.eps.apexeps.services.AgendaService;
 
@@ -87,6 +88,16 @@ public class AgendaController {
                 .stream()
                 .map(AgendaEntradaLista::of)
                 .toList();
+    }
+
+    /**
+     * Endpoint para obtener una agenda por su ID.
+     * @param id El ID de la agenda.
+     * @return La agenda correspondiente al ID proporcionado o null si no se encuentra.
+     */
+    @GetMapping("/{id}")
+    public Agenda getAgendaById(@PathVariable Integer id) {
+        return agendaService.getAgendaById(id);
     }
     
 }

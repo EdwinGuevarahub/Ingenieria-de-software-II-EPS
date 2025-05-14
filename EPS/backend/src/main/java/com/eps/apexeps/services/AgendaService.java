@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.repositories.AgendaRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -54,6 +55,24 @@ public class AgendaService {
                     horaDeFin,
                     pageable
                 );
+    }
+
+    /**
+     * Método para obtener una agenda por su ID.
+     * La etiqueta @Transactional asegura que la operación se realice dentro de una transacción.
+     * @param id El ID de la agenda.
+     * @return La agenda correspondiente al ID proporcionado o null si no se encuentra.
+     */
+    @Transactional
+    public Agenda getAgendaById(Integer id) {
+        Agenda agenda = agendaRepository.findById(id).orElse(null);
+        if (agenda == null)
+            return agenda;
+
+        // Cargar las relaciones necesarias para evitar LazyInitializationException.
+        agenda.getGeneraciones().size();
+        agenda.getOrdenes().size();
+        return agenda;
     }
 
 }
