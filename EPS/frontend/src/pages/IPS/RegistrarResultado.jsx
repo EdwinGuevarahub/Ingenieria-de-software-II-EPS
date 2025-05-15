@@ -14,6 +14,9 @@ import {
   Divider,
   FormHelperText,
   CircularProgress,
+  Snackbar,
+  Alert,
+  Slide,
 } from "@mui/material";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
@@ -27,6 +30,10 @@ import {
 
 // Tipos de órdenes médicas
 const TIPOS_ORDEN = ["Fórmula médica", "Remisión", "Toma de exámenes"];
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 function MedicalOrderForm() {
   const [dniPaciente, setDniPaciente] = useState("");
@@ -49,6 +56,26 @@ function MedicalOrderForm() {
   const [dniErrorMensaje, setDniErrorMensaje] = useState("");
   const [loadingFechas, setLoadingFechas] = useState(false);
 
+  // Estado para los errores de validación
+  const [errors, setErrors] = useState({
+    resultadoGeneral: false,
+    tipoResultado: false,
+    diagnostico: false,
+    obsDiagnostico: false,
+    medicamentos: Array(1).fill({
+      medicamento: false,
+      cantidad: false,
+      receta: false,
+    }),
+    servicioMedico: false,
+  });
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "error",
+  });
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !loadingFechas) {
       event.preventDefault();
@@ -56,7 +83,7 @@ function MedicalOrderForm() {
     }
   };
 
-  // Al ingresar el DNI del pacinte
+  // Al ingresar el DNI del paciente
   const handleSubmitId = async (event) => {
     event.preventDefault();
 
@@ -96,14 +123,14 @@ function MedicalOrderForm() {
       if (Array.isArray(resDiagnosticos) && resDiagnosticos.length > 0) {
         setListaDiagnosticos(resDiagnosticos);
       } else {
-        console.log("No se pudieron obtener los diagnósticos");
+        showMessage("No se pudieron obtener los diagnósticos", "warning");
       }
     } catch (error) {
-      console.log("No se pudieron obtener los diagnósticos");
+      showMessage("Error al cargar diagnósticos", "error");
     }
   };
 
-  // Obtener lista de me Medicamentos
+  // Obtener lista de Medicamentos
   const handleMedicamentos = async () => {
     try {
       const { data: listaMedicamentos } = await obtenerMedicamentos();
@@ -111,14 +138,14 @@ function MedicalOrderForm() {
       if (Array.isArray(listaMedicamentos) && listaMedicamentos.length > 0) {
         setListaMedicamentos(listaMedicamentos);
       } else {
-        console.warn("No se pudieron obtener los medicamentos");
+        showMessage("No se pudieron obtener los medicamentos", "warning");
       }
     } catch (error) {
-      console.error("Error al obtener los medicamentos:", error);
+      showMessage("Error al cargar medicamentos", "error");
     }
   };
 
-  // Obtener lista de me servicios medicos
+  // Obtener lista de servicios medicos
   const handleServiciosMedicos = async () => {
     try {
       const { data: listaServicios } = await obtenerServiciosMedicos();
@@ -126,23 +153,58 @@ function MedicalOrderForm() {
       if (Array.isArray(listaServicios) && listaServicios.length > 0) {
         setListaServicios(listaServicios);
       } else {
-        console.warn("No se pudieron obtener los servicios medicos");
+        showMessage("No se pudieron obtener los servicios médicos", "warning");
       }
     } catch (error) {
-      console.error("Error al obtener los servicios medicos:", error);
+      showMessage("Error al cargar servicios médicos", "error");
     }
   };
 
-  // Añadir un nuevo medicamento para el diangnostico (interfaz)
-  const handleAddMedicamento = () => {
-    setMedicamentos([...medicamentos, { medicamento: "", receta: "" }]);
+  // Función para mostrar mensajes al usuario
+  const showMessage = (message, severity = "error") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
   };
 
-  // Eliminar un medicamento del diangnostico (interfaz)
+  // Manejar el cierre del Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  // Añadir un nuevo medicamento para el diagnostico (interfaz)
+  const handleAddMedicamento = () => {
+    const newMedicamentos = [
+      ...medicamentos,
+      { medicamento: "", cantidad: "", receta: "" },
+    ];
+    setMedicamentos(newMedicamentos);
+
+    // Actualizar estado de errores para incluir el nuevo medicamento
+    setErrors((prev) => ({
+      ...prev,
+      medicamentos: [
+        ...prev.medicamentos,
+        { medicamento: false, cantidad: false, receta: false },
+      ],
+    }));
+  };
+
+  // Eliminar un medicamento del diagnostico (interfaz)
   const handleRemoveMedicamento = (index) => {
     const newMedicamentos = [...medicamentos];
     newMedicamentos.splice(index, 1);
     setMedicamentos(newMedicamentos);
+
+    // Actualizar estado de errores eliminando el medicamento correspondiente
+    const newErrors = { ...errors };
+    newErrors.medicamentos.splice(index, 1);
+    setErrors(newErrors);
   };
 
   // Asignar el medicamento seleccionado de la lista desplegable
@@ -150,10 +212,87 @@ function MedicalOrderForm() {
     const newMedicamentos = [...medicamentos];
     newMedicamentos[index][field] = value;
     setMedicamentos(newMedicamentos);
+
+    // Limpiar el error cuando se ingresa un valor
+    const newErrors = { ...errors };
+    newErrors.medicamentos[index][field] = false;
+    setErrors(newErrors);
+  };
+
+  // Función de validación del formulario
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
+
+    // Validar resultado general
+    if (!resultadoGeneral.trim()) {
+      newErrors.resultadoGeneral = true;
+      isValid = false;
+    } else {
+      newErrors.resultadoGeneral = false;
+    }
+
+    // Validar tipo de resultado
+    if (!tipoResultado) {
+      newErrors.tipoResultado = true;
+      isValid = false;
+    } else {
+      newErrors.tipoResultado = false;
+    }
+
+    // Validaciones específicas según el tipo de resultado
+    if (tipoResultado === "Fórmula médica") {
+      // Validar diagnóstico
+      if (!diagnostico) {
+        newErrors.diagnostico = true;
+        isValid = false;
+      } else {
+        newErrors.diagnostico = false;
+      }
+
+      // Validar observación del diagnóstico
+      if (!obsDiagnostico.trim()) {
+        newErrors.obsDiagnostico = true;
+        isValid = false;
+      } else {
+        newErrors.obsDiagnostico = false;
+      }
+
+      // Validar medicamentos
+      newErrors.medicamentos = medicamentos.map((med) => ({
+        medicamento: !med.medicamento,
+        cantidad: !med.cantidad,
+        receta: !med.receta,
+      }));
+
+      if (
+        medicamentos.some(
+          (med) => !med.medicamento || !med.cantidad || !med.receta
+        )
+      ) {
+        isValid = false;
+      }
+    } else if (tipoResultado === "Remisión") {
+      // Validar servicio médico
+      if (!servicioMedico) {
+        newErrors.servicioMedico = true;
+        isValid = false;
+      } else {
+        newErrors.servicioMedico = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   // Guardar el Resultado (General, diagnostico y medicamentos u Ordenes)
   const handleGuardarResultado = () => {
+    if (!validateForm()) {
+      showMessage("Por favor complete todos los campos requeridos", "error");
+      return;
+    }
+
     if (tipoResultado === "Fórmula médica") {
       guardarFormulaMedica();
     } else if (tipoResultado === "Toma de exámenes") {
@@ -161,55 +300,106 @@ function MedicalOrderForm() {
     } else if (tipoResultado === "Remisión") {
       guardarRemision();
     } else {
-      console.log("Seleccione el tipo de resultado");
+      showMessage("Seleccione el tipo de resultado", "error");
     }
   };
 
   const guardarFormulaMedica = () => {
-    const medicamentosFormateados = medicamentos.map((med) => {
-      const medicamentoSeleccionado = listaMedicamentos.find(
-        (medicamento) => medicamento.nombre === med.medicamento
+    try {
+      const medicamentosFormateados = medicamentos.map((med) => {
+        const medicamentoSeleccionado = listaMedicamentos.find(
+          (medicamento) => medicamento.nombre === med.medicamento
+        );
+
+        return {
+          medicamento: {
+            id: medicamentoSeleccionado?.id || null,
+            nombre: med.medicamento,
+          },
+          cantidad: parseInt(med.cantidad),
+          dosis: med.receta || "",
+          duracion: "",
+        };
+      });
+
+      const resultadoJSON = {
+        agendaId: parseInt(idAgenda) || null,
+        resultadoAgenda: resultadoGeneral || null,
+        diagnostico: diagnostico || null,
+        observacion: obsDiagnostico || null,
+        medicamentos: medicamentosFormateados,
+      };
+      console.log(
+        "guardarFormulaMedica",
+        JSON.stringify(resultadoJSON, null, 2)
       );
 
-      return {
-        medicamento: {
-          id: medicamentoSeleccionado?.id || null,
-          nombre: med.medicamento,
-        },
-        cantidad: parseInt(med.cantidad),
-        dosis: med.receta || "",
-        duracion: "",
-      };
-    });
+      // Aquí iría la llamada a la API para guardar
+      // ...
 
-    const resultadoJSON = {
-      agendaId: parseInt(idAgenda) || null,
-      resultadoAgenda: resultadoGeneral || null,
-      diagnostico: diagnostico || null,
-      observacion: obsDiagnostico || null,
-      medicamentos: medicamentosFormateados,
-    };
-    console.log(JSON.stringify(resultadoJSON, null, 2));
+      showMessage("Fórmula médica guardada con éxito", "success");
+      resetForm();
+    } catch (error) {
+      showMessage("Error al guardar la fórmula médica", "error");
+    }
   };
 
   const guardarResultadoExamen = () => {
-    const resultadoJSON = {
-      agendaId: parseInt(idAgenda) || null,
-      resultadoAgenda: resultadoGeneral || null,
-    };
-    console.log(
-      "guardarResultadoExamen",
-      JSON.stringify(resultadoJSON, null, 2)
-    );
+    try {
+      const resultadoJSON = {
+        agendaId: parseInt(idAgenda) || null,
+        resultadoAgenda: resultadoGeneral || null,
+      };
+      console.log(
+        "guardarResultadoExamen",
+        JSON.stringify(resultadoJSON, null, 2)
+      );
+
+      // Aquí iría la llamada a la API para guardar
+      // ...
+
+      showMessage("Orden de exámenes guardada con éxito", "success");
+      resetForm();
+    } catch (error) {
+      showMessage("Error al guardar la orden de exámenes", "error");
+    }
   };
 
   const guardarRemision = () => {
-    const resultadoJSON = {
-      agendaId: parseInt(idAgenda) || null,
-      resultadoAgenda: resultadoGeneral || null,
-      servicioMedico: servicioMedico || null,
-    };
-    console.log("guardarRemision", JSON.stringify(resultadoJSON, null, 2));
+    try {
+      const resultadoJSON = {
+        agendaId: parseInt(idAgenda) || null,
+        resultadoAgenda: resultadoGeneral || null,
+        servicioMedico: servicioMedico || null,
+      };
+      console.log("guardarRemision", JSON.stringify(resultadoJSON, null, 2));
+
+      // Aquí iría la llamada a la API para guardar
+      // ...
+
+      showMessage("Remisión guardada con éxito", "success");
+      resetForm();
+    } catch (error) {
+      showMessage("Error al guardar la remisión", "error");
+    }
+  };
+
+  // Resetear el formulario después de guardar
+  const resetForm = () => {
+    setResultadoGeneral("");
+    setTipoResultado("");
+    setDiagnostico("");
+    setObsDiagnostico("");
+    setMedicamentos([{ medicamento: "", cantidad: "", receta: "" }]);
+    setServicioMedico("");
+    setErrors({
+      resultadoGeneral: false,
+      tipoResultado: false,
+      diagnostico: false,
+      obsDiagnostico: false,
+      medicamentos: [{ medicamento: false, cantidad: false, receta: false }],
+      servicioMedico: false,
+    });
   };
 
   const renderFormulaMedica = () => (
@@ -221,12 +411,15 @@ function MedicalOrderForm() {
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="flex-start">
           <Grid size={5} xs={12} md={5}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin="normal" error={errors.diagnostico}>
               <InputLabel>Diagnóstico</InputLabel>
               <Select
                 value={diagnostico}
-                label={"Diagnóstico"}
-                onChange={(e) => setDiagnostico(e.target.value)}
+                label="Diagnóstico"
+                onChange={(e) => {
+                  setDiagnostico(e.target.value);
+                  setErrors((prev) => ({ ...prev, diagnostico: false }));
+                }}
               >
                 {listaDiagnosticos.map((diag) => (
                   <MenuItem key={diag.cie} value={diag.cie}>
@@ -234,6 +427,9 @@ function MedicalOrderForm() {
                   </MenuItem>
                 ))}
               </Select>
+              {errors.diagnostico && (
+                <FormHelperText error>Este campo es obligatorio</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid size={7} xs={12} md={6}>
@@ -244,9 +440,16 @@ function MedicalOrderForm() {
               multiline
               rows={2}
               value={obsDiagnostico}
-              onChange={(e) => setObsDiagnostico(e.target.value)}
+              onChange={(e) => {
+                setObsDiagnostico(e.target.value);
+                setErrors((prev) => ({ ...prev, obsDiagnostico: false }));
+              }}
               margin="normal"
               placeholder="Ej: Asma leve, parcialmente controlada."
+              error={errors.obsDiagnostico}
+              helperText={
+                errors.obsDiagnostico ? "Este campo es obligatorio" : ""
+              }
             />
           </Grid>
         </Grid>
@@ -261,7 +464,11 @@ function MedicalOrderForm() {
         <Box key={index} sx={{ mb: 2 }}>
           <Grid container spacing={2} alignItems="flex-start">
             <Grid size={4} xs={12} md={5}>
-              <FormControl fullWidth margin="normal">
+              <FormControl
+                fullWidth
+                margin="normal"
+                error={errors.medicamentos[index]?.medicamento}
+              >
                 <InputLabel>Medicamento {index + 1}</InputLabel>
                 <Select
                   value={med.medicamento}
@@ -280,6 +487,11 @@ function MedicalOrderForm() {
                     </MenuItem>
                   ))}
                 </Select>
+                {errors.medicamentos[index]?.medicamento && (
+                  <FormHelperText error>
+                    Este campo es obligatorio
+                  </FormHelperText>
+                )}
               </FormControl>
             </Grid>
 
@@ -293,6 +505,12 @@ function MedicalOrderForm() {
                   handleMedicamentoChange(index, "cantidad", e.target.value)
                 }
                 margin="normal"
+                error={errors.medicamentos[index]?.cantidad}
+                helperText={
+                  errors.medicamentos[index]?.cantidad
+                    ? "Este campo es obligatorio"
+                    : ""
+                }
               />
             </Grid>
 
@@ -309,6 +527,12 @@ function MedicalOrderForm() {
                 }
                 margin="normal"
                 placeholder="Ej: 1 tableta cada 8 horas por 7 días"
+                error={errors.medicamentos[index]?.receta}
+                helperText={
+                  errors.medicamentos[index]?.receta
+                    ? "Este campo es obligatorio"
+                    : ""
+                }
               />
             </Grid>
 
@@ -351,12 +575,15 @@ function MedicalOrderForm() {
 
   const renderRemisionExamenes = () => (
     <Box>
-      <FormControl fullWidth margin="normal">
+      <FormControl fullWidth margin="normal" error={errors.servicioMedico}>
         <InputLabel>Especialidad</InputLabel>
         <Select
           value={servicioMedico}
           label="Especialidad"
-          onChange={(e) => setServicioMedico(e.target.value)}
+          onChange={(e) => {
+            setServicioMedico(e.target.value);
+            setErrors((prev) => ({ ...prev, servicioMedico: false }));
+          }}
         >
           {listaServicios.map((servicio) => (
             <MenuItem key={servicio.cups} value={servicio.cups}>
@@ -364,6 +591,9 @@ function MedicalOrderForm() {
             </MenuItem>
           ))}
         </Select>
+        {errors.servicioMedico && (
+          <FormHelperText error>Este campo es obligatorio</FormHelperText>
+        )}
       </FormControl>
     </Box>
   );
@@ -379,6 +609,24 @@ function MedicalOrderForm() {
       >
         Sistema de Resultados Médicos
       </Typography>
+
+      {/* Snackbar para mostrar mensajes al usuario */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        key={SlideTransition}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {!showOrderForm ? (
         <Box component="form" onSubmit={handleSubmitId} noValidate>
@@ -434,7 +682,6 @@ function MedicalOrderForm() {
               p: 2,
               mb: 3,
               borderLeft: "4px solid #0a87be",
-              // backgroundColor: '#fafafa',
               boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
           >
@@ -460,7 +707,7 @@ function MedicalOrderForm() {
             </Grid>
           </Box>
 
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" required>
             <InputLabel>Fecha cita actual</InputLabel>
             <Select
               value={idAgenda}
@@ -495,12 +742,24 @@ function MedicalOrderForm() {
                 multiline
                 rows={4}
                 value={resultadoGeneral}
-                onChange={(e) => setResultadoGeneral(e.target.value)}
+                onChange={(e) => {
+                  setResultadoGeneral(e.target.value);
+                  setErrors((prev) => ({ ...prev, resultadoGeneral: false }));
+                }}
                 margin="normal"
                 required
+                error={errors.resultadoGeneral}
+                helperText={
+                  errors.resultadoGeneral ? "Este campo es obligatorio" : ""
+                }
               />
 
-              <FormControl fullWidth margin="normal">
+              <FormControl
+                fullWidth
+                margin="normal"
+                error={errors.tipoResultado}
+                required
+              >
                 <InputLabel>Tipo de Resultado</InputLabel>
                 <Select
                   value={tipoResultado}
@@ -508,6 +767,8 @@ function MedicalOrderForm() {
                   onChange={(e) => {
                     const tipo = e.target.value;
                     setTipoResultado(tipo);
+                    setErrors((prev) => ({ ...prev, tipoResultado: false }));
+
                     if (tipo === "Fórmula médica") {
                       if (listaDiagnosticos.length === 0) handleDiags();
                       if (listaMedicamentos.length === 0) handleMedicamentos();
@@ -522,6 +783,11 @@ function MedicalOrderForm() {
                     </MenuItem>
                   ))}
                 </Select>
+                {errors.tipoResultado && (
+                  <FormHelperText error>
+                    Este campo es obligatorio
+                  </FormHelperText>
+                )}
               </FormControl>
 
               {tipoResultado === "Fórmula médica" && renderFormulaMedica()}
