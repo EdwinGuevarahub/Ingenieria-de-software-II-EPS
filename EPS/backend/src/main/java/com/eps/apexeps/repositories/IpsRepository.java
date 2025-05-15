@@ -5,7 +5,6 @@
 
 package com.eps.apexeps.repositories;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,41 +23,30 @@ import com.eps.apexeps.models.Ips;
 @Repository
 public interface IPSRepository extends JpaRepository<Ips, Integer> {
 
-        // Búsqueda por nombre (contiene, sin importar mayúsculas/minúsculas)
-        List<Ips> findByNombreContainingIgnoreCase(String nombre);
-
-        // Búsqueda por dirección
-        List<Ips> findByDireccionContainingIgnoreCase(String direccion);
-
-        List<Ips> findByNombreContainingIgnoreCaseOrId(String nombre, Integer id);
-
-        // Búsqueda exacta por teléfono
-        List<Ips> findByTelefono(String telefono);
-
-        // Búsqueda exacta por fecha de registro
-        List<Ips> findByFechaRegistro(Instant fechaRegistro);
-
-        // Búsqueda por correo del administrador registrado
-        List<Ips> findByAdmEps_EmailIgnoreCase(String email);
-
         /*
          * Consulta personalizada: filtrar IPS por nombre, teléfono, dirección y fecha
          * de registro.
          */
-        @Query("SELECT i FROM Ips i WHERE "
-                        + "(:nombre IS NULL OR LOWER(i.nombre) LIKE LOWER(CONCAT('%', CAST(:nombre AS String), '%'))) AND "
-                        + "(:telefono IS NULL OR LOWER(i.telefono) LIKE LOWER(CONCAT('%', CAST(:telefono AS String), '%'))) AND "
-                        + "(:direccion IS NULL OR LOWER(i.direccion) LIKE LOWER(CONCAT('%', CAST(:direccion AS String), '%'))) AND"
-                        + "(:fechaRegistro IS NULL OR date_trunc('day', i.fechaRegistro) = TO_TIMESTAMP(CAST(:fechaRegistro AS String), 'DD-MM-YYYY'))")
+        @Query(value = """
+                        SELECT DISTINCT i.*
+                        FROM ips i
+                        JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                        JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                        WHERE
+                            (:nombre IS NULL OR LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', CAST(:nombre AS TEXT), '%'))) AND
+                            (:telefono IS NULL OR LOWER(i.tel_ips) LIKE LOWER(CONCAT('%', CAST(:telefono AS TEXT), '%'))) AND
+                            (:direccion IS NULL OR LOWER(i.dir_ips) LIKE LOWER(CONCAT('%', CAST(:direccion AS TEXT), '%'))) AND
+                            (:fechaRegistro IS NULL OR date_trunc('day', i.freg_ips) = TO_TIMESTAMP(CAST(:fechaRegistro AS TEXT), 'DD-MM-YYYY')) AND
+                            (:nombreServicio IS NULL OR LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', CAST(:nombreServicio AS TEXT), '%')))
+                        """, nativeQuery = true)
         List<Ips> filtrarIpsMultiples(
                         @Param("nombre") String nombre,
                         @Param("telefono") String telefono,
                         @Param("direccion") String direccion,
-                        @Param("fechaRegistro") String fechaRegistro
-        );
+                        @Param("fechaRegistro") String fechaRegistro,
+                        @Param("nombreServicio") String nombreServicio);
 
-        // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre
-        // similar
+        // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre similar
         @Query(value = """
                             SELECT DISTINCT i.*
                             FROM ips i
@@ -71,7 +59,7 @@ public interface IPSRepository extends JpaRepository<Ips, Integer> {
 
         /**
          * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID de
-         * IPS. 
+         * IPS.
          */
         @Query(value = """
                             SELECT DISTINCT sm.nom_sermed

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,15 +48,16 @@ public class IPSController {
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
-            @RequestParam(required = false) String fechaRegistro) {
-
+            @RequestParam(required = false) String fechaRegistro,
+            @RequestParam(required = false) String nombreServicio) {
         try {
             return ipsService
-                    .filtrarIpsMulti(
+                    .filtrarIpsMulticriterio(
                         nombre, 
                         telefono, 
                         direccion, 
-                        fechaRegistro
+                        fechaRegistro,
+                        nombreServicio
                     )
                     .stream()
                     .map(IpsEntradaLista::of)
@@ -65,47 +67,13 @@ public class IPSController {
         }
     }
 
-    @GetMapping("/bynombre-id")
-    public List<Ips> findByNombreContainingIgnoreCaseOrId(
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) Integer id) {
-        return ipsService.findByNombreContainingIgnoreCaseOrId(nombre, id);
-    }
-
-    @GetMapping("/o-nombre")
-    public List<Ips> findByNombreContainingIgnoreCase(@RequestParam(required = true) String nombre) {
-        return ipsService.findByNombreContainingIgnoreCase(nombre);
-    }
-
-    @GetMapping("/o-id")
-    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
+    @GetMapping("/id/{id}")
+    public ResponseEntity<Ips> findById(
+        @PathVariable Integer id_user,
+        @RequestParam(required = true) Integer id) {
         return ipsService.findById(id)
                 .map(ResponseEntity::ok) // ahora Optional.map existe
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @GetMapping("/one")
-    public List<IpsEntradaLista> findIps(
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String telefono,
-            @RequestParam(required = false) String direccion,
-            @RequestParam(required = false) String fechaRegistro) {
-        try {
-            return ipsService
-                    .filtrarIps(
-                        nombre, 
-                        email, 
-                        telefono, 
-                        direccion, 
-                        fechaRegistro
-                    )
-                    .stream()
-                    .map(IpsEntradaLista::of)
-                    .toList();
-        } catch (Throwable t) {
-            throw new RuntimeException("Error al obtener las IPS: " + t.getMessage(), t);
-        }
     }
 
     @PostMapping
