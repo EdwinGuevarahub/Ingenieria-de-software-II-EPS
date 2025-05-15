@@ -22,7 +22,7 @@ import {
   obtenerPacienteCitas,
   obtenerDiagnosticos,
   obtenerMedicamentos,
-  obtenerServiciosMedicos
+  obtenerServiciosMedicos,
 } from "../../services/resultadosService";
 
 // Tipos de órdenes médicas
@@ -32,14 +32,14 @@ function MedicalOrderForm() {
   const [dniPaciente, setDniPaciente] = useState("");
   const [idAgenda, setIdAgenda] = useState("");
   const [resultadoGeneral, setResultadoGeneral] = useState("");
-  const [tipoOrden, setTipoOrden] = useState("");
+  const [tipoResultado, setTipoResultado] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [obsDiagnostico, setObsDiagnostico] = useState("");
   const [medicamentos, setMedicamentos] = useState([
-    { medicamento: "", receta: "" },
+    { medicamento: "", cantidad: "", receta: "" },
   ]);
-   const [servicioMedico, setServicioMedico] = useState("");
-  
+  const [servicioMedico, setServicioMedico] = useState("");
+
   const [pacienteCitas, setPacienteCitas] = useState([]);
   const [listaDiagnosticos, setListaDiagnosticos] = useState([]);
   const [listaMedicamentos, setListaMedicamentos] = useState([]);
@@ -48,9 +48,6 @@ function MedicalOrderForm() {
   const [dniError, setDniError] = useState(false);
   const [dniErrorMensaje, setDniErrorMensaje] = useState("");
   const [loadingFechas, setLoadingFechas] = useState(false);
-
-  // Campos para Remisión/Toma de exámenes
-  // const [observacionesRemision, setObservacionesRemision] = useState("");
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !loadingFechas) {
@@ -157,20 +154,31 @@ function MedicalOrderForm() {
 
   // Guardar el Resultado (General, diagnostico y medicamentos u Ordenes)
   const handleGuardarResultado = () => {
+    if (tipoResultado === "Fórmula médica") {
+      guardarFormulaMedica();
+    } else if (tipoResultado === "Toma de exámenes") {
+      guardarResultadoExamen();
+    } else if (tipoResultado === "Remisión") {
+      guardarRemision();
+    } else {
+      console.log("Seleccione el tipo de resultado");
+    }
+  };
+
+  const guardarFormulaMedica = () => {
     const medicamentosFormateados = medicamentos.map((med) => {
       const medicamentoSeleccionado = listaMedicamentos.find(
         (medicamento) => medicamento.nombre === med.medicamento
       );
-      const medicamentoId = medicamentoSeleccionado?.id || "";
 
       return {
         medicamento: {
-          id: medicamentoId,
+          id: medicamentoSeleccionado?.id || null,
           nombre: med.medicamento,
         },
-        cantidad: 0, // Valor por defecto
+        cantidad: parseInt(med.cantidad),
         dosis: med.receta || "",
-        duracion: "", // Valor por defecto
+        duracion: "",
       };
     });
 
@@ -181,9 +189,27 @@ function MedicalOrderForm() {
       observacion: obsDiagnostico || null,
       medicamentos: medicamentosFormateados,
     };
-
-    // Imprimir el resultado en consola
     console.log(JSON.stringify(resultadoJSON, null, 2));
+  };
+
+  const guardarResultadoExamen = () => {
+    const resultadoJSON = {
+      agendaId: parseInt(idAgenda) || null,
+      resultadoAgenda: resultadoGeneral || null,
+    };
+    console.log(
+      "guardarResultadoExamen",
+      JSON.stringify(resultadoJSON, null, 2)
+    );
+  };
+
+  const guardarRemision = () => {
+    const resultadoJSON = {
+      agendaId: parseInt(idAgenda) || null,
+      resultadoAgenda: resultadoGeneral || null,
+      servicioMedico: servicioMedico || null,
+    };
+    console.log("guardarRemision", JSON.stringify(resultadoJSON, null, 2));
   };
 
   const renderFormulaMedica = () => (
@@ -194,7 +220,7 @@ function MedicalOrderForm() {
 
       <Box sx={{ mb: 2 }}>
         <Grid container spacing={2} alignItems="flex-start">
-          <Grid size={5} item xs={12} md={5}>
+          <Grid size={5} xs={12} md={5}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Diagnóstico</InputLabel>
               <Select
@@ -210,7 +236,7 @@ function MedicalOrderForm() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid size={7} item xs={12} md={6}>
+          <Grid size={7} xs={12} md={6}>
             <TextField
               fullWidth
               label="Observaciones del Diagnóstico"
@@ -234,7 +260,7 @@ function MedicalOrderForm() {
       {medicamentos.map((med, index) => (
         <Box key={index} sx={{ mb: 2 }}>
           <Grid container spacing={2} alignItems="flex-start">
-            <Grid size={4} item xs={12} md={5}>
+            <Grid size={4} xs={12} md={5}>
               <FormControl fullWidth margin="normal">
                 <InputLabel>Medicamento {index + 1}</InputLabel>
                 <Select
@@ -256,7 +282,21 @@ function MedicalOrderForm() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={7} item xs={12} md={6}>
+
+            <Grid size={2} xs={12} md={2}>
+              <TextField
+                fullWidth
+                label="Cantidad"
+                type="number"
+                value={med.cantidad}
+                onChange={(e) =>
+                  handleMedicamentoChange(index, "cantidad", e.target.value)
+                }
+                margin="normal"
+              />
+            </Grid>
+
+            <Grid size={5} xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Posología/Receta"
@@ -271,9 +311,9 @@ function MedicalOrderForm() {
                 placeholder="Ej: 1 tableta cada 8 horas por 7 días"
               />
             </Grid>
+
             <Grid
               size={1}
-              item
               xs={12}
               md={1}
               sx={{
@@ -310,7 +350,7 @@ function MedicalOrderForm() {
   );
 
   const renderRemisionExamenes = () => (
-    <Box sx={{ mt: 3 }}>
+    <Box>
       <FormControl fullWidth margin="normal">
         <InputLabel>Especialidad</InputLabel>
         <Select
@@ -325,17 +365,6 @@ function MedicalOrderForm() {
           ))}
         </Select>
       </FormControl>
-
-      {/* <TextField
-        fullWidth
-        label="Observaciones"
-        variant="outlined"
-        multiline
-        rows={4}
-        value={observacionesRemision}
-        onChange={(e) => setObservacionesRemision(e.target.value)}
-        margin="normal"
-      /> */}
     </Box>
   );
 
@@ -378,7 +407,6 @@ function MedicalOrderForm() {
           <Button
             type="submit"
             variant="contained"
-            maxWidth="sm"
             disabled={loadingFechas}
             sx={{
               mt: 3,
@@ -417,13 +445,13 @@ function MedicalOrderForm() {
               Información del Paciente
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={6}>
                 <Typography variant="body1" sx={{ mb: 0.5 }}>
                   <span style={{ color: "#666" }}>Nombre:</span>{" "}
                   {pacienteCitas?.paciente?.nombre || ""}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid xs={12} sm={6}>
                 <Typography variant="body1">
                   <span style={{ color: "#666" }}>Documento:</span>{" "}
                   {dniPaciente}
@@ -473,13 +501,13 @@ function MedicalOrderForm() {
               />
 
               <FormControl fullWidth margin="normal">
-                <InputLabel>Tipo de Orden</InputLabel>
+                <InputLabel>Tipo de Resultado</InputLabel>
                 <Select
-                  value={tipoOrden}
-                  label="Tipo de Orden"
+                  value={tipoResultado}
+                  label="Tipo de Resultado"
                   onChange={(e) => {
                     const tipo = e.target.value;
-                    setTipoOrden(tipo);
+                    setTipoResultado(tipo);
                     if (tipo === "Fórmula médica") {
                       if (listaDiagnosticos.length === 0) handleDiags();
                       if (listaMedicamentos.length === 0) handleMedicamentos();
@@ -496,15 +524,15 @@ function MedicalOrderForm() {
                 </Select>
               </FormControl>
 
-              {tipoOrden === "Fórmula médica" && renderFormulaMedica()}
-              {(tipoOrden === "Remisión" || tipoOrden === "Toma de exámenes") &&
-                renderRemisionExamenes()}
+              {tipoResultado === "Fórmula médica" && renderFormulaMedica()}
+              {tipoResultado === "Remisión" && renderRemisionExamenes()}
 
               <Button
                 variant="contained"
                 color="primary"
                 fullWidth
                 onClick={handleGuardarResultado}
+                disabled={!tipoResultado}
                 sx={{
                   mt: 4,
                   mb: 2,
