@@ -66,8 +66,7 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
                             FROM ips i
                             JOIN consultorio c ON c.ips_consultorio = i.id_ips
                             JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
-                            WHERE (:nombreIps IS NULL OR LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', :nombreIps, '%')))
-                              OR (:idIps IS NOT NULL AND i.id_ips = :idIps)
+                            WHERE (:idIps IS NOT NULL AND i.id_ips = :idIps)
                         """, nativeQuery = true)
-        List<String> buscarServicioPorNombreOIdIps(@Param("nombreIps") String nombreIps, @Param("idIps") Integer idIps);
+        List<String> buscarServicioPorNombreOIdIps(@Param("idIps") Integer idIps);
 }
