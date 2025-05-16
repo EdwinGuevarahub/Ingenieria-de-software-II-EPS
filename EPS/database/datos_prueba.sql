@@ -149,12 +149,13 @@ INSERT INTO formula (agenda_formula, diagnostico_formula, obs_formula) VALUES
 (4, 'J45', 'Uso de inhalador según necesidad. Evitar alérgenos.');
 
 -- 16. Tabla detalle_formula
-INSERT INTO detalle_formula (agenda_detallef, diagnostico_detallef, id_detallef, medicamento_detallef, cantidad_detallef, dosis_detallef, duracion_detallef) VALUES
-(1, 'I10', 1, 'MED-002', 30, '1 tableta cada 24 horas', '30 días'),
-(2, 'A09', 1, 'MED-001', 12, '1 tableta cada 8 horas si hay dolor', '4 días'),
-(3, 'E11', 1, 'MED-003', 60, '1 tableta cada 12 horas con las comidas', '30 días'),
-(4, 'J45', 1, 'MED-004', 1, '2 inhalaciones cada 8 horas según necesidad', '30 días'),
-(4, 'J45', 2, 'MED-005', 10, '1 tableta cada 12 horas si hay inflamación', '5 días');
+INSERT INTO detalle_formula (agenda_detallef, diagnostico_detallef, id_detallef, medicamento_detallef, cantidad_detallef, dosis_detallef) VALUES
+(1, 'I10', 1, 'MED-002', 30, '1 tableta cada 24 horas'),
+(1, 'I10', 2, 'MED-001', 30, '1 tableta cada 8 horas si hay dolor'),
+(2, 'A09', 1, 'MED-001', 12, '1 tableta cada 8 horas si hay dolor'),
+(3, 'E11', 1, 'MED-003', 60, '1 tableta cada 12 horas con las comidas'),
+(4, 'J45', 1, 'MED-004', 1, '2 inhalaciones cada 8 horas según necesidad'),
+(4, 'J45', 2, 'MED-005', 10, '1 tableta cada 12 horas si hay inflamación');
 
 -- 17. Tabla ordena
 INSERT INTO ordena (agenda_ordena, servicio_ordena) VALUES

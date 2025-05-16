@@ -133,7 +133,6 @@ CREATE TABLE "detalle_formula" (
   "medicamento_detallef" varchar(20) NOT NULL,
   "cantidad_detallef" integer NOT NULL,
   "dosis_detallef" varchar(100) NOT NULL,
-  "duracion_detallef" varchar(100) NOT NULL,
   PRIMARY KEY ("agenda_detallef", "diagnostico_detallef", "id_detallef")
 );
 
