@@ -5,7 +5,7 @@ import java.util.List;
 import com.eps.apexeps.models.relations.DetalleFormula;
 
 // Resultado de la cita (agenda) y diagnosticos generados
-public class ResultadoDiagnostico {
+public class ResultadoDiagnosticoDTO {
     private Integer agendaId;
     private String resultadoAgenda;
     private String diagnostico;

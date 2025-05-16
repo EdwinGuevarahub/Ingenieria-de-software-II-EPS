@@ -16,7 +16,7 @@ import com.eps.apexeps.models.relations.GeneraId;
 import com.eps.apexeps.models.relations.Ordena;
 import com.eps.apexeps.models.relations.OrdenaId;
 import com.eps.apexeps.models.users.Paciente;
-import com.eps.apexeps.models.DTOs.ResultadoDiagnostico;
+import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
 
 import com.eps.apexeps.models.DTOs.OrdenaDTO;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
@@ -30,7 +30,6 @@ import com.eps.apexeps.repositories.OrdenaRepository;
 import com.eps.apexeps.repositories.PacienteRepository;
 import com.eps.apexeps.repositories.ServicioMedicoRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -90,7 +89,7 @@ public class ResultadosService {
         // Registrar resultados de una cita (agenda)
         // Actualizando el resultado general de una cita y
         // Registrando el diagnostico con sus respectivos medicamentos
-        public void actualizarResultados(ResultadoDiagnostico resultado) {
+        public void actualizarResultados(ResultadoDiagnosticoDTO resultado) {
 
                 // Actualizacion del resultado de la agenda
                 Agenda agenda = agendaRepository.findById(resultado.getAgendaId())
@@ -145,23 +144,33 @@ public class ResultadosService {
 
         }
 
-        // Crear las ordenes (Resmisión o Examen) asociadas a una cita (agenda)
-        public void crearOrdenes(List<OrdenaDTO> ordenes) {
-                List<Ordena> ordenesCreacion = new ArrayList<>();
+        // Crear una orden (Resmisión) asociada a una cita (agenda)
+        public void crearOrden(OrdenaDTO orden) {
+                Agenda agenda = agendaRepository
+                                .findById(orden.getAgendaId())
+                                .orElseThrow(() -> new RuntimeException("Agenda no encontrada"));
 
-                for (OrdenaDTO orden : ordenes) {
-                        Agenda agenda = agendaRepository
-                                        .findById(orden.getAgendaId())
-                                        .orElseThrow(() -> new RuntimeException("Agenda no encontrada"));
+                ServicioMedico servicio = servicioMedicoRepository
+                                .findByCups(orden.getCodigoServicio())
+                                .orElseThrow(() -> new RuntimeException("Servicio Medico no encontrado"));
 
-                        ServicioMedico servicio = servicioMedicoRepository
-                                        .findByCups(orden.getCodigoServicio())
-                                        .orElseThrow(() -> new RuntimeException("Servicio Medico no encontrado"));
+                OrdenaId ordenaId = new OrdenaId(agenda, servicio);
+                Ordena ordena = Ordena.builder().id(ordenaId).build();
 
-                        OrdenaId ordenaId = new OrdenaId(agenda, servicio);
-                        Ordena ordena = Ordena.builder().id(ordenaId).build();
-                        ordenesCreacion.add(ordena);
-                }
-                ordenaRepository.saveAll(ordenesCreacion);
+                agenda.setResultado(orden.getResultadoAgenda());
+                agenda.setEstado("COMPLETADA");
+                agendaRepository.save(agenda);
+                ordenaRepository.save(ordena);
+        }
+
+        // Actualizar el resultado de una agenda (Toma de examenes)
+        public void actualizarResultadoAgenda(Integer id, Agenda agenda) {
+                Agenda agendaEncontrada = agendaRepository
+                                .findById(id)
+                                .orElseThrow(() -> new RuntimeException("Agenda no encontrada"));
+
+                agendaEncontrada.setResultado(agenda.getResultado());
+                agendaEncontrada.setEstado("COMPLETADA");
+                agendaRepository.save(agendaEncontrada);
         }
 }
