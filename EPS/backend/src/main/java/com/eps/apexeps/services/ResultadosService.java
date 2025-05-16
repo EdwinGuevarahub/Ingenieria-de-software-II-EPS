@@ -139,7 +139,6 @@ public class ResultadosService {
                                         .medicamento(medicamento)
                                         .cantidad(df.getCantidad())
                                         .dosis(df.getDosis())
-                                        .duracion(df.getDuracion())
                                         .build();
                         detalleFormulaRepository.save(detalleFormula);
                 }
