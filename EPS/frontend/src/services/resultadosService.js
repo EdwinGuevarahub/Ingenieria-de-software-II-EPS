@@ -17,10 +17,10 @@ export const obtenerServiciosMedicos = async () =>
   await axios.get(`${API_URL}/lista-servicios`);
 
 // Registro del resultado (formula medica o remision)
-export const crearResultado = async (resultado) =>
+export const registrarResultado = async (resultado) =>
   await axios.post(`${API_URL}`, resultado);
 
-// Actualizar unicamente el resultado de la agenda (examen medico)
-export const actualizarResultado = async (idAgenda, resultado) =>
+// Actualizar unicamente el resultado de la agenda
+export const actualizarResultadoAgenda = async (idAgenda, resultado) =>
   await axios.put(`${API_URL}/${idAgenda}`, resultado);
 

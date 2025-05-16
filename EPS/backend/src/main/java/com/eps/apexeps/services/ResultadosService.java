@@ -17,9 +17,8 @@ import com.eps.apexeps.models.relations.Ordena;
 import com.eps.apexeps.models.relations.OrdenaId;
 import com.eps.apexeps.models.users.Paciente;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
-
-import com.eps.apexeps.models.DTOs.OrdenaDTO;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
+
 import com.eps.apexeps.repositories.AgendaRepository;
 import com.eps.apexeps.repositories.GeneraRepository;
 import com.eps.apexeps.repositories.FormulaRepository;
@@ -89,7 +88,8 @@ public class ResultadosService {
         // Registrar resultados de una cita (agenda)
         // Actualizando el resultado general de una cita y
         // Registrando el diagnostico con sus respectivos medicamentos
-        public void actualizarResultados(ResultadoDiagnosticoDTO resultado) {
+        // O Registrando una orden (Resmisión) asociada a una cita (agenda)
+        public void registrarResultado(ResultadoDiagnosticoDTO resultado) {
 
                 // Actualizacion del resultado de la agenda
                 Agenda agenda = agendaRepository.findById(resultado.getAgendaId())
@@ -123,47 +123,44 @@ public class ResultadosService {
                                 .build();
                 formulaRepository.save(formula);
 
-                for (DetalleFormula df : resultado.getMedicamentos()) {
-                        Medicamento medicamento = medicamentoRepository
-                                        .findById(df.getMedicamento().getId())
-                                        .orElseThrow(() -> new RuntimeException("Medicamento no encontrado"));
+                if (resultado.getMedicamentos() != null && !resultado.getMedicamentos().isEmpty()) {
+                        List<DetalleFormula> medicamentos = resultado.getMedicamentos();
+                        for (int i = 0; i < medicamentos.size(); i++) {
+                                DetalleFormula df = medicamentos.get(i);
 
-                        DetalleFormulaId detalleId = DetalleFormulaId.builder()
-                                        .formula(formula)
-                                        .id(10) // PREGUNTAAA
-                                        .build();
+                                Medicamento medicamento = medicamentoRepository
+                                                .findById(df.getMedicamento().getId())
+                                                .orElseThrow(() -> new RuntimeException("Medicamento no encontrado"));
 
-                        DetalleFormula detalleFormula = DetalleFormula.builder()
-                                        .id(detalleId)
-                                        .medicamento(medicamento)
-                                        .cantidad(df.getCantidad())
-                                        .dosis(df.getDosis())
-                                        .build();
-                        detalleFormulaRepository.save(detalleFormula);
+                                DetalleFormulaId detalleId = DetalleFormulaId.builder()
+                                                .formula(formula)
+                                                .id(i+1)
+                                                .build();
+
+                                DetalleFormula detalleFormula = DetalleFormula.builder()
+                                                .id(detalleId)
+                                                .medicamento(medicamento)
+                                                .cantidad(df.getCantidad())
+                                                .dosis(df.getDosis())
+                                                .build();
+                                detalleFormulaRepository.save(detalleFormula);
+                        }
+                } else if (resultado.getServicioMedico() != null && !resultado.getServicioMedico().isEmpty()) {
+                        ServicioMedico servicio = servicioMedicoRepository
+                                        .findByCups(resultado.getServicioMedico())
+                                        .orElseThrow(() -> new RuntimeException("Servicio Medico no encontrado"));
+
+                        OrdenaId ordenaId = new OrdenaId(agenda, servicio);
+                        Ordena ordena = Ordena.builder().id(ordenaId).build();
+                        ordenaRepository.save(ordena);
+
+                } else {
+                        throw new RuntimeException("Debe especificarse al menos un medicamento o un servicio.");
                 }
 
         }
 
-        // Crear una orden (Resmisión) asociada a una cita (agenda)
-        public void crearOrden(OrdenaDTO orden) {
-                Agenda agenda = agendaRepository
-                                .findById(orden.getAgendaId())
-                                .orElseThrow(() -> new RuntimeException("Agenda no encontrada"));
-
-                ServicioMedico servicio = servicioMedicoRepository
-                                .findByCups(orden.getCodigoServicio())
-                                .orElseThrow(() -> new RuntimeException("Servicio Medico no encontrado"));
-
-                OrdenaId ordenaId = new OrdenaId(agenda, servicio);
-                Ordena ordena = Ordena.builder().id(ordenaId).build();
-
-                agenda.setResultado(orden.getResultadoAgenda());
-                agenda.setEstado("COMPLETADA");
-                agendaRepository.save(agenda);
-                ordenaRepository.save(ordena);
-        }
-
-        // Actualizar el resultado de una agenda (Toma de examenes)
+        // Actualizar unicamente el resultado de una agenda
         public void actualizarResultadoAgenda(Integer id, Agenda agenda) {
                 Agenda agendaEncontrada = agendaRepository
                                 .findById(id)

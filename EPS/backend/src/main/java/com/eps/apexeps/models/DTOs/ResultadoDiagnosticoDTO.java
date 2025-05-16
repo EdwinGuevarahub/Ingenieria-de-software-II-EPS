@@ -10,7 +10,10 @@ public class ResultadoDiagnosticoDTO {
     private String resultadoAgenda;
     private String diagnostico;
     private String observacion;
+
+    // Uno u otro
     private List<DetalleFormula> medicamentos;
+    private String servicioMedico;
 
     public Integer getAgendaId() {
         return agendaId;
@@ -50,5 +53,13 @@ public class ResultadoDiagnosticoDTO {
 
     public void setMedicamentos(List<DetalleFormula> medicamentos) {
         this.medicamentos = medicamentos;
+    }
+
+    public String getServicioMedico() {
+        return servicioMedico;
+    }
+
+    public void setServicioMedico(String servicioMedico) {
+        this.servicioMedico = servicioMedico;
     }
 }

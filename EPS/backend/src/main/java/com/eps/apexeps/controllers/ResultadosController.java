@@ -9,10 +9,10 @@ import com.eps.apexeps.models.Diagnostico;
 import com.eps.apexeps.models.Medicamento;
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.response.ApiResponse;
-import com.eps.apexeps.models.DTOs.OrdenaDTO;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
 import com.eps.apexeps.models.relations.Agenda;
+
 import com.eps.apexeps.services.ResultadosService;
 
 import java.util.List;
@@ -74,10 +74,11 @@ public class ResultadosController {
         // Registrar resultado de una cita (agenda)
         // Actualizando el resultado general de una cita y
         // Registrando el diagnostico con sus respectivos medicamentos
-        @PostMapping("/formula")
-        public ResponseEntity<ApiResponse> actualizarResultados(@RequestBody ResultadoDiagnosticoDTO resultados) {
+        // O Registrando el diagnostico con su respectiva remisión
+        @PostMapping()
+        public ResponseEntity<ApiResponse> registrarResultado(@RequestBody ResultadoDiagnosticoDTO resultados) {
                 try {
-                        resultadosService.actualizarResultados(resultados);
+                        resultadosService.registrarResultado(resultados);
                         return ResponseEntity.ok(new ApiResponse(
                                         HttpStatus.OK.value(),
                                         true,
@@ -98,42 +99,16 @@ public class ResultadosController {
                 }
         }
 
-        // Registrar resultado de una cita (agenda)
-        // Actualizando el resultado general de una cita y
-        // Registrando el diagnostico con su respectiva remisión
-        @PostMapping("/remision")
-        public ResponseEntity<ApiResponse> crearOrdenes(@RequestBody OrdenaDTO orden) {
-                try {
-                        resultadosService.crearOrden(orden);
-                        return ResponseEntity.ok(new ApiResponse(
-                                        HttpStatus.OK.value(),
-                                        true,
-                                        "Orden creada exitosamente",
-                                        null));
-                } catch (RuntimeException ex) {
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
-                                        HttpStatus.NOT_FOUND.value(),
-                                        false,
-                                        ex.getMessage(),
-                                        null));
-                } catch (Exception ex) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
-                                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                        false,
-                                        "Error inesperado al crear la orden",
-                                        null));
-                }
-        }
-
         // Actualizar unicamente el resultado de una agenda
         @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse> actualizarResultadoAgenda(@PathVariable Integer id, @RequestBody Agenda agenda) {
+        public ResponseEntity<ApiResponse> actualizarResultadoAgenda(@PathVariable Integer id,
+                        @RequestBody Agenda agenda) {
                 try {
                         resultadosService.actualizarResultadoAgenda(id, agenda);
                         return ResponseEntity.ok(new ApiResponse(
                                         HttpStatus.OK.value(),
                                         true,
-                                        "Resultado de la agenda creado exitosamente",
+                                        "Resultado de la agenda registrado exitosamente",
                                         null));
                 } catch (RuntimeException ex) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(

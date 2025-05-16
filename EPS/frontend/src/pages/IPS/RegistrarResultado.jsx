@@ -28,6 +28,8 @@ import {
   obtenerDiagnosticos,
   obtenerMedicamentos,
   obtenerServiciosMedicos,
+  registrarResultado,
+  actualizarResultadoAgenda
 } from "../../services/resultadosService";
 
 // Tipos de órdenes médicas
@@ -315,18 +317,11 @@ function MedicalOrderForm() {
     }
   };
 
-  const guardarResultadoGeneral = () => {
+  const guardarResultadoGeneral = async () => {
     try {
       const resultadoJSON = { resultado: resultadoGeneral || null };
       const agendaId = parseInt(idAgenda) || null;
-      console.log(
-        `guardarResultadoGeneral/${agendaId}`,
-        JSON.stringify(resultadoJSON, null, 2)
-      );
-
-      // Aquí iría la llamada a la API para guardar
-      // ...
-
+      await actualizarResultadoAgenda(agendaId, resultadoJSON);
       showMessage("Resultado guardado con éxito", "success");
       resetForm();
     } catch (error) {
@@ -334,7 +329,7 @@ function MedicalOrderForm() {
     }
   };
 
-  const guardarFormulaMedica = () => {
+  const guardarFormulaMedica = async () => {
     try {
       const medicamentosFormateados = medicamentos.map((med) => {
         const medicamentoSeleccionado = listaMedicamentos.find(
@@ -358,13 +353,8 @@ function MedicalOrderForm() {
         observacion: obsDiagnostico || null,
         medicamentos: medicamentosFormateados,
       };
-      console.log(
-        "guardarFormulaMedica",
-        JSON.stringify(resultadoJSON, null, 2)
-      );
 
-      // Aquí iría la llamada a la API para guardar
-      // ...
+      await registrarResultado(resultadoJSON);
 
       showMessage("Fórmula médica guardada con éxito", "success");
       resetForm();
@@ -373,7 +363,7 @@ function MedicalOrderForm() {
     }
   };
 
-  const guardarRemision = () => {
+  const guardarRemision = async () => {
     try {
       const resultadoJSON = {
         agendaId: parseInt(idAgenda) || null,
@@ -382,10 +372,8 @@ function MedicalOrderForm() {
         observacion: obsDiagnostico || null,
         servicioMedico: servicioMedico || null,
       };
-      console.log("guardarRemision", JSON.stringify(resultadoJSON, null, 2));
 
-      // Aquí iría la llamada a la API para guardar
-      // ...
+      await registrarResultado(resultadoJSON);
 
       showMessage("Remisión guardada con éxito", "success");
       resetForm();
