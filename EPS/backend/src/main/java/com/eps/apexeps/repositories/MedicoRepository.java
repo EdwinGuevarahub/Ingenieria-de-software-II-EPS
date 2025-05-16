@@ -25,7 +25,7 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
      * @return lista de médicos filtrados.
      */
     @Query("""
-        SELECT m
+        SELECT DISTINCT m
         FROM Medico m
         INNER JOIN Trabaja t ON t.medico = m
         WHERE
@@ -45,11 +45,24 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
             AND (:estaActivo IS NULL
                 OR m.activo = :estaActivo
             )
+            AND (:diaSemanaParam IS NULL
+                OR (t.horario LIKE %:diaSemanaParam%
+                    AND (:inicioParam IS NULL
+                        OR CAST(SUBSTRING(t.horario, POSITION(CAST(:diaSemanaParam AS String) IN t.horario) + 1, 2) AS Integer) <= :inicioParam
+                    )
+                    AND (:finParam IS NULL
+                        OR CAST(SUBSTRING(t.horario, POSITION(CAST(:diaSemanaParam AS String) IN t.horario) + 4, 2) AS Integer) >= :finParam
+                    )
+                )
+            )
     """)
     public List<Medico> findAllFiltered(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,
+        String diaSemanaParam,
+        Integer inicioParam,
+        Integer finParam,
         Boolean estaActivo,
         Pageable pageable
     );

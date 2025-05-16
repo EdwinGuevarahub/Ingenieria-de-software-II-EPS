@@ -1,5 +1,6 @@
 package com.eps.apexeps.services;
 
+import java.time.DayOfWeek;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.relations.EntradaHorario;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.repositories.*;
@@ -42,7 +44,7 @@ public class MedicoService {
      * @param idIps El id de la IPS que se usará para filtrar los médicos (opcional).
      * @param dniNombreLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico que se usará para filtrar los médicos (opcional).
-     * @param codDiaSemana El día de la semana en el que el médico está disponible (opcional, 1 = Lunes -> 7 = Domingo).
+     * @param diaSemanaIngles Día de la semana para filtrar médicos en inglés y mayúsculas (opcional).
      * @param horaDeInicio La hora de inicio de la jornada laboral del médico (opcional).
      * @param horaDeFin La hora de fin de la jornada laboral del médico (opcional, 0 a 23).
      * @param estaActivo Indica si el médico está activo o no (opcional, 0 a 23).
@@ -50,60 +52,53 @@ public class MedicoService {
      * @param qPage Número de la página (opcional).
      * @return Una lista de médicos.
      * @throws IllegalArgumentException Si el día de la semana no está entre 1 y 7 o si las horas no están entre 0 y 23.
+     * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     public List<Medico> getMedicos(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,
-        Integer codDiaSemana,
+        String diaSemanaIngles,
         Integer horaDeInicio,
         Integer horaDeFin,
         Boolean estaActivo,
         Integer qSize,
         Integer qPage
     ) {
+        // Validar los parámetros temporales.
+        String diaSemanaParam = null;
+        Integer inicioParam = null;
+        Integer finParam = null;
+        if (diaSemanaIngles != null) {
+            try {
+                diaSemanaParam = EntradaHorario.CHAR_MAP.get(DayOfWeek.valueOf(diaSemanaIngles)).toString();
+            }
+            catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("No se reconoce el día de la semana: " + diaSemanaIngles);
+            }
+
+            if (horaDeInicio != null && (horaDeInicio < 0 || horaDeInicio > 23))
+                throw new IllegalArgumentException("La hora de inicio debe estar entre 0 y 23.");
+            if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
+                throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
+
+            inicioParam = horaDeInicio;
+            finParam = horaDeFin;
+        }
+
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
         List<Medico> medicos = medicoRepository
                 .findAllFiltered(
                     idIps,
                     dniNombreLike,
                     cupsServicioMedico,
+                    diaSemanaParam,
+                    inicioParam,
+                    finParam,
                     estaActivo,
                     pageable
                 );
         
-        if (codDiaSemana == null)
-            return medicos;
-
-        // Filtrar los médicos que no tienen el horario disponible para el día de la semana y las horas especificadas.
-        if (codDiaSemana < 1 || codDiaSemana > 7)
-            throw new IllegalArgumentException("El día de la semana debe estar entre 1 y 7.");
-        
-        if (horaDeInicio != null && (horaDeInicio < 0 || horaDeInicio > 23))
-            throw new IllegalArgumentException("La hora de inicio debe estar entre 0 y 23.");
-
-        if (horaDeFin != null && (horaDeFin < 0 || horaDeFin > 23))
-            throw new IllegalArgumentException("La hora de fin debe estar entre 0 y 23.");
-
-        // Para cada trabaja que tenga algún medico de la lista.
-        trabajaRepository.findByMedicoIn(medicos).stream()
-            // no hay ninguno que,
-            .noneMatch(trabaja ->
-                // entre sus horarios
-                trabaja.getHorario().stream()
-                    // hay alguno que cumple con el día de la semana y las horas especificadas.
-                    .anyMatch(horario ->
-                        horario.getDia().getValue() == codDiaSemana
-                        && (horaDeInicio == null
-                            || horario.getInicio().getHour() <= horaDeInicio
-                        )
-                        && (horaDeFin == null
-                            || horario.getFin().getHour() >= horaDeFin
-                        )
-                    )
-                    
-            );
-
         return medicos;
     }   
 
@@ -154,10 +149,25 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico no existe.
      */
     public Medico updateMedico(Medico medico) {
-        if (!medicoRepository.existsById(medico.getDni()))
+        Medico medicoExistente = medicoRepository
+                                    .findById(medico.getDni())
+                                    .orElse(null);
+        if (medicoExistente == null)
             throw new IllegalArgumentException("El médico no existe.");
+        
+        if (medico.getNombre() != null)
+            medicoExistente.setNombre(medico.getNombre());
+        
+        if (medico.getEmail() != null)
+            medicoExistente.setEmail(medico.getEmail());
+        
+        if (medico.getTelefono() != null)
+            medicoExistente.setTelefono(medico.getTelefono());
+        
+        if (medico.getActivo() != null)
+            medicoExistente.setActivo(medico.getActivo());
 
-        return medicoRepository.save(medico);
+        return medicoRepository.save(medicoExistente);
     }
 
     /**
@@ -192,10 +202,10 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
     @Transactional
-    public List<ServicioMedico> addDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
+    public List<ServicioMedico> addDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
         Medico medico = (Medico) validados[0];
-        servicioMedico = (ServicioMedico) validados[1];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (dominios.contains(servicioMedico))
@@ -216,10 +226,10 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen o si el médico no lo domina.
      */
     @Transactional
-    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, ServicioMedico servicioMedico) {
-        Object[] validados = validarMedicoAndServicio(dniMedico, servicioMedico);
+    public List<ServicioMedico> deleteDominioMedico(Long dniMedico, String cupsServicioMedico) {
+        Object[] validados = validarMedicoAndServicio(dniMedico, cupsServicioMedico);
         Medico medico = (Medico) validados[0];
-        servicioMedico = (ServicioMedico) validados[1];
+        ServicioMedico servicioMedico = (ServicioMedico) validados[1];
 
         List<ServicioMedico> dominios = medico.getDominios();
         if (!dominios.contains(servicioMedico))
@@ -237,7 +247,7 @@ public class MedicoService {
      * @return Un array con el médico y el servicio médico validados.
      * @throws IllegalArgumentException Si el médico o el servicio médico no existen.
      */
-    private Object[] validarMedicoAndServicio(Long dniMedico, ServicioMedico servicioMedico) {
+    private Object[] validarMedicoAndServicio(Long dniMedico, String cupsServicioMedico) {
         Medico medico = medicoRepository
                             .findById(dniMedico)
                             .orElse(null);
@@ -245,9 +255,9 @@ public class MedicoService {
         if (medico == null)
             throw new IllegalArgumentException("El médico no existe.");
 
-        servicioMedico = servicioMedicoRepository
-                            .findById(servicioMedico.getCups())
-                            .orElse(null);
+        ServicioMedico servicioMedico = servicioMedicoRepository
+                                            .findById(cupsServicioMedico)
+                                            .orElse(null);
 
         if (servicioMedico == null)
             throw new IllegalArgumentException("El servicio médico no existe.");
