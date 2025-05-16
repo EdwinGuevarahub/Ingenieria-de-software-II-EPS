@@ -1,14 +1,14 @@
 package com.eps.apexeps.models.DTOs;
 
 public class OrdenaDTO {
-    private Long agendaId;
+    private Integer agendaId;
     private String codigoServicio;
 
-    public Long getAgendaId() {
+    public Integer getAgendaId() {
         return agendaId;
     }
 
-    public void setAgendaId(Long agendaId) {
+    public void setAgendaId(Integer agendaId) {
         this.agendaId = agendaId;
     }
 

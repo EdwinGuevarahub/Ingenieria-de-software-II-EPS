@@ -6,17 +6,17 @@ import com.eps.apexeps.models.relations.DetalleFormula;
 
 // Resultado de la cita (agenda) y diagnosticos generados
 public class ResultadoDiagnostico {
-    private Long agendaId;
+    private Integer agendaId;
     private String resultadoAgenda;
     private String diagnostico;
     private String observacion;
     private List<DetalleFormula> medicamentos;
 
-    public Long getAgendaId() {
+    public Integer getAgendaId() {
         return agendaId;
     }
 
-    public void setAgendaId(Long agendaId) {
+    public void setAgendaId(Integer agendaId) {
         this.agendaId = agendaId;
     }
 
