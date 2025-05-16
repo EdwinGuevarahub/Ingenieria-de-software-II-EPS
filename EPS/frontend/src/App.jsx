@@ -1,12 +1,11 @@
-import React from 'react';
-import MainLayout from './layouts/MainLayout';
 import AppRouter from './routes/AppRouter';
+import { AuthContextProvider } from './contexts/AuthContext';
 
 function App() {
   return (
-    <MainLayout>
-      <AppRouter />
-    </MainLayout>
+    <AuthContextProvider>
+        <AppRouter />
+    </AuthContextProvider>
   );
 }
 
