@@ -1,5 +1,6 @@
 package com.eps.apexeps.repositories;
 
+
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,9 @@ import com.eps.apexeps.models.relations.Agenda;
  */
 @Repository
 public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
+  
+  
+    List<Agenda> findByPacienteDniAndEstado(Long dni, String estado);
 
     /**
      * Método para obtener todas las agendas de la base de datos con filtros opcionales.
