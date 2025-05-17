@@ -10,7 +10,6 @@ import com.eps.apexeps.models.auth.ERol;
 import com.eps.apexeps.models.auth.Usuario;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -34,39 +33,39 @@ public class UsuarioRepository {
     public Usuario findByEmail(String email) {
 
         // Se utiliza una consulta SQL nativa para obtener las diferentes contraseñas del usuario.
-        Query query = entityManager
-                        .createNativeQuery( """
-                            WITH
-                                cte_admeps AS (
-                                    SELECT email_admeps AS "emailAdmeps", pass_admeps
-                                    FROM adm_eps
-                                    WHERE email_admeps = :email
-                                ),
-                                cte_admips AS (
-                                    SELECT email_admips AS "emailAdmips", pass_admips
-                                    FROM adm_ips
-                                    WHERE email_admips = :email
-                                ),
-                                cte_paciente AS (
-                                    SELECT email_paciente AS "emailPaciente", pass_paciente
-                                    FROM paciente
-                                    WHERE email_paciente = :email
-                                ),
-                                cte_medico AS (
-                                    SELECT email_medico AS "emailMedico", pass_medico
-                                    FROM medico
-                                    WHERE email_medico = :email
-                                )
-                            SELECT pass_admeps, pass_admips, pass_paciente, pass_medico
-                            FROM cte_admeps
-                            FULL OUTER JOIN cte_admips ON "emailAdmeps" = "emailAdmips"
-                            FULL OUTER JOIN cte_paciente ON "emailAdmeps" = "emailPaciente"
-                            FULL OUTER JOIN cte_medico ON "emailAdmeps" = "emailMedico";
-                        """);
-        query.setParameter("email", email);
+        List resultadoLista = entityManager
+                                .createNativeQuery( """
+                                    WITH
+                                        cte_admeps AS (
+                                            SELECT email_admeps AS "emailAdmeps", pass_admeps
+                                            FROM adm_eps
+                                            WHERE email_admeps = :email
+                                        ),
+                                        cte_admips AS (
+                                            SELECT email_admips AS "emailAdmips", pass_admips
+                                            FROM adm_ips
+                                            WHERE email_admips = :email
+                                        ),
+                                        cte_paciente AS (
+                                            SELECT email_paciente AS "emailPaciente", pass_paciente
+                                            FROM paciente
+                                            WHERE email_paciente = :email
+                                        ),
+                                        cte_medico AS (
+                                            SELECT email_medico AS "emailMedico", pass_medico
+                                            FROM medico
+                                            WHERE email_medico = :email
+                                        )
+                                    SELECT pass_admeps, pass_admips, pass_paciente, pass_medico
+                                    FROM cte_admeps
+                                    FULL OUTER JOIN cte_admips ON "emailAdmeps" = "emailAdmips"
+                                    FULL OUTER JOIN cte_paciente ON "emailAdmeps" = "emailPaciente"
+                                    FULL OUTER JOIN cte_medico ON "emailAdmeps" = "emailMedico";
+                                """)
+                                .setParameter("email", email)
+                                .getResultList();
 
         // Se ejecuta la consulta y se obtiene el resultado y se verifica si está vacío.
-        List resultadoLista = query.getResultList();
         if (resultadoLista.isEmpty())
             return null;
 
