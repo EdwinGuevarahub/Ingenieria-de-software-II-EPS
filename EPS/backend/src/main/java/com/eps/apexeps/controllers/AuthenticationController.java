@@ -1,6 +1,9 @@
 package com.eps.apexeps.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +14,7 @@ import com.eps.apexeps.response.AuthenticationResponse;
 import com.eps.apexeps.services.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * Controlador para manejar la autenticación de usuarios.
@@ -40,6 +44,57 @@ public class AuthenticationController {
                         )
                     )
                 );
+    }
+
+    /**
+     * Enpoint para probar la autenticación de un administrador de la EPS.
+     * @return Cadena con el nombre de usuario y sus autoridades.
+     */
+    @GetMapping("/test/admeps")
+    public String testPathAdmeps() {
+        return testUserDetails();
+    }
+
+    /**
+     * Enpoint para probar la autenticación de un administrador de una IPS.
+     * @return Cadena con el nombre de usuario y sus autoridades.
+     */
+    @GetMapping("/test/admips")
+    public String testPathAdmips() {
+        return testUserDetails();
+    }
+
+    /**
+     * Enpoint para probar la autenticación de un médico.
+     * @return Cadena con el nombre de usuario y sus autoridades.
+     */
+    @GetMapping("/test/medico")
+    public String testPathMedico() {
+        return testUserDetails();
+    }
+
+    /**
+     * Enpoint para probar la autenticación de un paciente.
+     * @return Cadena con el nombre de usuario y sus autoridades.
+     */
+    @GetMapping("/test/paciente")
+    public String testPathPaciente() {
+        return testUserDetails();
+    }
+
+    /**
+     * Enpoint para obtener los detalles del usuario autenticado.
+     * @return
+     */
+    private String testUserDetails() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+
+        String username = authentication.getName();
+        String password = String.valueOf(authentication.getCredentials());
+        String authorities = String.valueOf(authentication.getAuthorities());
+
+        return String.format("Username: %s, Password: %s, Authorities: %s", username, password, authorities);
     }
     
 }

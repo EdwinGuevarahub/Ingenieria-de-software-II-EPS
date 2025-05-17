@@ -9,6 +9,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.eps.apexeps.models.auth.ERol;
+
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,9 +35,12 @@ public class SecurityConfiguration {
                 return http
                         .csrf(csrf -> csrf.disable())
                         .authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/auth/test/admeps").hasAuthority(ERol.ADM_EPS.name())
+                                .requestMatchers("/auth/test/admiips").hasAuthority(ERol.ADM_IPS.name())
+                                .requestMatchers("/auth/test/medico").hasAuthority(ERol.MEDICO.name())
+                                .requestMatchers("/auth/test/paciente").hasAuthority(ERol.PACIENTE.name())
                                 .requestMatchers("/auth/**").permitAll()
                                 // TODO: Cuando se haya adaptado el login en todas las rutas, quitar el permitAll.
-                                // .anyRequest().hasAuthority(ERol.ADM_EPS.name())
                                 .anyRequest().permitAll()
                         )
                         .sessionManagement(sessionManager ->
