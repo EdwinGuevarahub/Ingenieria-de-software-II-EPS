@@ -1,10 +1,12 @@
 package com.eps.apexeps.configurations;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -53,20 +55,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         final String token = getTokenFromRequest(request);
         final String username;
 
-        if(token == null){
+        if (token == null){
             filterChain.doFilter(request, response);
             return;
         }
 
         username = jwtService.getEmailFromToken(token);
+        Collection<? extends GrantedAuthority> authorities = jwtService.getAuthoritiesFromToken(token);
 
-        if(    username != null
+        if (    username != null
             && SecurityContextHolder.getContext().getAuthentication() == null
            ) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtService.isTokenValid(token, userDetails)){
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
