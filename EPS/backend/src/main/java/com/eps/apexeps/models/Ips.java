@@ -20,15 +20,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Table ips {
-//   id_ips serial [pk]
-//   nom_ips varchar(200) [not null]
-//   dir_ips varchar(255) [not null]
-//   tel_ips varchar(20) [not null]
-//   admreg_ips varchar(255) [not null, ref: > adm_eps.email_admeps]
-//   freg_ips timestamp [not null]
-// }
-
 /**
  * Esta clase representa la entidad Ips en la base de datos.
  * Se utiliza para mapear la tabla 'ips' y sus columnas a un objeto Java.
