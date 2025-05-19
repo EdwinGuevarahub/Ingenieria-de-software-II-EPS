@@ -1,22 +1,55 @@
 import { AxiosInstance } from '../services/axios';
 import { isAxiosError } from 'axios';
 
-export async function listIPS() {
+export async function listarIPS({
+  qPage = 0,
+  qSize = 10,
+  nombre,
+  telefono,
+  direccion,
+  fechaRegistro,
+  cupsServicioMedico,
+  idConsultorioLike } = {}) {
   try {
-    const response = await AxiosInstance.get('ips/all');
+    const response = await AxiosInstance.get('ips', {
+      params: {
+        qPage,
+        qSize,
+        nombre,
+        telefono,
+        direccion,
+        fechaRegistro,
+        cupsServicioMedico,
+        idConsultorioLike
+      }
+    });
 
     return response.data.map(ip => ({
       id: ip.id,
-      name: ip.nombre,
-      address: ip.direccion,
-      phone: ip.telefono,
-      admin: {
-        name: ip.admEps.nombre,
-        email: ip.admEps.email,
-        phone: ip.admEps.telefono,
-      },
-      registrationDate: ip.fechaRegistro,
+      nombre: ip.nombre
     }));
+
+  } catch (err) {
+    if (isAxiosError(err)) {
+      throw err;
+    }
+  }
+}
+
+export async function detallesIPS(id) {
+  try {
+    const response = await AxiosInstance.get(`ips/${id}`);
+    const ips = response.data;
+
+    return {
+      dni: ips.dni,
+      nombre: ips.nombre,
+      telefono: ips.telefono,
+      email: ips.email,
+      activo: ips.activo,
+    };
+
+
 
   } catch (err) {
     if (isAxiosError(err)) {

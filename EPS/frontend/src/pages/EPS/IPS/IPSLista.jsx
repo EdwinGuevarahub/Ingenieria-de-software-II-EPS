@@ -1,48 +1,40 @@
 import { useEffect, useState } from 'react';
-import { Typography, Grid, Box } from '@mui/material';
-import SearchFilter from '../../components/filters/SearchFilter';
-import SelectFilter from '../../components/filters/SelectFilter';
-import ExpandableTable from '../../components/list/ExpandableTable';
-import { listIPS } from '@/../../src/services/ipsService';
-import { listServicioMedico } from '@/../../src/services/medicalServiceService';
+import {
+  Typography,
+  Box,
+  Pagination,
+  Chip,
+  Fab,
+  Button,
+} from '@mui/material';
+import SearchFilter from '../../../components/filters/SearchFilter';
+import SelectFilter from '../../../components/filters/SelectFilter';
+import ExpandableTable from '../../../components/list/ExpandableTable';
+import { listarIPS } from '@/../../src/services/ipsService';
 
 
-const ListaIPS = () => {
-  const [ipsList, setIpsList] = useState([]);
-  const [medicalServiceList, setMedicalServiceList] = useState([]);
+const IPSLista = () => {
+  const [listaIPS, setListaIPS] = useState([]);
+  const [servicioMedicoLista, setServicioMedicoLista] = useState([]);
   const [nombreFiltro, setNombreFiltro] = useState('');
   const [servicioFiltro, setServicioFiltro] = useState('');
+
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
   useEffect(() => {
     async function fetchIPS() {
       try {
-        const data = await listIPS();
-        setIpsList(data);
+        const data = await listarIPS(pagina - 1, 2);
+        setListaIPS(data);
+        setTotalPaginas(totalPaginas);
       } catch (error) {
         console.error('Error cargando las IPS:', error);
       }
     }
 
     fetchIPS();
-  }, []);
-
-  useEffect(() => {
-    async function fetchServicioMedico() {
-      try {
-        const data = await listServicioMedico();
-        setMedicalServiceList(data);
-      } catch (error) {
-        console.error('Error cargando los servicios médicos:', error);
-      }
-    }
-
-    fetchServicioMedico();
-  }, []);
-
-  const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'name', label: 'Nombre' }
-  ];
+  }, [pagina]);
 
   const renderExpandedContent = (row) => (
     <Box
@@ -86,7 +78,13 @@ const ListaIPS = () => {
     </Box>
   );
 
-  const serviciosUnicos = [...new Set(medicalServiceList.map((i) => i.name))];
+  const serviciosUnicos = Array.isArray(servicioMedicoLista)
+    ? [...new Set(servicioMedicoLista.map((i) => i.name))]
+    : [];
+
+  const handleChange = (_, value) => {
+    setPagina(value);
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -130,13 +128,37 @@ const ListaIPS = () => {
       </Grid>
 
       <ExpandableTable
-        columns={columns}
-        data={ipsList}
+        columns={[{ key: 'id' }, { key: 'nombre' }]}
+        data={listaIPS}
         renderExpandedContent={renderExpandedContent}
       />
+      
+      <Pagination
+        count={totalPaginas}
+        page={pagina}
+        onChange={(_, val) => setPagina(val)}
+        sx={{ p: 2, display: 'flex', justifyContent: 'center' }}
+        showFirstButton
+        showLastButton
+      />
 
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 1000,
+        }}
+        onClick={() => {
+          setMostrarFormulario(true);
+        }}
+      >
+        <AddIcon />
+      </Fab>
     </Box>
   );
 };
 
-export default ListaIPS;
+export default IPSLista;
