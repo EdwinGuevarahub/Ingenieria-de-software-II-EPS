@@ -21,7 +21,7 @@ import io.jsonwebtoken.security.Keys;
 
 /**
  * Servicio para manejar la generación y validación de tokens JWT.
- * @author Amigoscode
+ * @author Nicolás Sabogal
  */
 @Service
 public class JwtService {

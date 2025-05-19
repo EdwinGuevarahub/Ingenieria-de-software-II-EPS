@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Filtro de autenticación JWT que se ejecuta una vez por solicitud.
  * Este filtro verifica la validez del token JWT y establece la autenticación en el contexto de seguridad.
- * @author Amigoscode
+ * @author Nicolás Sabogal
  */
 @Component
 @RequiredArgsConstructor
