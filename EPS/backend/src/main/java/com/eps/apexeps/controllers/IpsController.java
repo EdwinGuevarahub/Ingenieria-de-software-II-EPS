@@ -129,7 +129,6 @@ public class IpsController {
      */
     @GetMapping("/servicio/detalle")
     public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
-            @RequestParam(required = false) String nombreIps,
             @RequestParam(required = false) Integer idIps) {
         return ipsService.obtenerIpsConServicios(idIps)
                 .map(ResponseEntity::ok)
