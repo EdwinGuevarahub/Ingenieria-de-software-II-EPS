@@ -67,10 +67,8 @@ public class IpsController {
         }
     }
 
-    @GetMapping("/id/{id}/")
-    public ResponseEntity<Ips> findById(
-            @PathVariable Integer id_user,
-            @RequestParam(required = true) Integer id) {
+    @GetMapping("/id/")
+    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
         return ipsService.findById(id)
                 .map(ResponseEntity::ok) // ahora Optional.map existe
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -129,7 +127,7 @@ public class IpsController {
      * @param id ID de la IPS
      * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
      */
-    @GetMapping("/{id}/servicio/detalle")
+    @GetMapping("/servicio/detalle")
     public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
             @RequestParam(required = false) String nombreIps,
             @RequestParam(required = false) Integer idIps) {
