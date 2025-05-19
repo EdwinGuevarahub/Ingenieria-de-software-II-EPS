@@ -65,11 +65,18 @@ public class IpsController {
         }
     }
 
-    @GetMapping("/id/")
-    public ResponseEntity<Ips> findById(@RequestParam(required = true) Integer id) {
-        return ipsService.findById(id)
-                .map(ResponseEntity::ok) // ahora Optional.map existe
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        /**
+     * Obtiene los datos completos de una IPS junto con sus servicios, dado su ID.
+     * 
+     * @param id ID de la IPS
+     * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
+     */
+    @GetMapping("/ips/detalle")
+    public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
+            @RequestParam(required = false) Integer idIps) {
+        return ipsService.obtenerIpsConServicios(idIps)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -119,17 +126,5 @@ public class IpsController {
         return ResponseEntity.ok(servicios);
     }
 
-    /**
-     * Obtiene los datos completos de una IPS junto con sus servicios, dado su ID.
-     * 
-     * @param id ID de la IPS
-     * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
-     */
-    @GetMapping("/servicio/detalle")
-    public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
-            @RequestParam(required = false) Integer idIps) {
-        return ipsService.obtenerIpsConServicios(idIps)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+
 }

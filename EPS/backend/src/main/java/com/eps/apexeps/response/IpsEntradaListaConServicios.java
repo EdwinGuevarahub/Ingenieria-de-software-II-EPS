@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.users.AdmEps;
 
 import lombok.Builder;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class IpsEntradaListaConServicios {
     private String direccion;
     private String telefono;
     private Instant fechaRegistro;
+    private AdmEps admEps;
     private List<String> servicios;
 
     public static IpsEntradaListaConServicios of(Ips ips, List<String> servicios) {
@@ -37,6 +39,7 @@ public class IpsEntradaListaConServicios {
                 .telefono(ips.getTelefono())
                 .fechaRegistro(ips.getFechaRegistro())
                 .servicios(servicios)
+                .admEps(ips.getAdmEps())
                 .build();
     }
 }
