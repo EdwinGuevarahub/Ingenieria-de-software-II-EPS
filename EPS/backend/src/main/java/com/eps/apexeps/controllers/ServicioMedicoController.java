@@ -1,7 +1,6 @@
 package com.eps.apexeps.controllers;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.response.ServicioMedicoLista;
 import com.eps.apexeps.services.ServicioMedicoService;
 
 import lombok.RequiredArgsConstructor;
@@ -38,19 +38,24 @@ public class ServicioMedicoController {
      * @return Una lista de servicios médicos.
      */
     @GetMapping
-    public List<ServicioMedicoEntradaLista> getAllServiciosMedicos(
+    public ServicioMedicoLista getAllServiciosMedicos(
         @RequestParam(required = false) String cupsNombreLike,
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) { 
-        return servicioMedicoService.getServiciosMedicos(
-                    cupsNombreLike,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(ServicioMedicoEntradaLista::of)
-                .toList();
+        Page<ServicioMedico> entradas = servicioMedicoService
+                                        .getServiciosMedicos(
+                                            cupsNombreLike,
+                                            qSize,
+                                            qPage
+                                        );
+
+        return new ServicioMedicoLista(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(ServicioMedicoEntradaLista::of)
+                                .toList()
+                    );
     }
 
     /**

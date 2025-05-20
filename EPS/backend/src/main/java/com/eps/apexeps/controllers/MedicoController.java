@@ -2,6 +2,7 @@ package com.eps.apexeps.controllers;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.response.MedicoEntradaLista;
+import com.eps.apexeps.response.MedicoLista;
 import com.eps.apexeps.response.ServicioMedicoEntradaLista;
 import com.eps.apexeps.services.MedicoService;
 
@@ -49,7 +51,7 @@ public class MedicoController {
      * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     @GetMapping
-    public List<MedicoEntradaLista> getAllMedicos(
+    public MedicoLista getAllMedicos(
         @RequestParam(required = false) Integer idIps,
         @RequestParam(required = false) String dniNombreLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -61,21 +63,25 @@ public class MedicoController {
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
         try{
-            return medicoService
-                    .getMedicos(
-                        idIps,
-                        dniNombreLike,
-                        cupsServicioMedico,
-                        diaSemanaIngles,
-                        horaDeInicio,
-                        horaDeFin,
-                        estaActivo,
-                        qSize,
-                        qPage
-                    )
-                    .stream()
-                    .map(MedicoEntradaLista::of)
-                    .toList();
+            Page<Medico> entradas = medicoService
+                                        .getMedicos(
+                                            idIps,
+                                            dniNombreLike,
+                                            cupsServicioMedico,
+                                            diaSemanaIngles,
+                                            horaDeInicio,
+                                            horaDeFin,
+                                            estaActivo,
+                                            qSize,
+                                            qPage
+                                        );
+
+            return new MedicoLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(MedicoEntradaLista::of)
+                                    .toList()
+                        );
         }
         catch (Exception e) {
             throw new RuntimeException("Error al obtener los médicos: " + e.getMessage(), e);
