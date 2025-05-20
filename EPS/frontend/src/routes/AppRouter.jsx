@@ -6,8 +6,9 @@ import Home from '../pages/Home';
 import HomeAdmEPS from '../pages/EPS/Home';
 import HomeAdmIPS from '../pages/IPS/Home';
 import Login from '../pages/Login';
-import { IPSLista, IPSFormulario } from '../pages/EPS/IPS/Index';
-import { MedicoLista, MedicoFormulario } from '../pages/IPS/Medico/Index';
+import IPSLista from '../pages/EPS/IPS/IPSLista';
+import MedicoLista from '../pages/IPS/Medico/MedicoLista';
+import ConsultorioLista from '../pages/IPS/Consultorio/ConsultorioLista';
 import RegistrarResultado from "../pages/IPS/RegistrarResultado";
 
 const AppRouter = () => (
@@ -25,8 +26,7 @@ const AppRouter = () => (
     {/*Rutas para la parte de IPS*/}
     <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout> } />
     <Route path="/medicos" element={<MainLayout><MedicoLista /></MainLayout>} />
-    <Route path="/medicos/crear" element={<MainLayout><MedicoFormulario /></MainLayout>} />
-    <Route path="/medicos/modificar/:id" element={<MainLayout><MedicoFormulario /></MainLayout>} />
+    <Route path="/consultorios" element={<MainLayout><ConsultorioLista /></MainLayout>} />
 
   </Routes>
 );

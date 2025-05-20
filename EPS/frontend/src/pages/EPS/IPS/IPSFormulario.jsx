@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Typography,
   Box,
   TextField,
   Chip,
@@ -67,8 +68,8 @@ const IPSFormulario = ({
         />
 
         <Box sx={{ flex: 1, minWidth: 250, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography variant="body1">{formData.id || ''}</Typography>
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
-          <TextField label="Código" value={formData.id || ''} onChange={handleChange('id')} />
           <TextField label="Dirección" value={formData.direccion || ''} onChange={handleChange('direccion')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
         </Box>
