@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.response.IpsEntradaLista;
 import com.eps.apexeps.response.IpsEntradaListaConServicios;
 import com.eps.apexeps.services.IpsService;
@@ -119,10 +120,10 @@ public class IpsController {
      * de IPS.
      */
     @GetMapping("/servicio/ips")
-    public ResponseEntity<List<String>> buscarServicios(
+    public ResponseEntity<List<ServicioEnIpsDTO>> buscarServicios(
             @RequestParam(required = false) Integer idIps) {
 
-        List<String> servicios = ipsService.obtenerServiciosPorNombreOIdIps(idIps);
+        List<ServicioEnIpsDTO> servicios = ipsService.obtenerServiciosPorNombreOIdIps(idIps);
         return ResponseEntity.ok(servicios);
     }
 
