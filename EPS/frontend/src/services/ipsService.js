@@ -38,18 +38,16 @@ export async function listarIPS({
 
 export async function detallesIPS(id) {
   try {
-    const response = await AxiosInstance.get(`ips/${id}`);
+    const response = await AxiosInstance.get(`ips/ips/detalle?idIps=${id}`);
     const ips = response.data;
 
     return {
-      dni: ips.dni,
+      id: ips.id,
       nombre: ips.nombre,
       telefono: ips.telefono,
-      email: ips.email,
-      activo: ips.activo,
+      direccion: ips.direccion,
+      fechaRegistro: ips.fechaRegistro,
     };
-
-
 
   } catch (err) {
     if (isAxiosError(err)) {

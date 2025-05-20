@@ -6,85 +6,65 @@ import {
   Chip,
   Fab,
   Button,
+  Grid,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 import ExpandableTable from '../../../components/list/ExpandableTable';
-import { listarIPS } from '@/../../src/services/ipsService';
+import { listarIPS, detallesIPS } from '@/../../src/services/ipsService';
+import { listaServiciosMedicos, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
 
 
 const IPSLista = () => {
-  const [listaIPS, setListaIPS] = useState([]);
-  const [servicioMedicoLista, setServicioMedicoLista] = useState([]);
-  const [nombreFiltro, setNombreFiltro] = useState('');
-  const [servicioFiltro, setServicioFiltro] = useState('');
 
+  // Sobre la tabla
+  const [listaIPS, setListaIPS] = useState([]);
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
 
-  useEffect(() => {
-    async function fetchIPS() {
-      try {
-        const data = await listarIPS(pagina - 1, 2);
-        setListaIPS(data);
-        setTotalPaginas(totalPaginas);
-      } catch (error) {
-        console.error('Error cargando las IPS:', error);
-      }
+  // Filtros
+  const [serviciosUnicos, setServiciosUnicos] = useState([]);
+  const [nombreFiltro, setNombreFiltro] = useState('');
+  const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
+
+  const fetchIPS = async (paginaActual) => {
+    try {
+      const filtros = {
+        qPage: paginaActual - 1,
+        qSize: 2,
+        nombre: nombreFiltro || undefined,
+        telefono: undefined,
+        direccion: undefined,
+        fechaRegistro: undefined,
+        cupsServicioMedico: serviciosUnicos || undefined,
+        idConsultorioLike: undefined,
+      };
+
+      const data = await listarIPS(filtros);
+      setListaIPS(data);
+    } catch (error) {
+      console.error('Error cargando las IPS:', error);
     }
-
-    fetchIPS();
-  }, [pagina]);
-
-  const renderExpandedContent = (row) => (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 2,
-        borderRadius: 2,
-        gap: 2,
-      }}
-    >
-      {/* Imagen izquierda */}
-      <Box
-        component="img"
-        src="https://picsum.photos/300"
-        alt="IPS"
-        sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-      />
-
-      {/* Información */}
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h6">{row.name}</Typography>
-        <Typography variant="body2" color="textSecondary">
-          ID: {row.id}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Dirección: {row.address}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Teléfono: {row.phone}
-        </Typography>
-      </Box>
-
-      {/* Botones */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
-        <button style={{ background: '#fb8c00', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Modificar</button>
-        <button style={{ background: '#1e88e5', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Cerrar</button>
-      </Box>
-    </Box>
-  );
-
-  const serviciosUnicos = Array.isArray(servicioMedicoLista)
-    ? [...new Set(servicioMedicoLista.map((i) => i.name))]
-    : [];
-
-  const handleChange = (_, value) => {
-    setPagina(value);
   };
+
+  const fetchServiciosMedicos = async () => {
+    try {
+      const servicios = await listaServiciosMedicos();
+      const opciones = servicios.map((s) => ({
+        label: s.nombre,
+        value: s.cups,
+      }));
+      setServiciosUnicos(opciones);
+    } catch (error) {
+      console.error('Error cargando los servicios médicos:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchIPS(pagina);
+    fetchServiciosMedicos();
+  }, [pagina, nombreFiltro, servicioMedicoFiltro]);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -92,9 +72,9 @@ const IPSLista = () => {
         Lista de IPS
       </Typography>
 
+      {/* Filtros */}
       <Grid container spacing={3} alignItems="center" sx={{ mb: 4 }}>
         <Grid
-          item
           sx={{
             flexGrow: 1,
             flexBasis: 0,
@@ -108,7 +88,6 @@ const IPSLista = () => {
           <SearchFilter label="Buscar IPS" value={nombreFiltro} onChange={setNombreFiltro} />
         </Grid>
         <Grid
-          item
           sx={{
             flexGrow: 1,
             flexBasis: 0,
@@ -120,19 +99,67 @@ const IPSLista = () => {
           </Typography>
           <SelectFilter
             placeholder="Todos"
-            value={servicioFiltro}
-            onChange={setServicioFiltro}
+            value={servicioMedicoFiltro}
+            onChange={setServicioMedicoFiltro}
             options={serviciosUnicos}
           />
         </Grid>
       </Grid>
-
+      
+      {/* Tabla */}
       <ExpandableTable
         columns={[{ key: 'id' }, { key: 'nombre' }]}
         data={listaIPS}
-        renderExpandedContent={renderExpandedContent}
+        rowKey="id"
+        fetchDetails={[
+          (id) => detallesIPS(id),
+          (id) => listaServiciosMedicosPorIPS(id)
+        ]}
+        renderExpandedContent={(detalle) => (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              padding: 2,
+              borderRadius: 2,
+              gap: 2,
+              flexWrap: 'wrap',
+              width: '100%',
+            }}
+          >
+            <Box
+              component="img"
+              src="https://picsum.photos/300"
+              alt="IPS"
+              sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+            />
+            <Box sx={{ flex: 1, minWidth: 200 }}>
+              <Typography variant="h6">{detalle[0].nombre}</Typography>
+              <Typography variant="body2">ID: {detalle[0].id}</Typography>
+              <Typography variant="body2">Dirección: {detalle[0].direccion}</Typography>
+              <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
+              <Typography variant="body2">Fecha de creación: {detalle[0].fechaRegistro}</Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+
+            </Box>
+
+            <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
+                detalle[1].map((servicio, idx) => (
+                  <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
+                ))
+              ) : (
+                <Chip label="Sin servicios" color="default" variant="outlined" />
+              )}
+            </Box>
+          </Box>
+        )}
       />
-      
+
+      {/* Paginación */}
       <Pagination
         count={totalPaginas}
         page={pagina}
@@ -142,6 +169,7 @@ const IPSLista = () => {
         showLastButton
       />
 
+      {/* Botón de vinculación */}
       <Fab
         color="primary"
         aria-label="add"
@@ -152,7 +180,7 @@ const IPSLista = () => {
           zIndex: 1000,
         }}
         onClick={() => {
-          setMostrarFormulario(true);
+          console.log("Vincular IPS")
         }}
       >
         <AddIcon />

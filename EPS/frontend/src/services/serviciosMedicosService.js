@@ -17,6 +17,21 @@ export async function listaServiciosMedicos() {
   }
 }
 
+export async function listaServiciosMedicosPorIPS(id) {
+  try {
+    const response = await AxiosInstance.get(`ips/servicio/ips?idIps=${id}`);
+
+    return response.data.map(ip => ({
+      nombre: ip.nombreServicioMedico
+    }));
+
+  } catch (err) {
+    if (isAxiosError(err)) {
+      throw err;
+    }
+  }
+}
+
 export async function listaServiciosMedicosPorMedico(dniMedico) {
   try {
     const response = await AxiosInstance.get(`medico/${dniMedico}/dominio`);
