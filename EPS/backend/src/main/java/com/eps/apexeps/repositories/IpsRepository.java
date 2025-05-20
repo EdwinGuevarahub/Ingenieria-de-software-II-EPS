@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 
 /**
  * Repositorio para la entidad Ips.
@@ -62,11 +63,11 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
          * IPS.
          */
         @Query(value = """
-                            SELECT DISTINCT sm.nom_sermed
+                            SELECT DISTINCT sm.cups_sermed, sm.nom_sermed
                             FROM ips i
                             JOIN consultorio c ON c.ips_consultorio = i.id_ips
                             JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
                             WHERE (:idIps IS NOT NULL AND i.id_ips = :idIps)
                         """, nativeQuery = true)
-        List<String> buscarServicioPorNombreOIdIps(@Param("idIps") Integer idIps);
+        List<ServicioEnIpsDTO> buscarServicioPorNombreOIdIps(@Param("idIps") Integer idIps);
 }
