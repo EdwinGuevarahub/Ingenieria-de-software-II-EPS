@@ -1,21 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Typography,
   Box,
   Pagination,
   Chip,
   Fab,
+  Button,
   Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import IPSFormulario from './IPSFormulario'
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 import ExpandableTable from '../../../components/list/ExpandableTable';
-import { listarIPS, detallesIPS } from '@/../../src/services/ipsService';
+import { listarIPS, detallesIPS, crearIPS, actualizarIPS } from '@/../../src/services/ipsService';
 import { listaServiciosMedicos, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
 
 
 const IPSLista = () => {
+
+  // Estados
+  const [editandoIPS, setEditandoIPS] = useState(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   // Sobre la tabla
   const [listaIPS, setListaIPS] = useState([]);
@@ -27,16 +33,39 @@ const IPSLista = () => {
   const [nombreFiltro, setNombreFiltro] = useState('');
   const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
 
-  const fetchIPS = async (paginaActual) => {
+  const handleSubmitIPS = async (ips) => {
+    try {
+      const datosEnviar = {
+        nombre: ips.nombre,
+        direccion: ips.direccion,
+        telefono: ips.telefono,
+        admEps: {
+          email: 'yo@gmail.com',
+        },
+      };
+      if (editandoIPS && editandoIPS.dni) {
+        await actualizarIPS(ips);
+      } else {
+        await crearIPS(datosEnviar);
+      }
+      await fetchIPS(pagina);
+      setMostrarFormulario(false);
+      setEditandoIPS(null);
+    } catch (e) {
+      console.error('Error guardando IPS', e);
+    }
+  };
+
+  const fetchIPS = useCallback(async (paginaActual = 1) => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 2,
+        qSize: 4,
         nombre: nombreFiltro || undefined,
         telefono: undefined,
         direccion: undefined,
         fechaRegistro: undefined,
-        cupsServicioMedico: serviciosUnicos || undefined,
+        cupsServicioMedico: servicioMedicoFiltro || undefined,
         idConsultorioLike: undefined,
       };
 
@@ -45,25 +74,32 @@ const IPSLista = () => {
     } catch (error) {
       console.error('Error cargando las IPS:', error);
     }
-  };
+  }, [nombreFiltro, servicioMedicoFiltro]);
 
-  const fetchServiciosMedicos = async () => {
-    try {
-      const servicios = await listaServiciosMedicos();
-      const opciones = servicios.map((s) => ({
-        label: s.nombre,
-        value: s.cups,
-      }));
-      setServiciosUnicos(opciones);
-    } catch (error) {
-      console.error('Error cargando los servicios médicos:', error);
-    }
-  };
+
+  useEffect(() => {
+    const fetchServiciosMedicos = async () => {
+      try {
+        const { servicio } = await listaServiciosMedicos();
+        const opciones = servicio.map((s) => ({
+          label: s.nombre,
+          value: s.cups,
+        }));
+        setServiciosUnicos(opciones);
+      } catch (error) {
+        console.error('Error cargando los servicios médicos:', error);
+      }
+    };
+
+    fetchServiciosMedicos();
+
+  }, []);
 
   useEffect(() => {
     fetchIPS(pagina);
-    fetchServiciosMedicos();
-  }, [pagina, nombreFiltro, servicioMedicoFiltro]);
+  }, [pagina, fetchIPS]);
+
+
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -104,7 +140,18 @@ const IPSLista = () => {
           />
         </Grid>
       </Grid>
-      
+
+      {mostrarFormulario && (
+        <IPSFormulario
+          initialData={editandoIPS}
+          onSubmit={handleSubmitIPS}
+          onCancel={() => {
+            setMostrarFormulario(false);
+            setEditandoIPS(null);
+          }}
+        />
+      )}
+
       {/* Tabla */}
       <ExpandableTable
         columns={[{ key: 'id' }, { key: 'nombre' }]}
@@ -142,7 +189,16 @@ const IPSLista = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-
+              <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setEditandoIPS(detalle[0]);
+                  setMostrarFormulario(true);
+                }}
+              >
+                Editar
+              </Button>
             </Box>
 
             <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -179,7 +235,7 @@ const IPSLista = () => {
           zIndex: 1000,
         }}
         onClick={() => {
-          console.log("Vincular IPS")
+          setMostrarFormulario(true);
         }}
       >
         <AddIcon />

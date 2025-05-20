@@ -65,7 +65,6 @@ export async function detalleMedico(dniMedico) {
 
 export async function crearMedico(data) {
     try {
-        console.log(data)
         const response = await AxiosInstance.post('/medico', data);
         return response.data;
     } catch (err) {
@@ -77,19 +76,12 @@ export async function crearMedico(data) {
 
 export async function actualizarMedico(data) {
     try {
-        console.log(data)
         const response = await AxiosInstance.put(`/medico`, data);
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
             throw err;
         }
-        if (err.response) {
-            console.error('Error en respuesta del servidor:', err.response.status, err.response.data);
-        } else {
-            console.error('Error en la petición:', err.message);
-        }
-        throw err;
     }
 }
 

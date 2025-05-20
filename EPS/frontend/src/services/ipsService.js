@@ -20,7 +20,7 @@ export async function listarIPS({
         direccion,
         fechaRegistro,
         cupsServicioMedico,
-        idConsultorioLike
+        idConsultorioLike,
       }
     });
 
@@ -47,6 +47,7 @@ export async function detallesIPS(id) {
       telefono: ips.telefono,
       direccion: ips.direccion,
       fechaRegistro: ips.fechaRegistro,
+      admEps: ips.admEps,
     };
 
   } catch (err) {
@@ -54,4 +55,28 @@ export async function detallesIPS(id) {
       throw err;
     }
   }
+}
+
+export async function crearIPS(data) {
+    try {
+        console.log(data)
+        const response = await AxiosInstance.post('/ips', data);
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw err;
+        }
+    }
+}
+
+export async function actualizarIPS(data) {
+    try {
+        console.log(data)
+        const response = await AxiosInstance.put(`/ips`, data);
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw err;
+        }
+    }
 }

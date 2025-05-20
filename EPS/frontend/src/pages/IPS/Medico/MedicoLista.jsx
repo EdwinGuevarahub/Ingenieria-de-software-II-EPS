@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Typography,
   Box,
@@ -18,7 +18,7 @@ import SelectFilter from '../../../components/filters/SelectFilter';
 
 const MedicoLista = () => {
 
-  // Acciones de crear
+  // Estados
   const [editandoMedico, setEditandoMedico] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
@@ -34,6 +34,9 @@ const MedicoLista = () => {
   const [diaFiltro, setDiaFiltro] = useState('');
   const [horaInicioFiltro, setHoraInicioFiltro] = useState('');
   const [horaFinalFiltro, setHoraFinalFiltro] = useState('');
+
+  // Para evitar que los filtros se borren al cambiar la página
+  const [filtrosAplicados, setFiltrosAplicados] = useState({});
 
   const diasSemana = [
     { label: 'Lunes', value: 'MONDAY' },
@@ -52,7 +55,7 @@ const MedicoLista = () => {
       } else {
         await crearMedico(medico);
       }
-      await fetchMedicos(pagina);
+      await fetchMedicos(1, filtrosAplicados);
       setMostrarFormulario(false);
       setEditandoMedico(null);
     } catch (e) {
@@ -60,32 +63,29 @@ const MedicoLista = () => {
     }
   };
 
-
-  const fetchMedicos = async (paginaActual) => {
-    try {
-      const filtros = {
-        qPage: paginaActual - 1,
-        qSize: 2,
-        dniNombreLike: nombreFiltro || undefined,
-        cupsServicioMedico: servicioMedicoFiltro || undefined,
-        diaSemanaIngles: diaFiltro || undefined,
-        horaDeInicio: horaInicioFiltro || undefined,
-        horaDeFin: horaFinalFiltro || undefined,
-        estaActivo: true,
-      };
-
-      const { totalPaginas, medicos } = await listarMedicos(filtros);
-      setListaMedicos(medicos);
-      setTotalPaginas(totalPaginas);
-    } catch (error) {
-      console.error('Error cargando los médicos:', error);
-    }
-  };
-
+  const fetchMedicos = useCallback(
+    async (paginaActual, filtrosExtras = {}) => {
+      try {
+        const filtros = {
+          qPage: paginaActual - 1,
+          qSize: 2,
+          dniNombreLike: nombreFiltro || undefined,
+          ...filtrosExtras,
+          estaActivo: true,
+        };
+        const { totalPaginas, medicos } = await listarMedicos(filtros);
+        setListaMedicos(medicos);
+        setTotalPaginas(totalPaginas);
+      } catch (error) {
+        console.error('Error cargando los médicos:', error);
+      }
+    },
+    [nombreFiltro]
+  );
 
   const fetchServiciosMedicos = async () => {
     try {
-      const { totalPaginas, servicio } = await listaServiciosMedicos();
+      const { servicio } = await listaServiciosMedicos();
       const opciones = servicio.map((s) => ({
         label: s.nombre,
         value: s.cups,
@@ -97,9 +97,12 @@ const MedicoLista = () => {
   };
 
   useEffect(() => {
-    fetchMedicos(pagina);
+    fetchMedicos(pagina, filtrosAplicados);
+  }, [pagina, filtrosAplicados, fetchMedicos]);
+
+  useEffect(() => {
     fetchServiciosMedicos();
-  }, [pagina, nombreFiltro]);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', gap: 4, }}>
@@ -162,10 +165,20 @@ const MedicoLista = () => {
 
         <Button
           variant="red"
-          onClick={() => fetchMedicos(pagina, nombreFiltro)}
+          onClick={() => {
+            const nuevosFiltros = {
+              cupsServicioMedico: servicioMedicoFiltro || undefined,
+              diaSemanaIngles: diaFiltro || undefined,
+              horaDeInicio: horaInicioFiltro || undefined,
+              horaDeFin: horaFinalFiltro || undefined,
+            };
+            setFiltrosAplicados(nuevosFiltros);
+            setPagina(1);
+          }}
         >
           Buscar
         </Button>
+
       </Box>
 
       {/* Contenido principal */}
@@ -285,7 +298,7 @@ const MedicoLista = () => {
           <AddIcon />
         </Fab>
       </Box>
-    </Box>
+    </Box >
 
   );
 };

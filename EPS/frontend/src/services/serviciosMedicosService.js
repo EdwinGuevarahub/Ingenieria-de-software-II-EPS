@@ -6,7 +6,6 @@ export async function listaServiciosMedicos() {
     const response = await AxiosInstance.get('servicioMedico');
 
     const { totalPages, servicios } = response.data;
-    console.log(servicios)
 
     return {
       totalPaginas: totalPages,
