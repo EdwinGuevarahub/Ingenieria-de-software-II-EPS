@@ -69,6 +69,7 @@ const Navbar = () => {
               <>
                 <Button color="inherit" component={Link} to="/">Gestionar Médicos</Button>
                 <Button color="inherit" component={Link} to="/">Gestionar Consultorios</Button>
+                <Button color="inherit" component={Link} to="/registrar-resultados">Registrar Resultados</Button>
               </>
             )}
           </Box>
