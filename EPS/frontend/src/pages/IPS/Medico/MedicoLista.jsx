@@ -65,7 +65,7 @@ const MedicoLista = () => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 10,
+        qSize: 2,
         dniNombreLike: nombreFiltro || undefined,
         cupsServicioMedico: servicioMedicoFiltro || undefined,
         diaSemanaIngles: diaFiltro || undefined,
@@ -74,8 +74,9 @@ const MedicoLista = () => {
         estaActivo: true,
       };
 
-      const data = await listarMedicos(filtros);
-      setListaMedicos(data);
+      const { totalPaginas, medicos } = await listarMedicos(filtros);
+      setListaMedicos(medicos);
+      setTotalPaginas(totalPaginas);
     } catch (error) {
       console.error('Error cargando los médicos:', error);
     }
@@ -84,8 +85,8 @@ const MedicoLista = () => {
 
   const fetchServiciosMedicos = async () => {
     try {
-      const servicios = await listaServiciosMedicos();
-      const opciones = servicios.map((s) => ({
+      const { totalPaginas, servicio } = await listaServiciosMedicos();
+      const opciones = servicio.map((s) => ({
         label: s.nombre,
         value: s.cups,
       }));

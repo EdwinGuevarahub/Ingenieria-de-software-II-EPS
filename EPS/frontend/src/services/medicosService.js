@@ -25,14 +25,21 @@ export async function listarMedicos({
             }
         });
 
-        return response.data.map(medico => ({
-            dni: medico.dni,
-            nombre: medico.nombre
-        }));
+        const { totalPages, medicos } = response.data;
+
+        return {
+            totalPaginas: totalPages,
+            medicos: medicos.map(medico => ({
+                dni: medico.dni,
+                nombre: medico.nombre
+            }))
+        };
+
     } catch (err) {
         if (isAxiosError(err)) {
             throw err;
         }
+        return { totalPaginas: 0, medicos: [] };
     }
 }
 
@@ -78,11 +85,11 @@ export async function actualizarMedico(data) {
             throw err;
         }
         if (err.response) {
-      console.error('Error en respuesta del servidor:', err.response.status, err.response.data);
-    } else {
-      console.error('Error en la petición:', err.message);
-    }
-    throw err;
+            console.error('Error en respuesta del servidor:', err.response.status, err.response.data);
+        } else {
+            console.error('Error en la petición:', err.message);
+        }
+        throw err;
     }
 }
 

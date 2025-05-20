@@ -5,10 +5,16 @@ export async function listaServiciosMedicos() {
   try {
     const response = await AxiosInstance.get('servicioMedico');
 
-    return response.data.map(ip => ({
-      cups: ip.cupsServicioMedico,
-      nombre: ip.nombreServicioMedico
-    }));
+    const { totalPages, servicios } = response.data;
+    console.log(servicios)
+
+    return {
+      totalPaginas: totalPages,
+      servicio: servicios.map(ip => ({
+        cups: ip.cupsServicioMedico,
+        nombre: ip.nombreServicioMedico
+      }))
+    };
 
   } catch (err) {
     if (isAxiosError(err)) {
@@ -22,7 +28,8 @@ export async function listaServiciosMedicosPorIPS(id) {
     const response = await AxiosInstance.get(`ips/servicio/ips?idIps=${id}`);
 
     return response.data.map(ip => ({
-      nombre: ip.nombreServicioMedico
+      cups: ip.cups,
+      nombre: ip.nombre
     }));
 
   } catch (err) {
