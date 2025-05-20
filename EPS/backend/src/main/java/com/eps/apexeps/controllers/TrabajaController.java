@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.relations.Trabaja;
+import com.eps.apexeps.models.users.Medico;
 import com.eps.apexeps.services.TrabajaService;
 
 
@@ -42,5 +43,8 @@ public class TrabajaController {
         return trabajaService.findByMedico_Dni(dniMedico);
     }
     
-    
+    @GetMapping("/filtrar")
+    public List<Medico> filtrarMedicosPorHorario(@RequestParam String horario) {
+        return trabajaService.filtrarMedicosPorDisponibilidad(horario);
+    }
 }

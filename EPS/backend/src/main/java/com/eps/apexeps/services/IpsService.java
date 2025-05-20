@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.repositories.IpsRepository;
 import com.eps.apexeps.response.IpsEntradaListaConServicios;
 
@@ -92,7 +93,7 @@ public class IpsService {
      * @param idIps     ID de la IPS
      * @return Lista de servicios médicos ofrecidos por la IPS
      */
-    public List<String> obtenerServiciosPorNombreOIdIps(Integer idIps) {
+    public List<ServicioEnIpsDTO> obtenerServiciosPorNombreOIdIps(Integer idIps) {
         return ipsRepository.buscarServicioPorNombreOIdIps(idIps);
     }
 
@@ -100,7 +101,7 @@ public class IpsService {
         Optional<Ips> optionalIps = findById(idIps);
         if (optionalIps.isPresent()) {
             Ips ips = optionalIps.get();
-            List<String> servicios = obtenerServiciosPorNombreOIdIps(idIps);
+            List<ServicioEnIpsDTO> servicios = obtenerServiciosPorNombreOIdIps(idIps);
 
             return Optional.of(IpsEntradaListaConServicios.of(ips, servicios));
         }
