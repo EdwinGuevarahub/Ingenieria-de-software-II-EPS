@@ -43,7 +43,7 @@ const Navbar = () => {
           </Box>
         </Toolbar>
 
-        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText', height: '10px'}}>
+        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText'}}>
           <Box sx={{ display: 'flex', gap: 2, mx: 'auto' }}>
             
             {/* Sin loguear */}
