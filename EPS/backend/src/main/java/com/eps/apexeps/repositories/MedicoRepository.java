@@ -1,7 +1,6 @@
 package com.eps.apexeps.repositories;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -56,7 +55,7 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
                 )
             )
     """)
-    public List<Medico> findAllFiltered(
+    public Page<Medico> findAllFiltered(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,

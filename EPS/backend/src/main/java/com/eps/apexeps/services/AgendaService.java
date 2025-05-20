@@ -3,8 +3,8 @@ package com.eps.apexeps.services;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +45,7 @@ public class AgendaService {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una colección de entradas de agenda.
      */
-    public List<Agenda> getAgendas(
+    public Page<Agenda> getAgendas(
         Long dniPaciente,
         Long dniMedico,
         String dniNombrePacienteLike,

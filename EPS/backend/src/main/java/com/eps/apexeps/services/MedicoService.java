@@ -3,6 +3,7 @@ package com.eps.apexeps.services;
 import java.time.DayOfWeek;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +55,7 @@ public class MedicoService {
      * @throws IllegalArgumentException Si el día de la semana no está entre 1 y 7 o si las horas no están entre 0 y 23.
      * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
-    public List<Medico> getMedicos(
+    public Page<Medico> getMedicos(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,
@@ -87,7 +88,7 @@ public class MedicoService {
         }
 
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
-        List<Medico> medicos = medicoRepository
+        Page<Medico> medicos = medicoRepository
                 .findAllFiltered(
                     idIps,
                     dniNombreLike,

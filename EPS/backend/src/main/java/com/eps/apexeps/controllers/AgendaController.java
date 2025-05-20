@@ -1,7 +1,6 @@
 package com.eps.apexeps.controllers;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.response.AgendaEntradaLista;
+import com.eps.apexeps.response.AgendaLista;
 import com.eps.apexeps.services.AgendaService;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/paciente/{dniPaciente}")
-    public List<AgendaEntradaLista> getAllAgendasPaciente(
+    public AgendaLista getAllAgendasPaciente(
         @PathVariable Long dniPaciente,
         @RequestParam(required = false) String dniNombreMedicoLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -51,22 +51,26 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    dniPaciente,
-                    null,
-                    null,
-                    dniNombreMedicoLike,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    dniPaciente,
+                                    null,
+                                    null,
+                                    dniNombreMedicoLike,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return new AgendaLista(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(AgendaEntradaLista::of)
+                                .toList()
+                    );
     }
 
     /**
@@ -82,7 +86,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/medico/{dniMedico}")
-    public List<AgendaEntradaLista> getAllAgendasMedico(
+    public AgendaLista getAllAgendasMedico(
         @PathVariable Long dniMedico,
         @RequestParam(required = false) String dniNombrePacienteLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -92,22 +96,26 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    null,
-                    dniMedico,
-                    dniNombrePacienteLike,
-                    null,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    null,
+                                    dniMedico,
+                                    dniNombrePacienteLike,
+                                    null,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return new AgendaLista(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(AgendaEntradaLista::of)
+                                .toList()
+                    );
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.eps.apexeps.services;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,7 @@ public class ConsultorioService {
      * @param qSize Número de la página (opcional).
      * @return Una lista de consultorios.
      */
-    public List<Consultorio> getConsultorios(
+    public Page<Consultorio> getConsultorios(
         Integer idIps,
         Integer idConsultorioLike,
         String cupsServicioMedico,
