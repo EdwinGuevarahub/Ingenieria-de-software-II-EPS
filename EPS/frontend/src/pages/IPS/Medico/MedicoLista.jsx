@@ -50,8 +50,33 @@ const MedicoLista = () => {
 
   const handleSubmitMedico = async (medico) => {
     try {
+      const datosEnviar = {
+        "medico": {
+          "dni": medico.dni,
+          "nombre": medico.nombre,
+          "email": medico.email,
+          "password": "elsapato",
+          "telefono": medico.telefono,
+          "activo": true
+        },
+        "consultorio": {
+          "id": {
+            "ips": {
+              "id": 1
+            },
+            "idConsultorio": 101
+          }
+        },
+        "horario": [
+          {
+            "dia": "MONDAY",
+            "inicio": "12:00:00",
+            "fin": "14:00:00"
+          }
+        ]
+      };
       if (editandoMedico && editandoMedico.dni) {
-        await actualizarMedico(medico);
+        await actualizarMedico(datosEnviar);
       } else {
         await crearMedico(medico);
       }
