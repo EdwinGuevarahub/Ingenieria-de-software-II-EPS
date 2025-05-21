@@ -2,12 +2,8 @@ package com.eps.apexeps.controllers;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import org.springframework.web.bind.annotation.*;
 
 import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.response.AgendaEntradaLista;
@@ -132,6 +128,19 @@ public class AgendaController {
             return agendaService.updateTrabajaFechaAgenda(agenda);
         } catch (Exception e) {
             throw new RuntimeException("Error al actualizar la relación trabaja o la fecha de la agenda: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/citas")
+    public Agenda solicitarCita(@RequestBody SolicitudCitaDTO dto) {
+        try{
+            return agendaService.registrarCita(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
         }
     }
     
