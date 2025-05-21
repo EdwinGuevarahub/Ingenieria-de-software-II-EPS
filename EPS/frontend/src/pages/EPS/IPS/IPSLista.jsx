@@ -13,11 +13,14 @@ import IPSFormulario from './IPSFormulario'
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 import ExpandableTable from '../../../components/list/ExpandableTable';
+import { useAuthContext } from '../../../contexts/AuthContext';
 import { listarIPS, detallesIPS, crearIPS, actualizarIPS } from '@/../../src/services/ipsService';
 import { listaServiciosMedicos, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
 
 
 const IPSLista = () => {
+
+  const { subEmail } = useAuthContext();
 
   // Estados
   const [editandoIPS, setEditandoIPS] = useState(null);
@@ -40,7 +43,7 @@ const IPSLista = () => {
         direccion: ips.direccion,
         telefono: ips.telefono,
         admEps: {
-          email: 'yo@gmail.com',
+          email: subEmail,
         },
       };
       if (editandoIPS && editandoIPS.dni) {
@@ -60,11 +63,12 @@ const IPSLista = () => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 4,
+        qSize: 10,
         nombre: nombreFiltro || undefined,
         telefono: undefined,
         direccion: undefined,
         fechaRegistro: undefined,
+        nombreServicio: undefined,
         cupsServicioMedico: servicioMedicoFiltro || undefined,
         idConsultorioLike: undefined,
       };

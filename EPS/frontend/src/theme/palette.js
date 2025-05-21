@@ -18,6 +18,15 @@ const palette = {
     text: {
       primary: '#333333',
       secondary: '#666666',
+    },
+    color_primary: {
+      main: '#0A87BE',
+    },
+    color_secondary: {
+      main: '#D3D3D3',
+    },
+    color_third: {
+      main: '#CC5C52',
     }
   };
   

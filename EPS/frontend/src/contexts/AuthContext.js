@@ -1,6 +1,6 @@
-// context/AuthContext.js
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { decodeToken } from "../utils/DecodeToken";
 
 const AuthContext = createContext();
 
@@ -10,35 +10,33 @@ export const AuthContextProvider = ({ children }) => {
     localStorage.getItem("authToken") || ""
   );
   const [role, setRole] = useState("");
+  const [subEmail, setSubEmail] = useState("");
 
   useEffect(() => {
     if (authToken) {
       localStorage.setItem("authToken", authToken);
-      const decoded = parseToken(authToken);
-      if (decoded?.role) {
-        setRole(decoded.role);
-      }
+      decodeToken(authToken).then((decoded) => {
+        if (decoded?.roles?.[0]) {
+          setRole(decoded.roles[0]);
+        }
+        if (decoded?.sub) {
+          setSubEmail(decoded.sub);
+        }
+      });
     } else {
       localStorage.removeItem("authToken");
       setRole("");
+      setSubEmail("");
     }
   }, [authToken]);
-
-  const parseToken = (token) => {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload;
-    } catch (e) {
-      return null;
-    }
-  };
 
   const isLogged = () => !!authToken;
 
   const isTokenExpired = () => {
-    const payload = parseToken(authToken);
-    if (!payload || !payload.exp) return true;
-    return Date.now() >= payload.exp * 1000;
+    return decodeToken(authToken).then((payload) => {
+      if (!payload || !payload.exp) return true;
+      return Date.now() >= payload.exp * 1000;
+    });
   };
 
   const clearToken = () => {
@@ -62,6 +60,7 @@ export const AuthContextProvider = ({ children }) => {
         clearToken,
         logOut,
         role,
+        subEmail,
       }}
     >
       {children}
