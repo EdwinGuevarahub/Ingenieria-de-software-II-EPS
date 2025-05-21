@@ -14,7 +14,7 @@ const palette = {
     text: {
       primary: '#333333',
       secondary: '#666666',
-    },
+    }
   };
   
   export default palette;

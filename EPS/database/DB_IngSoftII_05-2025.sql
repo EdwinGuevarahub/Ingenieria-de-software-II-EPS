@@ -9,8 +9,13 @@ CREATE DOMAIN email_valido AS varchar(255) CONSTRAINT ch_email CHECK (VALUE LIKE
 
 CREATE DOMAIN estado_agenda_valido AS varchar(20) CONSTRAINT ch_estado CHECK (VALUE IN ('PENDIENTE', 'COMPLETADA', 'CANCELADA'));
 
+CREATE DOMAIN estado_pago_afiliacion AS varchar(20) CONSTRAINT ch_estado_pago CHECK (VALUE IN ('PENDIENTE', 'PAGADO', 'RECHAZADO'));
+
+CREATE DOMAIN tipo_dni AS varchar(20) CONSTRAINT ch_tipo_dni CHECK (VALUE IN ('CC', 'TI', 'RC'));
+
 CREATE TABLE "paciente" (
   "dni_paciente" bigint PRIMARY KEY,
+  "tipo_dni" tipo_dni NOT NULL,
   "beneficiario_paciente" bigint,
   "nom_paciente" varchar(80) NOT NULL,
   "fnac_paciente" date NOT NULL,
@@ -18,6 +23,7 @@ CREATE TABLE "paciente" (
   "pass_paciente" varchar(256) NOT NULL,
   "tel_paciente" varchar(20),
   "sexo_paciente" sexo_valido NOT NULL,
+  "parentezco_paciente" varchar(20),
   "dir_paciente" varchar(255) NOT NULL,
   "admreg_paciente" varchar(255) NOT NULL,
   "fafili_paciente" timestamp NOT NULL
@@ -53,6 +59,7 @@ CREATE TABLE "ips" (
   "dir_ips" varchar(255) NOT NULL,
   "tel_ips" varchar(20) NOT NULL,
   "admreg_ips" varchar(255) NOT NULL,
+  "activo_ips" boolean NOT NULL DEFAULT true
   "freg_ips" timestamp NOT NULL
 );
 
@@ -78,12 +85,14 @@ CREATE TABLE "diagnostico" (
 
 CREATE TABLE "medicamento" (
   "id_medicamento" varchar(20) PRIMARY KEY,
-  "nom_medicamento" varchar(100) NOT NULL
+  "nom_medicamento" varchar(100) NOT NULL,
+  "valor_medicamento" numeric(10,2) NOT NULL
 );
 
 CREATE TABLE "pago_afiliacion" (
   "paciente_pagoafiliacion" bigint,
   "f_pagoafiliacion" timestamp,
+  "estado_pagoafiliacion" estado_pago_afiliacion NOT NULL DEFAULT 'pendiente'
   "tarifa_pagoafiliacion" numeric(10,2) NOT NULL,
   PRIMARY KEY ("paciente_pagoafiliacion", "f_pagoafiliacion")
 );
@@ -133,7 +142,6 @@ CREATE TABLE "detalle_formula" (
   "medicamento_detallef" varchar(20) NOT NULL,
   "cantidad_detallef" integer NOT NULL,
   "dosis_detallef" varchar(100) NOT NULL,
-  "duracion_detallef" varchar(100) NOT NULL,
   PRIMARY KEY ("agenda_detallef", "diagnostico_detallef", "id_detallef")
 );
 

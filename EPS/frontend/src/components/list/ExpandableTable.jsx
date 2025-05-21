@@ -40,19 +40,22 @@ const ExpandableTable = ({ columns, data, renderExpandedContent }) => {
                     <TableContainer>
                         <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
                             <TableBody>
-                                <TableRow hover>
-                                    {columns.map((col, index) => (
-                                        <TableCell
-                                            key={col.key}
-                                            sx={{
-                                                width: index === 0 ? '200px' : 'auto',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >{row[col.key]}</TableCell>
-                                    ))}
-                                </TableRow>
+                                {openRow !== index && (
+                                    <TableRow hover>
+                                        {columns.map((col, index) => (
+                                            <TableCell key={col.key}
+                                                sx={{
+                                                    width: index === 0 ? '200px' : 'auto',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                {row[col.key]}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
