@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.models.relations.Trabaja;
 import com.eps.apexeps.models.users.Medico;
+
 
 
 /**
@@ -25,5 +27,7 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
     List<Trabaja> findByMedicoIn(List<Medico> medicos);
     
     List<Trabaja> findByMedico_Dni(long dniMedico);
+
+    List<Trabaja> findByConsultorio(Consultorio consultorio);
     
 }
