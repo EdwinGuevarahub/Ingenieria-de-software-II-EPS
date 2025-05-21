@@ -8,6 +8,7 @@ export async function listarIPS({
   telefono,
   direccion,
   fechaRegistro,
+  nombreServicio,
   cupsServicioMedico,
   idConsultorioLike } = {}) {
   try {
@@ -19,6 +20,7 @@ export async function listarIPS({
         telefono,
         direccion,
         fechaRegistro,
+        nombreServicio,
         cupsServicioMedico,
         idConsultorioLike,
       }
@@ -59,8 +61,8 @@ export async function detallesIPS(id) {
 
 export async function crearIPS(data) {
     try {
-        console.log(data)
         const response = await AxiosInstance.post('/ips', data);
+        console.log("Respuesta del backend ", response.data)
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
