@@ -53,7 +53,7 @@ public class MedicoService {
      * @param qSize Tamaño de la página (opcional).
      * @param qPage Número de la página (opcional).
      * @return Una lista de médicos.
-     * @throws IllegalArgumentException Si el día de la semana no está entre 1 y 7 o si las horas no están entre 0 y 23.
+     * @throws IllegalArgumentException Si el día de la semana no está en el enumerador DayOfWeek o si las horas no están entre 0 y 23.
      * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     public Page<Medico> getMedicos(
