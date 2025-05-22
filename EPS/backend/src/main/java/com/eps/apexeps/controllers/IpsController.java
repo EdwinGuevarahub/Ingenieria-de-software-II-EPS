@@ -5,6 +5,7 @@
 
 package com.eps.apexeps.controllers;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,8 +78,13 @@ public class IpsController {
     }
 
     @PostMapping
-    public Ips save(@RequestBody Ips ips) {
-        return ipsService.save(ips);
+    public Ips save(@RequestBody Ips ips) throws IOException {
+        try {
+            return ipsService.save(ips);
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
+        }
     }
 
     @PutMapping
@@ -90,7 +96,12 @@ public class IpsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No se encontró la IPS con ID: " + ipsData.getId());
         } else {
-            nuevaIps = ipsService.actualizarIps(ipsData);
+            try {
+                nuevaIps = ipsService.actualizarIps(ipsData);
+            }
+            catch (Exception e) {
+                throw new RuntimeException("Error al actualizar la IPS: " + e.getMessage(), e);
+            }
         }
 
         if (nuevaIps == null) {

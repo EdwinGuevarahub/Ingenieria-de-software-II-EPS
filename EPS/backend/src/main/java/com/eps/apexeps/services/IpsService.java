@@ -5,6 +5,7 @@
 
 package com.eps.apexeps.services;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.repositories.IpsRepository;
+
+import jakarta.transaction.Transactional;
 
 /**
  *
@@ -59,16 +62,45 @@ public class IpsService {
         return ipsRepository.findById(id);
     }
 
-    public Ips save(Ips ips) {
-        return ipsRepository.save(ips);
+
+    /**
+     * Guarda una nueva IPS en la base de datos.
+     * Intenta guardar la imagen de la IPS en el sistema de archivos.
+     * @param ips La IPS a guardar
+     * @return La IPS guardada
+     * @throws IOException Si ocurre un error al guardar la imagen
+     */
+    @Transactional
+    public Ips save(Ips ips) throws IOException {
+
+        // Primero intenta guardar la ips actualizada.
+        ips = ipsRepository.save(ips);
+        // Luego intenta guardar la imagen de la ips en el sistema de archivos.
+        ips.saveImage();
+
+        return ips;
     }
 
     public void deleteById(Integer id) {
         ipsRepository.deleteById(id);
     }
 
-    public Ips actualizarIps(Ips ips) {
-        return ipsRepository.save(ips);
+    /**
+     * Actualiza una IPS existente en la base de datos.
+     * Intenta guardar la imagen de la IPS en el sistema de archivos.
+     * @param ips La IPS a actualizar
+     * @return La IPS actualizada
+     * @throws IOException Si ocurre un error al guardar la imagen
+     */
+    @Transactional
+    public Ips actualizarIps(Ips ips) throws IOException {
+
+        // Primero intenta guardar la ips actualizada.
+        ips = ipsRepository.save(ips);
+        // Luego intenta guardar la imagen de la ips en el sistema de archivos.
+        ips.saveImage();
+
+        return ips;
     }
 
     /**
