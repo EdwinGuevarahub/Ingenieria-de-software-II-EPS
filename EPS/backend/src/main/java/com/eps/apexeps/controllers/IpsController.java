@@ -49,7 +49,7 @@ public class IpsController {
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
-            @RequestParam(required = false) String nombreServicio) {
+            @RequestParam(required = false) String cupsServicio) {
         try {
             return ipsService
                     .filtrarIpsMulticriterio(
@@ -57,7 +57,7 @@ public class IpsController {
                             telefono,
                             direccion,
                             fechaRegistro,
-                            nombreServicio)
+                            cupsServicio)
                     .stream()
                     .map(IpsEntradaLista::of)
                     .toList();
@@ -111,8 +111,8 @@ public class IpsController {
     }
 
     @GetMapping("/servicio")
-    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String nombreServicio) {
-        return ipsService.obtenerIpsPorServicio(nombreServicio);
+    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
+        return ipsService.obtenerIpsPorServicio(cupsServicio);
     }
 
     /*

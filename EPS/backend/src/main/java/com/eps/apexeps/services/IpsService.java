@@ -11,8 +11,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
+import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.repositories.IpsRepository;
 import com.eps.apexeps.response.IpsEntradaListaConServicios;
 
@@ -41,7 +41,7 @@ public class IpsService {
      * @return Lista de IPS que cumplen con los criterios de búsqueda
      */
     public List<Ips> filtrarIpsMulticriterio(String nombre, String telefono, String direccion, String fechaRegistro,
-            String nombreServicio) {
+            String cupsServicio) {
         try {
             // Limpieza de datos
             nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
@@ -49,7 +49,7 @@ public class IpsService {
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
             System.out.println(">> service FILTRO nombre: " + nombre);
             List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
-                    nombreServicio);
+                    cupsServicio);
             // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
             // direccion);
             return resultado;
@@ -81,9 +81,9 @@ public class IpsService {
      * @param nombreServicio Nombre del servicio médico
      * @return Lista de IPS que ofrecen el servicio médico
      */
-    public List<Ips> obtenerIpsPorServicio(String nombreServicio) {
-        System.out.println("Nombre del servicio: " + nombreServicio);
-        return ipsRepository.buscarIpsPorNombreServicio(nombreServicio);
+    public List<Ips> obtenerIpsPorServicio(String cupsServicio) {
+        System.out.println("Nombre del servicio: " + cupsServicio);
+        return ipsRepository.buscarIpsPorCupsServicio(cupsServicio);
     }
 
     /**

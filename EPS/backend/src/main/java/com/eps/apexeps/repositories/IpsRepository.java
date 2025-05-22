@@ -12,8 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
+import com.eps.apexeps.models.Ips;
 
 /**
  * Repositorio para la entidad Ips.
@@ -38,14 +38,14 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
                             (:telefono IS NULL OR LOWER(i.tel_ips) LIKE LOWER(CONCAT('%', CAST(:telefono AS TEXT), '%'))) AND
                             (:direccion IS NULL OR LOWER(i.dir_ips) LIKE LOWER(CONCAT('%', CAST(:direccion AS TEXT), '%'))) AND
                             (:fechaRegistro IS NULL OR date_trunc('day', i.freg_ips) = TO_TIMESTAMP(CAST(:fechaRegistro AS TEXT), 'DD-MM-YYYY')) AND
-                            (:nombreServicio IS NULL OR LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', CAST(:nombreServicio AS TEXT), '%')))
+                            (:cupsServicio IS NULL OR LOWER(sm.cups_sermed) LIKE LOWER(CONCAT('%', CAST(:cupsServicio AS TEXT), '%')))
                         """, nativeQuery = true)
         List<Ips> filtrarIpsMultiples(
                         @Param("nombre") String nombre,
                         @Param("telefono") String telefono,
                         @Param("direccion") String direccion,
                         @Param("fechaRegistro") String fechaRegistro,
-                        @Param("nombreServicio") String nombreServicio);
+                        @Param("cupsServicio") String cupsServicio);
 
         // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre similar
         @Query(value = """
@@ -53,10 +53,10 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
                             FROM ips i
                             JOIN consultorio c ON c.ips_consultorio = i.id_ips
                             JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
-                            WHERE LOWER(sm.nom_sermed) LIKE LOWER(CONCAT('%', :nombreServicio, '%'))
+                            WHERE LOWER(sm.cups_sermed) LIKE LOWER(CONCAT('%', :cupsServicio, '%'))
                             ORDER BY i.nom_ips
                         """, nativeQuery = true)
-        List<Ips> buscarIpsPorNombreServicio(@Param("nombreServicio") String nombreServicio);
+        List<Ips> buscarIpsPorCupsServicio(@Param("cupsServicio") String cupsServicio);
 
         /**
          * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID de
