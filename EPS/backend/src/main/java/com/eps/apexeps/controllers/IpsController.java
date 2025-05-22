@@ -11,7 +11,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,28 +38,30 @@ public class IpsController {
     private IpsService ipsService;
 
     @GetMapping("/all")
-    public List<Ips> findAll() {
-        return ipsService.findAll();
+    public ResponseEntity<List<Ips>> findAll() {
+        return ResponseEntity.ok(ipsService.findAll());
     }
 
     @GetMapping
-    public List<IpsEntradaLista> filtrarIps(
+    public ResponseEntity<List<IpsEntradaLista>> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
             @RequestParam(required = false) String cupsServicio) {
         try {
-            return ipsService
-                    .filtrarIpsMulticriterio(
-                            nombre,
-                            telefono,
-                            direccion,
-                            fechaRegistro,
-                            cupsServicio)
-                    .stream()
-                    .map(IpsEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        ipsService
+                            .filtrarIpsMulticriterio(
+                                    nombre,
+                                    telefono,
+                                    direccion,
+                                    fechaRegistro,
+                                    cupsServicio)
+                            .stream()
+                            .map(IpsEntradaLista::of)
+                            .toList()
+                    );
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
         }
@@ -81,8 +82,8 @@ public class IpsController {
     }
 
     @PostMapping
-    public Ips save(@RequestBody Ips ips) {
-        return ipsService.save(ips);
+    public ResponseEntity<Ips> save(@RequestBody Ips ips) {
+        return ResponseEntity.ok(ipsService.save(ips));
     }
 
     @PutMapping
@@ -111,8 +112,8 @@ public class IpsController {
     }
 
     @GetMapping("/servicio")
-    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
-        return ipsService.obtenerIpsPorServicio(cupsServicio);
+    public ResponseEntity<List<Ips>> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
+        return ResponseEntity.ok(ipsService.obtenerIpsPorServicio(cupsServicio));
     }
 
     /*
