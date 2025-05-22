@@ -12,10 +12,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.response.IpsEntradaLista;
+import com.eps.apexeps.response.IpsEntradaListaConServicios;
 import com.eps.apexeps.services.IpsService;
 
 /**
@@ -33,57 +33,63 @@ import com.eps.apexeps.services.IpsService;
  */
 @RestController
 @RequestMapping("/api/ips")
-@CrossOrigin(origins = "http://localhost:3000")
 public class IpsController {
 
     @Autowired
     private IpsService ipsService;
 
     @GetMapping("/all")
-    public List<Ips> findAll() {
-        return ipsService.findAll();
+    public ResponseEntity<List<Ips>> findAll() {
+        return ResponseEntity.ok(ipsService.findAll());
     }
 
     @GetMapping
-    public List<IpsEntradaLista> filtrarIps(
+    public ResponseEntity<List<IpsEntradaLista>> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
-            @RequestParam(required = false) String nombreServicio) {
+            @RequestParam(required = false) String cupsServicio) {
         try {
-            return ipsService
-                    .filtrarIpsMulticriterio(
-                        nombre, 
-                        telefono, 
-                        direccion, 
-                        fechaRegistro,
-                        nombreServicio
-                    )
-                    .stream()
-                    .map(IpsEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        ipsService
+                            .filtrarIpsMulticriterio(
+                                    nombre,
+                                    telefono,
+                                    direccion,
+                                    fechaRegistro,
+                                    cupsServicio)
+                            .stream()
+                            .map(IpsEntradaLista::of)
+                            .toList()
+                    );
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
         }
     }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<Ips> findById(
-        @PathVariable Integer id_user,
-        @RequestParam(required = true) Integer id) {
-        return ipsService.findById(id)
-                .map(ResponseEntity::ok) // ahora Optional.map existe
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        /**
+     * Obtiene los datos completos de una IPS junto con sus servicios, dado su ID.
+     * 
+     * @param id ID de la IPS
+     * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
+     */
+    @GetMapping("/ips/detalle")
+    public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
+            @RequestParam(required = false) Integer idIps) {
+        return ipsService.obtenerIpsConServicios(idIps)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Ips save(@RequestBody Ips ips) throws IOException {
+    public ResponseEntity<Ips> save(@RequestBody Ips ips) throws IOException {
         try {
-            return ipsService.save(ips);
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
+            return ResponseEntity.ok(ipsService.save(ips));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+            // throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
         }
     }
 
@@ -118,21 +124,21 @@ public class IpsController {
     }
 
     @GetMapping("/servicio")
-    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String nombreServicio) {
-        return ipsService.obtenerIpsPorServicio(nombreServicio);
+    public ResponseEntity<List<Ips>> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
+        return ResponseEntity.ok(ipsService.obtenerIpsPorServicio(cupsServicio));
     }
-    
 
     /*
      * Consulta personalizada: buscar servicios médicos por nombre de IPS o ID
      * de IPS.
      */
     @GetMapping("/servicio/ips")
-    public ResponseEntity<List<String>> buscarServicios(
-            @RequestParam(required = false) String nombreIps,
+    public ResponseEntity<List<ServicioEnIpsDTO>> buscarServicios(
             @RequestParam(required = false) Integer idIps) {
 
-        List<String> servicios = ipsService.obtenerServiciosPorNombreOIdIps(nombreIps, idIps);
+        List<ServicioEnIpsDTO> servicios = ipsService.obtenerServiciosPorNombreOIdIps(idIps);
         return ResponseEntity.ok(servicios);
     }
+
+
 }
