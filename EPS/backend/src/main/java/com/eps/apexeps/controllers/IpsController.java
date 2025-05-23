@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.response.IpsEntradaLista;
-import com.eps.apexeps.response.IpsEntradaListaConServicios;
+import com.eps.apexeps.response.IpsConServicios;
 import com.eps.apexeps.services.IpsService;
 
 /**
@@ -75,7 +75,7 @@ public class IpsController {
      * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
      */
     @GetMapping("/ips/detalle")
-    public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
+    public ResponseEntity<IpsConServicios> obtenerDetalleIps(
             @RequestParam(required = false) Integer idIps) {
         return ipsService.obtenerIpsConServicios(idIps)
                 .map(ResponseEntity::ok)

@@ -22,7 +22,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class IpsEntradaListaConServicios {
+public class IpsConServicios {
 
     private Integer id;
     private String nombre;
@@ -31,9 +31,10 @@ public class IpsEntradaListaConServicios {
     private Instant fechaRegistro;
     private AdmEps admEps;
     private List<ServicioEnIpsDTO> servicios;
+    private byte[] imagen;
 
-    public static IpsEntradaListaConServicios of(Ips ips, List<ServicioEnIpsDTO> servicios) {
-        return IpsEntradaListaConServicios.builder()
+    public static IpsConServicios of(Ips ips, List<ServicioEnIpsDTO> servicios) {
+        return IpsConServicios.builder()
                 .id(ips.getId())
                 .nombre(ips.getNombre())
                 .direccion(ips.getDireccion())
@@ -41,6 +42,7 @@ public class IpsEntradaListaConServicios {
                 .fechaRegistro(ips.getFechaRegistro())
                 .servicios(servicios)
                 .admEps(ips.getAdmEps())
+                .imagen(ips.getImagen())
                 .build();
     }
 }
