@@ -1,6 +1,6 @@
 -- Limpieza previa de tablas (en orden inverso para respetar restricciones)
-TRUNCATE TABLE despacha, inventaria, ordena, detalle_formula, formula, genera, 
-    agenda, trabaja, domina, pago_afiliacion, consultorio, adm_ips, 
+TRUNCATE TABLE despacha, inventaria, ordena, detalle_formula, formula, genera,
+    agenda, trabaja, domina, pago_afiliacion, consultorio, adm_ips,
     ips, paciente, medicamento, diagnostico, servicio_medico, medico, adm_eps CASCADE;
 
 -- Reiniciar secuencia para ips.id_ips
@@ -48,28 +48,28 @@ INSERT INTO diagnostico (cie_diagnostico, nom_diagnostico, desc_diagnostico) VAL
 ('M54.5', 'Lumbago', 'Dolor en región lumbar');
 
 -- 5. Tabla medicamento
-INSERT INTO medicamento (id_medicamento, nom_medicamento) VALUES
-('MED-001', 'Acetaminofén 500mg'),
-('MED-002', 'Losartán 50mg'),
-('MED-003', 'Metformina 850mg'),
-('MED-004', 'Salbutamol Inhalador'),
-('MED-005', 'Diclofenaco 50mg');
+INSERT INTO medicamento (id_medicamento, nom_medicamento, valor_medicamento) VALUES
+('MED-001', 'Acetaminofén 500mg', 800.00),
+('MED-002', 'Losartán 50mg', 1200.00),
+('MED-003', 'Metformina 850mg', 1000.00),
+('MED-004', 'Salbutamol Inhalador', 5000.00),
+('MED-005', 'Diclofenaco 50mg', 900.00);
 
 -- 6. Tabla paciente
-INSERT INTO paciente (dni_paciente, beneficiario_paciente, nom_paciente, fnac_paciente, email_paciente, pass_paciente, tel_paciente, sexo_paciente, dir_paciente, admreg_paciente, fafili_paciente) VALUES
-(2001234567, NULL, 'Ana María López', '1985-06-15', 'ana.lopez@email.com', 'an4l0p3z', '3152001001', 'F', 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:30:00'),
-(2002345678, NULL, 'Roberto Sánchez', '1978-11-22', 'roberto.sanchez@email.com', 'r0b3rt0', '3152002002', 'M', 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:15:00'),
-(2003456789, 2001234567, 'Carmen López', '2010-03-30', 'carmen.lopez@email.com', 'c4rm3n', '3152003003', 'F', 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:35:00'),
-(2004567890, NULL, 'Diego Ramírez', '1990-07-18', 'diego.ramirez@email.com', 'd13g0', '3152004004', 'M', 'Avenida 34 #56-78', 'admin3@eps.com', '2022-03-10 14:20:00'),
-(2005678901, 2002345678, 'Patricia Sánchez', '2015-09-05', 'patricia.sanchez@email.com', 'p4tr1c14', '3152005005', 'F', 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:20:00');
+INSERT INTO paciente (dni_paciente, beneficiario_paciente, nom_paciente, fnac_paciente, email_paciente, pass_paciente, tel_paciente, sexo_paciente, parentezco_paciente, dir_paciente, admreg_paciente, fafili_paciente) VALUES
+(2001234567, NULL, 'Ana María López', '1985-06-15', 'ana.lopez@email.com', 'an4l0p3z', '3152001001', 'F', NULL, 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:30:00'),
+(2002345678, NULL, 'Roberto Sánchez', '1978-11-22', 'roberto.sanchez@email.com', 'r0b3rt0', '3152002002', 'M', NULL, 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:15:00'),
+(2003456789, 2001234567, 'Carmen López', '2010-03-30', 'carmen.lopez@email.com', 'c4rm3n', '3152003003', 'F', 'Hija', 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:35:00'),
+(2004567890, NULL, 'Diego Ramírez', '1990-07-18', 'diego.ramirez@email.com', 'd13g0', '3152004004', 'M', NULL, 'Avenida 34 #56-78', 'admin3@eps.com', '2022-03-10 14:20:00'),
+(2005678901, 2002345678, 'Patricia Sánchez', '2015-09-05', 'patricia.sanchez@email.com', 'p4tr1c14', '3152005005', 'F', 'Hija', 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:20:00');
 
 -- 7. Tabla ips
-INSERT INTO ips (id_ips, nom_ips, dir_ips, tel_ips, admreg_ips, freg_ips) VALUES
-(DEFAULT, 'Clínica del Norte', 'Calle 80 #56-23', '6042551001', 'admin1@eps.com', '2021-06-10 09:00:00'),
-(DEFAULT, 'Centro Médico La Salud', 'Carrera 43 #12-67', '6042552002', 'admin2@eps.com', '2021-07-15 11:30:00'),
-(DEFAULT, 'Hospital San Vicente', 'Avenida Oriental #45-12', '6042553003', 'admin3@eps.com', '2021-08-20 10:45:00'),
-(DEFAULT, 'Clínica Las Américas', 'Calle 33 #80-23', '6042554004', 'admin4@eps.com', '2021-09-25 08:15:00'),
-(DEFAULT, 'Centro de Especialistas', 'Carrera 65 #48-32', '6042555005', 'admin5@eps.com', '2021-10-30 13:20:00');
+INSERT INTO ips (id_ips, nom_ips, dir_ips, tel_ips, admreg_ips, activo_ips, freg_ips) VALUES
+(DEFAULT, 'Clínica del Norte', 'Calle 80 #56-23', '6042551001', 'admin1@eps.com', true, '2021-06-10 09:00:00'),
+(DEFAULT, 'Centro Médico La Salud', 'Carrera 43 #12-67', '6042552002', 'admin2@eps.com', true, '2021-07-15 11:30:00'),
+(DEFAULT, 'Hospital San Vicente', 'Avenida Oriental #45-12', '6042553003', 'admin3@eps.com', true, '2021-08-20 10:45:00'),
+(DEFAULT, 'Clínica Las Américas', 'Calle 33 #80-23', '6042554004', 'admin4@eps.com', true, '2021-09-25 08:15:00'),
+(DEFAULT, 'Centro de Especialistas', 'Carrera 65 #48-32', '6042555005', 'admin5@eps.com', true, '2021-10-30 13:20:00');
 
 -- 8. Tabla adm_ips
 INSERT INTO adm_ips (email_admips, ips_admips, nom_admips, pass_admips, tel_admips) VALUES
@@ -114,15 +114,15 @@ INSERT INTO trabaja (id_trabaja, medico_trabaja, ips_trabaja, consultorio_trabaj
 (DEFAULT, 1005678901, 4, 401, 'L08-12,M08-12,R08-12,J08-12,V08-12');
 
 -- 12. Tabla pago_afiliacion
-INSERT INTO pago_afiliacion (paciente_pagoafiliacion, f_pagoafiliacion, tarifa_pagoafiliacion) VALUES
-(2001234567, '2022-01-15 08:30:00', 150000.00),
-(2001234567, '2022-02-15 09:15:00', 150000.00),
-(2002345678, '2022-02-20 10:15:00', 150000.00),
-(2002345678, '2022-03-20 11:30:00', 150000.00),
-(2003456789, '2022-01-15 08:35:00', 75000.00),
-(2004567890, '2022-03-10 14:20:00', 150000.00),
-(2004567890, '2022-04-10 13:45:00', 150000.00),
-(2005678901, '2022-02-20 10:20:00', 75000.00);
+INSERT INTO pago_afiliacion (paciente_pagoafiliacion, f_pagoafiliacion, estado_pagoafiliacion, tarifa_pagoafiliacion) VALUES
+(2001234567, '2022-01-15 08:30:00', 'PAGADO', 150000.00),
+(2001234567, '2022-02-15 09:15:00', 'PAGADO', 150000.00),
+(2002345678, '2022-02-20 10:15:00', 'PAGADO', 150000.00),
+(2002345678, '2022-03-20 11:30:00', 'PAGADO', 150000.00),
+(2003456789, '2022-01-15 08:35:00', 'PAGADO', 75000.00),
+(2004567890, '2022-03-10 14:20:00', 'PAGADO', 150000.00),
+(2004567890, '2022-04-10 13:45:00', 'PAGADO', 150000.00),
+(2005678901, '2022-02-20 10:20:00', 'PAGADO', 75000.00);
 
 -- 13. Tabla agenda
 INSERT INTO agenda (id_agenda, paciente_agenda, trabaja_agenda, f_agenda, fpago_agenda, resultado_agenda, estado_agenda) VALUES

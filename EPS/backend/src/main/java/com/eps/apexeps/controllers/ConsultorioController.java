@@ -6,12 +6,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Consultorio;
 import com.eps.apexeps.response.ConsultorioEntradaLista;
+import com.eps.apexeps.response.ConsultorioLista;
 import com.eps.apexeps.services.ConsultorioService;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,23 +41,29 @@ public class ConsultorioController {
      * @return Una lista de todos los consultorios.
      */
     @GetMapping
-    public List<ConsultorioEntradaLista> getAllConsultorios(
+    public ResponseEntity<ConsultorioLista> getAllConsultorios(
         @RequestParam(required = false) String cupsServicioMedico,
         @RequestParam(required = false) Integer idConsultorioLike,
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return consultorioService
-                .getConsultorios(
-                    null,
-                    idConsultorioLike,
-                    cupsServicioMedico,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(ConsultorioEntradaLista::of)
-                .toList();
+        Page<Consultorio> entradas = consultorioService
+                                        .getConsultorios(
+                                            null,
+                                            idConsultorioLike,
+                                            cupsServicioMedico,
+                                            qSize,
+                                            qPage
+                                        );
+
+        return ResponseEntity.ok(
+                    new ConsultorioLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(ConsultorioEntradaLista::of)
+                                    .toList()
+                        )
+                );
     }
 
     /**
@@ -69,24 +76,30 @@ public class ConsultorioController {
      * @return Una lista de consultorios asociados a la IPS.
      */
     @GetMapping("/{idIps}")
-    public List<ConsultorioEntradaLista> getConsultoriosByIps(
+    public ResponseEntity<ConsultorioLista> getConsultoriosByIps(
         @PathVariable Integer idIps,
         @RequestParam(required = false) String cupsServicioMedico,
         @RequestParam(required = false) Integer idConsultorioLike,
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return consultorioService
-                .getConsultorios(
-                    idIps,
-                    idConsultorioLike,
-                    cupsServicioMedico,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(ConsultorioEntradaLista::of)
-                .toList();
+        Page<Consultorio> entradas = consultorioService
+                                        .getConsultorios(
+                                            idIps,
+                                            idConsultorioLike,
+                                            cupsServicioMedico,
+                                            qSize,
+                                            qPage
+                                        );
+                                        
+        return ResponseEntity.ok(
+                    new ConsultorioLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(ConsultorioEntradaLista::of)
+                                    .toList()
+                        )
+                );
     }
     
     /**
@@ -96,8 +109,8 @@ public class ConsultorioController {
      * @return El consultorio asociado a la IPS y al id del consultorio o null si no existe.
      */ 
     @GetMapping("/{idIps}/{idConsultorio}")
-    public Consultorio getConsultorio(@PathVariable Integer idIps, @PathVariable Integer idConsultorio) {
-        return consultorioService.getConsultorio(idIps, idConsultorio);
+    public ResponseEntity<Consultorio> getConsultorio(@PathVariable Integer idIps, @PathVariable Integer idConsultorio) {
+        return ResponseEntity.ok(consultorioService.getConsultorio(idIps, idConsultorio));
     }
 
     /**
@@ -107,11 +120,11 @@ public class ConsultorioController {
      * @throws RuntimeException Si no se pudo crear el consultorio.
      */
     @PostMapping
-    public Consultorio createConsultorio(
+    public ResponseEntity<Consultorio> createConsultorio(
         @RequestBody Consultorio consultorio
     ) {
         try {
-            return consultorioService.createConsultorio(consultorio);
+            return ResponseEntity.ok(consultorioService.createConsultorio(consultorio));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al crear el consultorio: " + e.getMessage(), e);
@@ -125,11 +138,11 @@ public class ConsultorioController {
      * @throws RuntimeException Si no se pudo actualizar el consultorio.
      */
     @PutMapping
-    public Consultorio updateConsultorio(
+    public ResponseEntity<Consultorio> updateConsultorio(
         @RequestBody Consultorio consultorio
     ) {
         try {
-            return consultorioService.updateConsultorio(consultorio);
+            return ResponseEntity.ok(consultorioService.updateConsultorio(consultorio));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el consultorio: " + e.getMessage(), e);

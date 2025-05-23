@@ -1,5 +1,8 @@
 package com.eps.apexeps.models.users;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import com.eps.apexeps.models.ServicioMedico;
@@ -42,6 +45,12 @@ import lombok.Setter;
 @Builder
 @Table(name = "medico")
 public class Medico {
+
+    /** 
+     * Ruta donde se guardan las imágenes de los médicos.
+     * Se utiliza para guardar y cargar las imágenes de la base de datos.
+     */
+    public static final String RUTA_IMAGENES = "EPS/backend/src/main/resources/static/images/medico/";
 
     /** Número de identificación del médico. */
     @Id
@@ -113,4 +122,57 @@ public class Medico {
     )
     private List<ServicioMedico> dominios;
 
+    @Transient
+    private byte[] imagen;
+
+    /**
+     * Método que se carga justo después de cargar la entidad.
+     * Se utiliza para cargar la imagen desde el sistema de archivos.
+     * @throws IOException si ocurre un error al cargar la imagen.
+     */
+    @PostLoad
+    public void postLoad() throws IOException {
+        loadImage();
+    }
+
+    /**
+     * Carga la imagen desde el sistema de archivos.
+     * @throws IOException si ocurre un error al cargar la imagen.
+     */
+    private void loadImage() throws IOException {
+        String route = RUTA_IMAGENES + dni + ".png";
+        File file = new File(route);
+        if (!file.exists()) {
+            imagen = null;
+            return;
+        }
+
+        imagen = Files.readAllBytes(file.toPath());
+    }
+
+    /**
+     * Guarda la imagen en el sistema de archivos.
+     * @throws IOException si ocurre un error al guardar la imagen.
+     */
+    public void saveImage() throws IOException {
+        if (imagen == null)
+            return;
+
+        String route = RUTA_IMAGENES + dni + ".png";
+        File file = new File(route);
+        
+        try {
+            Files.write(file.toPath(), imagen);
+        }
+        catch (Exception e) {
+            throw new IOException("Error al guardar la imagen del médico: " + e.getMessage(), e);
+        }
+
+        // Verifica si el archivo es una imagen PNG, y si no lo es, lo elimina.
+        String type = Files.probeContentType(file.toPath());
+        if (type != null && !type.equals("image/png")) {
+            file.delete();
+            throw new IOException("El atributo imagen del médico no es una imagen PNG");
+        }
+    }
 }
