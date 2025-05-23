@@ -149,10 +149,6 @@ public class TrabajaService {
     // ---------------------------------------------------------------------------------------------------------------------
 
     public Trabaja crearTrabaja(Trabaja nuevoTrabaja) {
-        // Puedes filtrar por médico, consultorio, o por todos según tu necesidad
-        List<Trabaja> existentes = trabajaRepository
-                .findByConsultorio(nuevoTrabaja.getConsultorio());
-
         return trabajaRepository.save(nuevoTrabaja);
     }
 
@@ -203,14 +199,6 @@ public class TrabajaService {
     }
 
     // ---------------------------------------------------------------------------------------------------------------------
-    public void probarTrabaja() {
-        List<Trabaja> trabajaList = trabajaRepository.findAll();
-
-        for (Trabaja t : trabajaList) {
-            System.out.println("Médico: " + t.getMedico().getNombre());
-        }
-    }
-
     public List<Medico> filtrarMedicosPorDisponibilidad(String entradaHorarioStr) {
         EntradaHorario filtro = EntradaHorario.valueOf(entradaHorarioStr);
 

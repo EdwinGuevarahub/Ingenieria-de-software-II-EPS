@@ -47,7 +47,6 @@ public class TrabajaController {
     @GetMapping("/trabaja/dni/")
     public List<Trabaja> findByMedico_Dni(
             @RequestParam(required = false) long dniMedico) {
-        System.out.println("DNI Medico: " + dniMedico);
         return trabajaService.findByMedico_Dni(dniMedico);
     }
 

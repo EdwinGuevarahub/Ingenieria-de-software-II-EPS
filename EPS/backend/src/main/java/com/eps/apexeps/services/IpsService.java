@@ -50,7 +50,6 @@ public class IpsService {
             nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
             telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
-            System.out.println(">> service FILTRO nombre: " + nombre);
             List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
                     cupsServicio);
             // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
@@ -116,7 +115,6 @@ public class IpsService {
      * @return Lista de IPS que ofrecen el servicio médico
      */
     public List<Ips> obtenerIpsPorServicio(String cupsServicio) {
-        System.out.println("Nombre del servicio: " + cupsServicio);
         return ipsRepository.buscarIpsPorCupsServicio(cupsServicio);
     }
 
