@@ -1,6 +1,7 @@
 package com.eps.apexeps.controllers;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +39,7 @@ public class ServicioMedicoController {
      * @return Una lista de servicios médicos.
      */
     @GetMapping
-    public ServicioMedicoLista getAllServiciosMedicos(
+    public ResponseEntity<ServicioMedicoLista> getAllServiciosMedicos(
         @RequestParam(required = false) String cupsNombreLike,
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
@@ -50,12 +51,14 @@ public class ServicioMedicoController {
                                             qPage
                                         );
 
-        return new ServicioMedicoLista(
-                        entradas.getTotalPages(),
-                        entradas.stream()
-                                .map(ServicioMedicoEntradaLista::of)
-                                .toList()
-                    );
+        return ResponseEntity.ok(
+                    new ServicioMedicoLista(
+                                entradas.getTotalPages(),
+                                entradas.stream()
+                                        .map(ServicioMedicoEntradaLista::of)
+                                        .toList()
+                            )
+                );
     }
 
     /**
@@ -64,8 +67,8 @@ public class ServicioMedicoController {
      * @return El servicio médico correspondiente al código CUPS o null si no existe.
      */
     @GetMapping("/{cupsServicioMedico}")
-    public ServicioMedico getServicioMedico(@PathVariable String cupsServicioMedico) {
-        return servicioMedicoService.getServicioMedicoByCups(cupsServicioMedico);
+    public ResponseEntity<ServicioMedico> getServicioMedico(@PathVariable String cupsServicioMedico) {
+        return ResponseEntity.ok(servicioMedicoService.getServicioMedicoByCups(cupsServicioMedico));
     }
 
     /**
@@ -75,9 +78,9 @@ public class ServicioMedicoController {
      * @throws RuntimeException Si no se puede crear el servicio médico.
      */
     @PostMapping
-    public ServicioMedico createServicioMedico(@RequestBody ServicioMedico servicioMedico) {
+    public ResponseEntity<ServicioMedico> createServicioMedico(@RequestBody ServicioMedico servicioMedico) {
         try {
-            return servicioMedicoService.createServicioMedico(servicioMedico);
+            return ResponseEntity.ok(servicioMedicoService.createServicioMedico(servicioMedico));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al crear el servicio médico: " + e.getMessage());
@@ -90,9 +93,9 @@ public class ServicioMedicoController {
      * @throws RuntimeException Si no se puede actualizar el servicio médico.
      */
     @PutMapping
-    public ServicioMedico updateServicioMedico(@RequestBody ServicioMedico servicioMedico) {
+    public ResponseEntity<ServicioMedico> updateServicioMedico(@RequestBody ServicioMedico servicioMedico) {
         try {
-            return servicioMedicoService.updateServicioMedico(servicioMedico);
+            return ResponseEntity.ok(servicioMedicoService.updateServicioMedico(servicioMedico));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el servicio médico: " + e.getMessage());

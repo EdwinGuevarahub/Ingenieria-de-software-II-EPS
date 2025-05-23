@@ -5,13 +5,13 @@
 
 package com.eps.apexeps.controllers;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.response.IpsEntradaLista;
-import com.eps.apexeps.response.IpsEntradaListaConServicios;
+import com.eps.apexeps.response.IpsConServicios;
 import com.eps.apexeps.services.IpsService;
 
 /**
@@ -39,28 +39,30 @@ public class IpsController {
     private IpsService ipsService;
 
     @GetMapping("/all")
-    public List<Ips> findAll() {
-        return ipsService.findAll();
+    public ResponseEntity<List<Ips>> findAll() {
+        return ResponseEntity.ok(ipsService.findAll());
     }
 
     @GetMapping
-    public List<IpsEntradaLista> filtrarIps(
+    public ResponseEntity<List<IpsEntradaLista>> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
-            @RequestParam(required = false) String nombreServicio) {
+            @RequestParam(required = false) String cupsServicio) {
         try {
-            return ipsService
-                    .filtrarIpsMulticriterio(
-                            nombre,
-                            telefono,
-                            direccion,
-                            fechaRegistro,
-                            nombreServicio)
-                    .stream()
-                    .map(IpsEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        ipsService
+                            .filtrarIpsMulticriterio(
+                                    nombre,
+                                    telefono,
+                                    direccion,
+                                    fechaRegistro,
+                                    cupsServicio)
+                            .stream()
+                            .map(IpsEntradaLista::of)
+                            .toList()
+                    );
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
         }
@@ -73,7 +75,7 @@ public class IpsController {
      * @return ResponseEntity con datos de la IPS o 404 si no se encuentra
      */
     @GetMapping("/ips/detalle")
-    public ResponseEntity<IpsEntradaListaConServicios> obtenerDetalleIps(
+    public ResponseEntity<IpsConServicios> obtenerDetalleIps(
             @RequestParam(required = false) Integer idIps) {
         return ipsService.obtenerIpsConServicios(idIps)
                 .map(ResponseEntity::ok)
@@ -81,8 +83,14 @@ public class IpsController {
     }
 
     @PostMapping
-    public Ips save(@RequestBody Ips ips) {
-        return ipsService.save(ips);
+    public ResponseEntity<Ips> save(@RequestBody Ips ips) throws IOException {
+        try {
+            return ResponseEntity.ok(ipsService.save(ips));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+            // throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
+        }
     }
 
     @PutMapping
@@ -94,7 +102,12 @@ public class IpsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No se encontró la IPS con ID: " + ipsData.getId());
         } else {
-            nuevaIps = ipsService.actualizarIps(ipsData);
+            try {
+                nuevaIps = ipsService.actualizarIps(ipsData);
+            }
+            catch (Exception e) {
+                throw new RuntimeException("Error al actualizar la IPS: " + e.getMessage(), e);
+            }
         }
 
         if (nuevaIps == null) {
@@ -111,8 +124,8 @@ public class IpsController {
     }
 
     @GetMapping("/servicio")
-    public List<Ips> obtenerIpsPorServicio(@RequestParam(required = true) String nombreServicio) {
-        return ipsService.obtenerIpsPorServicio(nombreServicio);
+    public ResponseEntity<List<Ips>> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
+        return ResponseEntity.ok(ipsService.obtenerIpsPorServicio(cupsServicio));
     }
 
     /*

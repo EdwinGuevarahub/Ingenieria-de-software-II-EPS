@@ -51,8 +51,8 @@ public class AuthenticationController {
      * @return Cadena con el nombre de usuario y sus autoridades.
      */
     @GetMapping("/test/admeps")
-    public String testPathAdmeps() {
-        return testUserDetails();
+    public ResponseEntity<String> testPathAdmeps() {
+        return ResponseEntity.ok(testUserDetails());
     }
 
     /**
@@ -60,8 +60,8 @@ public class AuthenticationController {
      * @return Cadena con el nombre de usuario y sus autoridades.
      */
     @GetMapping("/test/admips")
-    public String testPathAdmips() {
-        return testUserDetails();
+    public ResponseEntity<String> testPathAdmips() {
+        return ResponseEntity.ok(testUserDetails());
     }
 
     /**
@@ -69,8 +69,8 @@ public class AuthenticationController {
      * @return Cadena con el nombre de usuario y sus autoridades.
      */
     @GetMapping("/test/medico")
-    public String testPathMedico() {
-        return testUserDetails();
+    public ResponseEntity<String> testPathMedico() {
+        return ResponseEntity.ok(testUserDetails());
     }
 
     /**
@@ -78,8 +78,8 @@ public class AuthenticationController {
      * @return Cadena con el nombre de usuario y sus autoridades.
      */
     @GetMapping("/test/paciente")
-    public String testPathPaciente() {
-        return testUserDetails();
+    public ResponseEntity<String> testPathPaciente() {
+        return ResponseEntity.ok(testUserDetails());
     }
 
     /**

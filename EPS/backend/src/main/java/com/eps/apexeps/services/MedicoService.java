@@ -1,5 +1,6 @@
 package com.eps.apexeps.services;
 
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class MedicoService {
      * @param qSize Tamaño de la página (opcional).
      * @param qPage Número de la página (opcional).
      * @return Una lista de médicos.
-     * @throws IllegalArgumentException Si el día de la semana no está entre 1 y 7 o si las horas no están entre 0 y 23.
+     * @throws IllegalArgumentException Si el día de la semana no está en el enumerador DayOfWeek o si las horas no están entre 0 y 23.
      * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     public Page<Medico> getMedicos(
@@ -119,8 +120,10 @@ public class MedicoService {
      * @param trabaja El objeto que contiene el médico a crear y un consultorio y horario de trabajo.
      * @return El objeto Trabaja que representa la relación entre el médico y el consultorio.
      * @throws IllegalArgumentException Si el médico ya existe, si el consultorio no existe o si algún horario es inválido.
+     * @throws IOException Si ocurre un error al guardar la imagen del médico.
      */
-    public Trabaja createMedico(Trabaja trabaja) {
+    @Transactional
+    public Trabaja createMedico(Trabaja trabaja) throws IOException {
         if (medicoRepository.existsById(trabaja.getMedico().getDni()))
             throw new IllegalArgumentException("El médico ya existe.");
 
@@ -139,8 +142,13 @@ public class MedicoService {
                 
         // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
 
+        // Primero intenta guardar el médico y la relación trabaja.
         medicoRepository.save(trabaja.getMedico());
-        return trabajaRepository.save(trabaja);
+        trabaja = trabajaRepository.save(trabaja);
+        // Luego intenta guardar la imagen del médico en el sistema de archivos.
+        trabaja.getMedico().saveImage();
+
+        return trabaja;
     }
 
     /**
@@ -148,8 +156,10 @@ public class MedicoService {
      * @param medico El médico a actualizar.
      * @return El médico actualizado.
      * @throws IllegalArgumentException Si el médico no existe.
+     * @throws IOException Si ocurre un error al guardar la imagen del médico.
      */
-    public Medico updateMedico(Medico medico) {
+    @Transactional
+    public Medico updateMedico(Medico medico) throws IOException {
         Medico medicoExistente = medicoRepository
                                     .findById(medico.getDni())
                                     .orElse(null);
@@ -168,7 +178,15 @@ public class MedicoService {
         if (medico.getActivo() != null)
             medicoExistente.setActivo(medico.getActivo());
 
-        return medicoRepository.save(medicoExistente);
+        if (medico.getImagen() != null)
+            medicoExistente.setImagen(medico.getImagen());
+
+        // primero intenta guardar el médico actualizado.
+        medicoExistente = medicoRepository.save(medicoExistente);
+        // luego intenta guardar la imagen del médico en el sistema de archivos.
+        medicoExistente.saveImage();
+
+        return medicoExistente;
     }
 
     /**
