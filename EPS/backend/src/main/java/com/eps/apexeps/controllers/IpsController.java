@@ -49,7 +49,7 @@ public class IpsController {
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
-            @RequestParam(required = false) String cupsServicio) {
+            @RequestParam(required = false) String cupsServicioMedico) {
         try {
             return ResponseEntity.ok(
                         ipsService
@@ -58,7 +58,7 @@ public class IpsController {
                                     telefono,
                                     direccion,
                                     fechaRegistro,
-                                    cupsServicio)
+                                    cupsServicioMedico)
                             .stream()
                             .map(IpsEntradaLista::of)
                             .toList()
@@ -89,7 +89,7 @@ public class IpsController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
-            // throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
+            // TODO: throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
         }
     }
 
@@ -124,8 +124,8 @@ public class IpsController {
     }
 
     @GetMapping("/servicio")
-    public ResponseEntity<List<Ips>> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicio) {
-        return ResponseEntity.ok(ipsService.obtenerIpsPorServicio(cupsServicio));
+    public ResponseEntity<List<Ips>> obtenerIpsPorServicio(@RequestParam(required = true) String cupsServicioMedico) {
+        return ResponseEntity.ok(ipsService.obtenerIpsPorServicio(cupsServicioMedico));
     }
 
     /*
