@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.repositories.IpsRepository;
-import com.eps.apexeps.response.IpsEntradaListaConServicios;
+import com.eps.apexeps.response.IpsConServicios;
 
 import jakarta.transaction.Transactional;
 
@@ -78,11 +78,12 @@ public class IpsService {
     public Ips save(Ips ips) throws IOException {
 
         // Primero intenta guardar la ips actualizada.
-        ips = ipsRepository.save(ips);
+        Ips ipsNueva = ipsRepository.save(ips);
         // Luego intenta guardar la imagen de la ips en el sistema de archivos.
-        ips.saveImage();
+        ipsNueva.setImagen(ips.getImagen());
+        ipsNueva.saveImage();
 
-        return ips;
+        return ipsNueva;
     }
 
     public void deleteById(Integer id) {
@@ -100,11 +101,12 @@ public class IpsService {
     public Ips actualizarIps(Ips ips) throws IOException {
 
         // Primero intenta guardar la ips actualizada.
-        ips = ipsRepository.save(ips);
+        Ips ipsExistente = ipsRepository.save(ips);
         // Luego intenta guardar la imagen de la ips en el sistema de archivos.
-        ips.saveImage();
+        ipsExistente.setImagen(ips.getImagen());
+        ipsExistente.saveImage();
 
-        return ips;
+        return ipsExistente;
     }
 
     /**
@@ -129,13 +131,13 @@ public class IpsService {
         return ipsRepository.buscarServicioPorNombreOIdIps(idIps);
     }
 
-    public Optional<IpsEntradaListaConServicios> obtenerIpsConServicios(Integer idIps) {
+    public Optional<IpsConServicios> obtenerIpsConServicios(Integer idIps) {
         Optional<Ips> optionalIps = findById(idIps);
         if (optionalIps.isPresent()) {
             Ips ips = optionalIps.get();
             List<ServicioEnIpsDTO> servicios = obtenerServiciosPorNombreOIdIps(idIps);
 
-            return Optional.of(IpsEntradaListaConServicios.of(ips, servicios));
+            return Optional.of(IpsConServicios.of(ips, servicios));
         }
 
         return Optional.empty();
