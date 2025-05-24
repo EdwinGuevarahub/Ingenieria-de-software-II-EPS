@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author Nicolás Sabogal
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 

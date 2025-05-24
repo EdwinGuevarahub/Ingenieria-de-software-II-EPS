@@ -1,4 +1,5 @@
-import axios, { isAxiosError } from 'axios';
+import { AxiosInstance } from '../services/axios';
+import { isAxiosError } from 'axios';
 
 export async function loginAuth(prevState, queryData) {
   const data = {
@@ -7,7 +8,7 @@ export async function loginAuth(prevState, queryData) {
   };
 
   try {
-    const response = await axios.post('http://localhost:8080/auth/login', data);
+    const response = await AxiosInstance.post('auth/login', data);
     localStorage.setItem('authToken', response.data);
 
     return {

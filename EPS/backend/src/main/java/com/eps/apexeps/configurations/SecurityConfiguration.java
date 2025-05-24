@@ -37,13 +37,13 @@ public class SecurityConfiguration {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     // Permitir todas las peticiones a la ruta de autenticación.
-                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("api/auth/**").permitAll()
 
                     // Rutas de prueba de rol.
-                    .requestMatchers("/auth/test/admeps").hasAuthority(ERol.ADM_EPS.name())
-                    .requestMatchers("/auth/test/admips").hasAuthority(ERol.ADM_IPS.name())
-                    .requestMatchers("/auth/test/medico").hasAuthority(ERol.MEDICO.name())
-                    .requestMatchers("/auth/test/paciente").hasAuthority(ERol.PACIENTE.name())
+                    .requestMatchers("api/auth/test/admeps").hasAuthority(ERol.ADM_EPS.name())
+                    .requestMatchers("api/auth/test/admips").hasAuthority(ERol.ADM_IPS.name())
+                    .requestMatchers("api/auth/test/medico").hasAuthority(ERol.MEDICO.name())
+                    .requestMatchers("api/auth/test/paciente").hasAuthority(ERol.PACIENTE.name())
 
                     // Rutas de Gestión de IPS.
                     .requestMatchers(HttpMethod.GET, "api/ips/**").permitAll()
