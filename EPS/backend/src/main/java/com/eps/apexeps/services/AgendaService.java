@@ -1,17 +1,22 @@
 package com.eps.apexeps.services;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.repositories.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.relations.Agenda;
 import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.repositories.AgendaRepository;
-import com.eps.apexeps.repositories.TrabajaRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,12 @@ public class AgendaService {
 
     /** Repositorio de relaciones trabaja para acceder a la base de datos. */
     private final TrabajaRepository trabajaRepository;
+
+    private final PagoAfiliacionRepository pagoAfiliacionRepository;
+
+    private final ServicioMedicoRepository servicioMedicoRepository;
+
+    private final PacienteRepository pacienteRepository;
 
     /**
      * Método para obtener todas las agendas de la base de datos asociadas a un paciente.
@@ -143,4 +154,58 @@ public class AgendaService {
         return agendaRepository.save(agendaActualizada);
     }
 
+    @Transactional
+    public Agenda registrarCita(SolicitudCitaDTO dto) {
+
+        // 1. Paciente
+        Paciente paciente = pacienteRepository.findById(dto.getDniPaciente())
+                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
+
+        // 2. Afiliación vigente (último pago < 1 año)
+        Instant ultimoPago = pagoAfiliacionRepository.findUltimoPago(dto.getDniPaciente());
+        if (ultimoPago == null
+                || ultimoPago.isBefore(Instant.now().minus(365, ChronoUnit.DAYS))) {
+            throw new IllegalStateException("El paciente no tiene afiliación activa");
+        }
+
+        // 3. Relación médico-consultorio
+        Trabaja trabaja = dto.getIdConsultorio() == null
+                ? trabajaRepository.findByMedico_Dni(dto.getDniMedico())
+                .stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("El médico no tiene consultorio asignado"))
+                : trabajaRepository.findByMedico_DniAndConsultorio_Id_IdConsultorio(
+                        dto.getDniMedico(), dto.getIdConsultorio())
+                .orElseThrow(() -> new IllegalStateException("Médico y consultorio no coinciden"));
+
+        // 4. Fecha/hora solicitadas
+        Instant fechaHora = dto.getFecha()
+                .atTime(dto.getHora())
+                .atZone(ZoneId.systemDefault())
+                .toInstant();
+
+        // 5. Disponibilidad
+        if (agendaRepository.existsByTrabajaAndFecha(trabaja, fechaHora)) {
+            throw new IllegalStateException("Ese horario ya está ocupado");
+        }
+
+
+        // 6. Servicios médicos
+        List<ServicioMedico> servicios = servicioMedicoRepository
+                .findAllById(dto.getCupsServicios());
+        if (servicios.size() != dto.getCupsServicios().size()) {
+            throw new IllegalArgumentException("Algún CUPS no es válido");
+        }
+
+        // 7. Persistir en base de datos
+        Agenda agenda = Agenda.builder()
+                .paciente(paciente)
+                .trabaja(trabaja)
+                .fecha(fechaHora)
+                .ordenes(servicios)
+                .estado("PENDIENTE")
+                .build();
+
+        return agendaRepository.save(agenda);
+    }
+    
 }
