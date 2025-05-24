@@ -21,14 +21,28 @@ import {
   ListItemText,
   ListItemAvatar,
   Collapse,
+  Modal,
+  Backdrop,
+  Fade,
+  IconButton,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import CloseIcon from '@mui/icons-material/Close';
 
 const HistoriaClinica = () => {
   // Estado para el filtro de búsqueda
   const [filtroTexto, setFiltroTexto] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  // Estado para el modal de detalle
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
+
+  // Estado para el modal de confirmación de pago
+  const [modalPagoAbierto, setModalPagoAbierto] = useState(false);
+  const [montoPago, setMontoPago] = useState(0);
+  const [tipoPago, setTipoPago] = useState(''); // 'individual' o 'total'
 
   // Base de datos de pacientes
   const pacientes = [
@@ -70,7 +84,7 @@ const HistoriaClinica = () => {
     }
   ];
 
-  // Historial clínico por paciente
+  // Historial clínico por paciente con detalles completos
   const historialPorPaciente = {
     1: [ // David Alexander Molina
       {
@@ -78,21 +92,39 @@ const HistoriaClinica = () => {
         concepto: 'Examen general',
         estado: 'Pagado',
         valor: '50,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Examen de lípidos por gammografía',
+          fechaExamen: '12/02/2023',
+          horaLugar: '8:00 A.M. IPS XXX Consultorio 302',
+          valorPagar: '50,000',
+          estadoPago: 'Pendiente por pagar'
+        }
       },
       {
         fecha: '01/02/2024',
         concepto: 'Consulta cardiología',
         estado: 'Pendiente',
         valor: '120,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Consulta especializada en cardiología',
+          fechaExamen: '01/02/2024',
+          horaLugar: '10:30 A.M. IPS ABC Consultorio 105',
+          valorPagar: '120,000',
+          estadoPago: 'Pendiente por pagar'
+        }
       },
       {
         fecha: '15/03/2024',
         concepto: 'Medicamentos',
         estado: 'Pendiente',
         valor: '200,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Medicamentos recetados - Tratamiento cardiovascular',
+          fechaExamen: '15/03/2024',
+          horaLugar: 'Farmacia Central - Sede Principal',
+          valorPagar: '200,000',
+          estadoPago: 'Pendiente por pagar'
+        }
       }
     ],
     2: [ // María José García
@@ -101,14 +133,26 @@ const HistoriaClinica = () => {
         concepto: 'Consulta ginecología',
         estado: 'Pagado',
         valor: '80,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Consulta ginecológica de control',
+          fechaExamen: '05/01/2024',
+          horaLugar: '2:00 P.M. IPS XXX Consultorio 201',
+          valorPagar: '80,000',
+          estadoPago: 'Pagado'
+        }
       },
       {
         fecha: '20/02/2024',
         concepto: 'Exámenes de laboratorio',
         estado: 'Pendiente',
         valor: '45,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Exámenes de laboratorio - Perfil hormonal',
+          fechaExamen: '20/02/2024',
+          horaLugar: '7:00 A.M. Laboratorio Central',
+          valorPagar: '45,000',
+          estadoPago: 'Pendiente por pagar'
+        }
       }
     ],
     3: [ // Carlos Eduardo López
@@ -117,7 +161,13 @@ const HistoriaClinica = () => {
         concepto: 'Fisioterapia',
         estado: 'Pendiente',
         valor: '25,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Sesión de fisioterapia - Rehabilitación',
+          fechaExamen: '10/12/2023',
+          horaLugar: '4:00 P.M. Centro de Rehabilitación',
+          valorPagar: '25,000',
+          estadoPago: 'Pendiente por pagar'
+        }
       }
     ],
     4: [ // Ana Patricia Ruiz
@@ -126,9 +176,50 @@ const HistoriaClinica = () => {
         concepto: 'Consulta general',
         estado: 'Pagado',
         valor: '70,000',
-        detalle: <VisibilityIcon style={{cursor: 'pointer'}} />
+        detalle: {
+          conceptoPago: 'Consulta médica general',
+          fechaExamen: '01/02/2024',
+          horaLugar: '9:00 A.M. IPS XXX Consultorio 101',
+          valorPagar: '70,000',
+          estadoPago: 'Pagado'
+        }
       }
     ]
+  };
+
+  // Función para abrir el modal con los detalles
+  const abrirModal = (item) => {
+    setDetalleSeleccionado(item.detalle);
+    setModalAbierto(true);
+  };
+
+  // Función para cerrar el modal
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setDetalleSeleccionado(null);
+  };
+
+  // Funciones para el modal de pago
+  const abrirModalPago = (monto, tipo) => {
+    setMontoPago(monto);
+    setTipoPago(tipo);
+    setModalPagoAbierto(true);
+  };
+
+  const cerrarModalPago = () => {
+    setModalPagoAbierto(false);
+    setMontoPago(0);
+    setTipoPago('');
+  };
+
+  const confirmarPago = () => {
+    // Aquí iría la lógica real de procesamiento de pago
+    console.log(`Procesando pago de ${montoPago.toLocaleString()} - Tipo: ${tipoPago}`);
+
+    // Cerrar modal de pago y mostrar confirmación
+    cerrarModalPago();
+
+    // Aquí podrías actualizar el estado de los pagos, hacer llamada a API, etc.
   };
 
   // Filtrar pacientes según el texto de búsqueda
@@ -350,7 +441,12 @@ const HistoriaClinica = () => {
                       </TableCell>
                       <TableCell>{row.valor}</TableCell>
                       <TableCell>
-                        <Box sx={{ color: 'orange', fontSize: '1.2rem' }}>{row.detalle}</Box>
+                        <IconButton
+                          onClick={() => abrirModal(row)}
+                          sx={{ color: 'orange' }}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
                       </TableCell>
                       <TableCell>
                         {row.estado === 'Pendiente' && (
@@ -358,6 +454,10 @@ const HistoriaClinica = () => {
                             variant="contained"
                             color="error"
                             size="small"
+                            onClick={() => {
+                              const valor = parseInt(row.valor.replace(',', ''));
+                              abrirModalPago(valor, 'individual');
+                            }}
                             sx={{ fontSize: '0.75rem', px: 1.5 }}
                           >
                             Pagar
@@ -393,6 +493,14 @@ const HistoriaClinica = () => {
                         variant="contained"
                         color="error"
                         size="small"
+                        onClick={() => {
+                          const totalPendiente = historialActual
+                            .filter(item => item.estado === 'Pendiente')
+                            .reduce((total, item) => {
+                              return total + parseInt(item.valor.replace(',', ''));
+                            }, 0);
+                          abrirModalPago(totalPendiente, 'total');
+                        }}
                         sx={{ fontSize: '0.75rem', px: 2 }}
                         disabled={!historialActual.some(item => item.estado === 'Pendiente')}
                       >
@@ -406,6 +514,225 @@ const HistoriaClinica = () => {
           </TableContainer>
         </CardContent>
       </Card>
+
+      {/* Modal de Detalle */}
+      <Modal
+        open={modalAbierto}
+        onClose={cerrarModal}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+          sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' }
+        }}
+      >
+        <Fade in={modalAbierto}>
+          <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 500,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 0,
+            outline: 'none'
+          }}>
+            {/* Header del Modal */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 3,
+              borderBottom: '1px solid #e0e0e0',
+              backgroundColor: '#f5f5f5'
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Detalle Pago
+              </Typography>
+              <IconButton onClick={cerrarModal} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            {/* Contenido del Modal */}
+            <Box sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{
+                textAlign: 'center',
+                mb: 3,
+                fontWeight: 'bold',
+                textDecoration: 'underline'
+              }}>
+                Detalle Concepto
+              </Typography>
+
+              {detalleSeleccionado && (
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Concepto de pago:
+                    </Typography>
+                    <Typography variant="body2">
+                      {detalleSeleccionado.conceptoPago}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Fecha de examen:
+                    </Typography>
+                    <Typography variant="body2">
+                      {detalleSeleccionado.fechaExamen}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Hora y lugar:
+                    </Typography>
+                    <Typography variant="body2">
+                      {detalleSeleccionado.horaLugar}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Valor a pagar:
+                    </Typography>
+                    <Typography variant="body2">
+                      ${detalleSeleccionado.valorPagar} de cuota moderadora.
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Estado:
+                    </Typography>
+                    <Typography variant="body2">
+                      {detalleSeleccionado.estadoPago}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              {/* Botones del Modal */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                {detalleSeleccionado?.estadoPago !== 'Pagado' && (
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => {
+                      const valor = parseInt(detalleSeleccionado.valorPagar.replace(',', ''));
+                      abrirModalPago(valor, 'individual');
+                      cerrarModal(); // Cerrar el modal de detalle
+                    }}
+                  >
+                    Pagar
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  onClick={cerrarModal}
+                >
+                  Cerrar
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+
+      {/* Modal de Confirmación de Pago */}
+      <Modal
+        open={modalPagoAbierto}
+        onClose={cerrarModalPago}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+          sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' }
+        }}
+      >
+        <Fade in={modalPagoAbierto}>
+          <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+            outline: 'none',
+            textAlign: 'center'
+          }}>
+            <Typography variant="h5" sx={{
+              fontWeight: 'bold',
+              mb: 3,
+              color: '#333'
+            }}>
+              Pago realizado
+            </Typography>
+
+            {/* Icono de check */}
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              border: '3px solid #ff9800',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px auto',
+              backgroundColor: 'transparent'
+            }}>
+              <Typography sx={{
+                fontSize: '40px',
+                color: '#ff9800',
+                fontWeight: 'bold'
+              }}>
+                ✓
+              </Typography>
+            </Box>
+
+            <Typography variant="h6" sx={{
+              mb: 1,
+              color: '#333',
+              fontWeight: 'bold'
+            }}>
+              Se ha pagado
+            </Typography>
+
+            <Typography variant="h4" sx={{
+              mb: 4,
+              color: '#333',
+              fontWeight: 'bold'
+            }}>
+              ${montoPago.toLocaleString()}
+            </Typography>
+
+            <Button
+              variant="contained"
+              onClick={confirmarPago}
+              sx={{
+                backgroundColor: '#d32f2f',
+                color: 'white',
+                px: 4,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                '&:hover': {
+                  backgroundColor: '#b71c1c'
+                }
+              }}
+            >
+              Aceptar
+            </Button>
+          </Box>
+        </Fade>
+      </Modal>
     </Box>
   );
 };
