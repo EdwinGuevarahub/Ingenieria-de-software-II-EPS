@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import { listarPacientes } from '../../services/pacientesService'; // Importar el servicio
 
 const HistoriaClinica = () => {
   // Estado para el filtro de búsqueda
@@ -44,8 +45,41 @@ const HistoriaClinica = () => {
   const [montoPago, setMontoPago] = useState(0);
   const [tipoPago, setTipoPago] = useState(''); // 'individual' o 'total'
 
-  // Base de datos de pacientes
-  const pacientes = [
+  // Estado para los pacientes del backend
+  const [pacientes, setPacientes] = useState([]);
+  const [cargandoPacientes, setCargandoPacientes] = useState(false);
+  const [errorPacientes, setErrorPacientes] = useState(null);
+
+  // Cargar pacientes al montar el componente
+  useEffect(() => {
+    const cargarPacientes = async () => {
+      setCargandoPacientes(true);
+      setErrorPacientes(null);
+
+      try {
+        const resultado = await listarPacientes();
+        console.log('Resultado del servicio:', resultado);
+
+        if (resultado.success) {
+          console.log('Pacientes obtenidos:', resultado.data);
+          setPacientes(resultado.data);
+        } else {
+          console.error('Error al cargar pacientes:', resultado.message);
+          setErrorPacientes(resultado.message);
+        }
+      } catch (error) {
+        console.error('Error inesperado:', error);
+        setErrorPacientes('Error inesperado al cargar los pacientes');
+      } finally {
+        setCargandoPacientes(false);
+      }
+    };
+
+    cargarPacientes();
+  }, []);
+
+  // Base de datos de pacientes (datos mock como respaldo)
+  const pacientesMock = [
     {
       id: 1,
       nombre: 'David Alexander Molina',
@@ -84,60 +118,19 @@ const HistoriaClinica = () => {
     }
   ];
 
-  // Historial clínico por paciente con detalles completos
+  // Historial clínico por paciente con detalles completos (basado en DNIs reales)
   const historialPorPaciente = {
-    1: [ // David Alexander Molina
+    2001234567: [ // Ana María López
       {
-        fecha: '12/02/2023',
-        concepto: 'Examen general',
+        fecha: '15/01/2024',
+        concepto: 'Consulta ginecológica',
         estado: 'Pagado',
-        valor: '50,000',
+        valor: '85,000',
         detalle: {
-          conceptoPago: 'Examen de lípidos por gammografía',
-          fechaExamen: '12/02/2023',
-          horaLugar: '8:00 A.M. IPS XXX Consultorio 302',
-          valorPagar: '50,000',
-          estadoPago: 'Pendiente por pagar'
-        }
-      },
-      {
-        fecha: '01/02/2024',
-        concepto: 'Consulta cardiología',
-        estado: 'Pendiente',
-        valor: '120,000',
-        detalle: {
-          conceptoPago: 'Consulta especializada en cardiología',
-          fechaExamen: '01/02/2024',
-          horaLugar: '10:30 A.M. IPS ABC Consultorio 105',
-          valorPagar: '120,000',
-          estadoPago: 'Pendiente por pagar'
-        }
-      },
-      {
-        fecha: '15/03/2024',
-        concepto: 'Medicamentos',
-        estado: 'Pendiente',
-        valor: '200,000',
-        detalle: {
-          conceptoPago: 'Medicamentos recetados - Tratamiento cardiovascular',
-          fechaExamen: '15/03/2024',
-          horaLugar: 'Farmacia Central - Sede Principal',
-          valorPagar: '200,000',
-          estadoPago: 'Pendiente por pagar'
-        }
-      }
-    ],
-    2: [ // María José García
-      {
-        fecha: '05/01/2024',
-        concepto: 'Consulta ginecología',
-        estado: 'Pagado',
-        valor: '80,000',
-        detalle: {
-          conceptoPago: 'Consulta ginecológica de control',
-          fechaExamen: '05/01/2024',
-          horaLugar: '2:00 P.M. IPS XXX Consultorio 201',
-          valorPagar: '80,000',
+          conceptoPago: 'Consulta ginecológica de control anual',
+          fechaExamen: '15/01/2024',
+          horaLugar: '9:00 A.M. IPS Central Consultorio 201',
+          valorPagar: '85,000',
           estadoPago: 'Pagado'
         }
       },
@@ -145,43 +138,164 @@ const HistoriaClinica = () => {
         fecha: '20/02/2024',
         concepto: 'Exámenes de laboratorio',
         estado: 'Pendiente',
+        valor: '120,000',
+        detalle: {
+          conceptoPago: 'Exámenes completos - Perfil lipídico y hormonal',
+          fechaExamen: '20/02/2024',
+          horaLugar: '7:30 A.M. Laboratorio Clínico Central',
+          valorPagar: '120,000',
+          estadoPago: 'Pendiente por pagar'
+        }
+      },
+      {
+        fecha: '10/03/2024',
+        concepto: 'Ecografía pélvica',
+        estado: 'Pendiente',
+        valor: '150,000',
+        detalle: {
+          conceptoPago: 'Ecografía pélvica transvaginal',
+          fechaExamen: '10/03/2024',
+          horaLugar: '2:00 P.M. Centro de Imágenes Diagnósticas',
+          valorPagar: '150,000',
+          estadoPago: 'Pendiente por pagar'
+        }
+      }
+    ],
+    2002345678: [ // Roberto Sánchez
+      {
+        fecha: '05/01/2024',
+        concepto: 'Consulta cardiología',
+        estado: 'Pagado',
+        valor: '95,000',
+        detalle: {
+          conceptoPago: 'Consulta cardiológica especializada',
+          fechaExamen: '05/01/2024',
+          horaLugar: '10:30 A.M. IPS Cardiovascular Consultorio 305',
+          valorPagar: '95,000',
+          estadoPago: 'Pagado'
+        }
+      },
+      {
+        fecha: '15/02/2024',
+        concepto: 'Electrocardiograma',
+        estado: 'Pendiente',
+        valor: '60,000',
+        detalle: {
+          conceptoPago: 'Electrocardiograma de reposo y esfuerzo',
+          fechaExamen: '15/02/2024',
+          horaLugar: '8:00 A.M. Centro Cardiológico',
+          valorPagar: '60,000',
+          estadoPago: 'Pendiente por pagar'
+        }
+      },
+      {
+        fecha: '25/02/2024',
+        concepto: 'Medicamentos',
+        estado: 'Pendiente',
+        valor: '180,000',
+        detalle: {
+          conceptoPago: 'Medicamentos antihipertensivos - 3 meses',
+          fechaExamen: '25/02/2024',
+          horaLugar: 'Farmacia EPS - Sede Principal',
+          valorPagar: '180,000',
+          estadoPago: 'Pendiente por pagar'
+        }
+      }
+    ],
+    2003456789: [ // Carmen López (Beneficiaria de Ana)
+      {
+        fecha: '12/02/2024',
+        concepto: 'Consulta pediatría',
+        estado: 'Pagado',
+        valor: '70,000',
+        detalle: {
+          conceptoPago: 'Consulta pediátrica - Control de crecimiento',
+          fechaExamen: '12/02/2024',
+          horaLugar: '3:00 P.M. IPS Infantil Consultorio 102',
+          valorPagar: '70,000',
+          estadoPago: 'Pagado'
+        }
+      },
+      {
+        fecha: '28/02/2024',
+        concepto: 'Vacunación',
+        estado: 'Pendiente',
         valor: '45,000',
         detalle: {
-          conceptoPago: 'Exámenes de laboratorio - Perfil hormonal',
-          fechaExamen: '20/02/2024',
-          horaLugar: '7:00 A.M. Laboratorio Central',
+          conceptoPago: 'Esquema de vacunación - Refuerzo anual',
+          fechaExamen: '28/02/2024',
+          horaLugar: '4:00 P.M. Centro de Vacunación',
           valorPagar: '45,000',
           estadoPago: 'Pendiente por pagar'
         }
       }
     ],
-    3: [ // Carlos Eduardo López
+    2004567890: [ // Diego Ramírez
       {
-        fecha: '10/12/2023',
+        fecha: '08/01/2024',
+        concepto: 'Consulta medicina general',
+        estado: 'Pagado',
+        valor: '55,000',
+        detalle: {
+          conceptoPago: 'Consulta médica general - Chequeo preventivo',
+          fechaExamen: '08/01/2024',
+          horaLugar: '11:00 A.M. IPS General Consultorio 401',
+          valorPagar: '55,000',
+          estadoPago: 'Pagado'
+        }
+      },
+      {
+        fecha: '22/02/2024',
+        concepto: 'Odontología',
+        estado: 'Pendiente',
+        valor: '90,000',
+        detalle: {
+          conceptoPago: 'Limpieza dental y fluorización',
+          fechaExamen: '22/02/2024',
+          horaLugar: '9:30 A.M. Clínica Odontológica',
+          valorPagar: '90,000',
+          estadoPago: 'Pendiente por pagar'
+        }
+      },
+      {
+        fecha: '05/03/2024',
         concepto: 'Fisioterapia',
         estado: 'Pendiente',
-        valor: '25,000',
+        valor: '75,000',
         detalle: {
-          conceptoPago: 'Sesión de fisioterapia - Rehabilitación',
-          fechaExamen: '10/12/2023',
-          horaLugar: '4:00 P.M. Centro de Rehabilitación',
-          valorPagar: '25,000',
+          conceptoPago: 'Sesiones de fisioterapia - Rehabilitación lumbar',
+          fechaExamen: '05/03/2024',
+          horaLugar: '2:30 P.M. Centro de Rehabilitación',
+          valorPagar: '75,000',
           estadoPago: 'Pendiente por pagar'
         }
       }
     ],
-    4: [ // Ana Patricia Ruiz
+    2005678901: [ // Patricia Sánchez (Beneficiaria de Roberto)
       {
-        fecha: '01/02/2024',
-        concepto: 'Consulta general',
+        fecha: '18/01/2024',
+        concepto: 'Consulta pediatría',
         estado: 'Pagado',
         valor: '70,000',
         detalle: {
-          conceptoPago: 'Consulta médica general',
-          fechaExamen: '01/02/2024',
-          horaLugar: '9:00 A.M. IPS XXX Consultorio 101',
+          conceptoPago: 'Consulta pediátrica - Control rutinario',
+          fechaExamen: '18/01/2024',
+          horaLugar: '10:00 A.M. IPS Infantil Consultorio 103',
           valorPagar: '70,000',
           estadoPago: 'Pagado'
+        }
+      },
+      {
+        fecha: '14/02/2024',
+        concepto: 'Exámenes de laboratorio',
+        estado: 'Pendiente',
+        valor: '85,000',
+        detalle: {
+          conceptoPago: 'Exámenes de laboratorio pediátricos',
+          fechaExamen: '14/02/2024',
+          horaLugar: '8:00 A.M. Laboratorio Pediátrico',
+          valorPagar: '85,000',
+          estadoPago: 'Pendiente por pagar'
         }
       }
     ]
@@ -230,11 +344,15 @@ const HistoriaClinica = () => {
 
     const textoFiltro = filtroTexto.toLowerCase().trim();
 
-    return pacientes.filter(paciente =>
-      paciente.nombre.toLowerCase().includes(textoFiltro) ||
-      paciente.cedula.includes(textoFiltro)
+    // Usar pacientes del backend si están disponibles, sino usar mock
+    const listaPacientes = pacientes.length > 0 ? pacientes : pacientesMock;
+
+    return listaPacientes.filter(paciente =>
+      paciente.nombre?.toLowerCase().includes(textoFiltro) ||
+      paciente.dni?.toString().includes(textoFiltro) ||
+      paciente.email?.toLowerCase().includes(textoFiltro)
     );
-  }, [filtroTexto]);
+  }, [filtroTexto, pacientes]);
 
   // Función para seleccionar un paciente
   const seleccionarPaciente = (paciente) => {
@@ -266,7 +384,7 @@ const HistoriaClinica = () => {
   };
 
   // Obtener historial del paciente seleccionado
-  const historialActual = pacienteSeleccionado ? historialPorPaciente[pacienteSeleccionado.id] || [] : [];
+  const historialActual = pacienteSeleccionado ? historialPorPaciente[pacienteSeleccionado.dni] || [] : [];
 
   return (
     <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
@@ -293,15 +411,17 @@ const HistoriaClinica = () => {
                   handleBuscar();
                 }
               }}
+              disabled={cargandoPacientes}
               sx={{ flex: 1 }}
             />
             <Button
               variant="contained"
               color="error"
               onClick={handleBuscar}
+              disabled={cargandoPacientes}
               sx={{ minWidth: 'auto', px: 2 }}
             >
-              Buscar
+              {cargandoPacientes ? 'Cargando...' : 'Buscar'}
             </Button>
             {filtroTexto && (
               <Button
@@ -313,6 +433,13 @@ const HistoriaClinica = () => {
               </Button>
             )}
           </Box>
+
+          {/* Mostrar error si existe */}
+          {errorPacientes && (
+            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+              {errorPacientes}
+            </Typography>
+          )}
 
           {/* Resultados de búsqueda */}
           <Collapse in={mostrarResultados && pacientesFiltrados.length > 0}>
@@ -330,7 +457,7 @@ const HistoriaClinica = () => {
                         </ListItemAvatar>
                         <ListItemText
                           primary={paciente.nombre}
-                          secondary={`CC: ${paciente.cedula}`}
+                          secondary={`DNI: ${paciente.dni} | ${paciente.beneficiario ? `Beneficiario de: ${paciente.beneficiario.nombre}` : 'Titular'}`}
                           primaryTypographyProps={{ fontSize: '0.875rem' }}
                           secondaryTypographyProps={{ fontSize: '0.75rem' }}
                         />
@@ -369,16 +496,19 @@ const HistoriaClinica = () => {
                       <strong>Nombre:</strong> {pacienteSeleccionado.nombre}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      <strong>No. Identificación:</strong> {pacienteSeleccionado.cedula}
+                      <strong>DNI:</strong> {pacienteSeleccionado.dni}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      <strong>Estado:</strong> {pacienteSeleccionado.estado}
+                      <strong>Email:</strong> {pacienteSeleccionado.email}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      <strong>Plan:</strong> {pacienteSeleccionado.plan}
+                      <strong>Teléfono:</strong> {pacienteSeleccionado.telefono}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      <strong>Pendiente por pagar:</strong> ${pacienteSeleccionado.pendientePagar.toLocaleString()}
+                      <strong>Tipo:</strong> {pacienteSeleccionado.beneficiario ? `Beneficiario de ${pacienteSeleccionado.beneficiario.nombre}` : 'Titular'}
+                    </Typography>
+                    <Typography variant="caption" display="block">
+                      <strong>Fecha Afiliación:</strong> {new Date(pacienteSeleccionado.fechaAfiliacion).toLocaleDateString()}
                     </Typography>
                   </Box>
                 </Box>
@@ -539,22 +669,6 @@ const HistoriaClinica = () => {
             p: 0,
             outline: 'none'
           }}>
-            {/* Header del Modal */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              p: 3,
-              borderBottom: '1px solid #e0e0e0',
-              backgroundColor: '#f5f5f5'
-            }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                Detalle Pago
-              </Typography>
-              <IconButton onClick={cerrarModal} size="small">
-                <CloseIcon />
-              </IconButton>
-            </Box>
 
             {/* Contenido del Modal */}
             <Box sx={{ p: 3 }}>
