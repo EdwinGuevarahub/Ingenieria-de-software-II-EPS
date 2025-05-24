@@ -52,6 +52,7 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
+        // TODO: Extraer el DNI del paciente de la sesión en lugar de pasarlo como parámetro.
         Page<Agenda> entradas = agendaService
                                 .getAgendas(
                                     dniPaciente,
@@ -99,6 +100,7 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
+        // TODO: Extraer el DNI del médico de la sesión en lugar de pasarlo como parámetro.
         Page<Agenda> entradas = agendaService
                                 .getAgendas(
                                     null,
