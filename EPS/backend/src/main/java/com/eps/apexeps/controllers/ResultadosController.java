@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.eps.apexeps.response.ApiResponse;
+import com.eps.apexeps.models.DTOs.response.ApiResponse;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
 import com.eps.apexeps.models.entity.Diagnostico;

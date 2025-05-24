@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.entity.relations.Agenda;
-import com.eps.apexeps.response.AgendaEntradaLista;
-import com.eps.apexeps.response.AgendaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaLista;
 import com.eps.apexeps.services.AgendaService;
 
 import lombok.RequiredArgsConstructor;

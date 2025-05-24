@@ -1,4 +1,4 @@
-package com.eps.apexeps.request;
+package com.eps.apexeps.models.DTOs.request;
 
 import lombok.Data;
 

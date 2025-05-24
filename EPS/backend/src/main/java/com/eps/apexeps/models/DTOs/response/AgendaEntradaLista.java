@@ -1,4 +1,4 @@
-package com.eps.apexeps.response;
+package com.eps.apexeps.models.DTOs.response;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

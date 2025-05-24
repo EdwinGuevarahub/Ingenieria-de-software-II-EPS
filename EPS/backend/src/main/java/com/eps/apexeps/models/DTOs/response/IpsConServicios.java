@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.eps.apexeps.response;
+package com.eps.apexeps.models.DTOs.response;
 
 import java.time.Instant;
 import java.util.List;

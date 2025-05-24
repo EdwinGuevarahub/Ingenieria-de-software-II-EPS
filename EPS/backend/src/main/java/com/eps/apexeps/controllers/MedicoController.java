@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.entity.relations.Trabaja;
 import com.eps.apexeps.models.entity.users.Medico;
-import com.eps.apexeps.response.MedicoEntradaLista;
-import com.eps.apexeps.response.MedicoLista;
-import com.eps.apexeps.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.models.DTOs.response.MedicoEntradaLista;
+import com.eps.apexeps.models.DTOs.response.MedicoLista;
+import com.eps.apexeps.models.DTOs.response.ServicioMedicoEntradaLista;
 import com.eps.apexeps.services.MedicoService;
 
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.eps.apexeps.response;
+package com.eps.apexeps.models.DTOs.response;
 
 import com.eps.apexeps.models.entity.Consultorio;
 import com.eps.apexeps.models.entity.Ips;

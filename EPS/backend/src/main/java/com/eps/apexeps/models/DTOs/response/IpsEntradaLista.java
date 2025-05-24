@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.eps.apexeps.response;
+package com.eps.apexeps.models.DTOs.response;
 
 import com.eps.apexeps.models.entity.Ips;
 
