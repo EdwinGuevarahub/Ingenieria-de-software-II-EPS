@@ -44,7 +44,7 @@ const Navbar = () => {
 
         <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText'}}>
           <Box sx={{ display: 'flex', gap: 2, mx: 'auto' }}>
-            
+
             {/* Sin loguear */}
             {!logged && (
               <>
@@ -60,7 +60,7 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/IPS">Gestionar IPS</Button>
                 <Button color="inherit" component={Link} to="/">Registrar Afiliado</Button>
                 <Button color="inherit" component={Link} to="/">Consultar Estado de Cuenta</Button>
-                <Button color="inherit" component={Link} to="/">Ver Historia Clínica</Button>
+                <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
               </>
             )}
 

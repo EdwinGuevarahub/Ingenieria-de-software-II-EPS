@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/resultados";
+const API_URL = "https://redesigned-carnival-9xq4446vg5gfgrv-8080.app.github.dev/api/resultados";
 
 // Obtener un paciente y el listado de citas pendientes
 export const obtenerPacienteCitas = async (dniPaciente) =>

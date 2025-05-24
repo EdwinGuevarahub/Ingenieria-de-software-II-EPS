@@ -34,10 +34,10 @@ const LandingPage = () => {
               src={Doctor}
               alt="Doctor"
               sx={{
-                width: '100%',
-                maxHeight: 500,
+                width: '80%',
+                maxHeight: '100%',
                 position: 'relative',
-                bottom: -20,
+                bottom: '-6px',
                 zIndex: 2,
               }}
             />

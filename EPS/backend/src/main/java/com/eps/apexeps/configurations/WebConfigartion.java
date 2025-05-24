@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   */
 @Configuration
 public class WebConfigartion {
-    
+
     /**
      * Configuración de CORS para permitir solicitudes desde el frontend.
      * @return WebMvcConfigurer
@@ -23,7 +23,7 @@ public class WebConfigartion {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins("https://redesigned-carnival-9xq4446vg5gfgrv-3000.app.github.dev/")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
