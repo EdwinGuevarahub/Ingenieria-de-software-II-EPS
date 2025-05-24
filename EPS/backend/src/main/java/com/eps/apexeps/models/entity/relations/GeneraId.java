@@ -1,6 +1,8 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
+import com.eps.apexeps.models.entity.Diagnostico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -10,17 +12,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import com.eps.apexeps.models.ServicioMedico;
-
-// Table ordena {
-//   agenda_ordena integer [pk, ref: > agenda.id_agenda]
-//   servicio_ordena varchar(10) [pk, ref: > servicio_medico.cups_sermed]
+// Table genera {
+//   agenda_genera integer [pk, ref: > agenda.id_agenda]
+//   diagnostico_genera varchar(10) [pk, ref: > diagnostico.cie_diagnostico]
+//   obs_genera text [null]
 // }
 
 /**
- * Esta clase representa la clave primaria compuesta de la relación Ordena en la base de datos.
- * Se utiliza para mapear la tabla 'ordena' y sus columnas a un objeto Java.
+ * Esta clase representa la clave primaria compuesta de la relación Genera en la base de datos.
+ * Se utiliza para mapear la tabla 'genera' y sus columnas a un objeto Java.
  * Incluye anotaciones de JPA para la persistencia y validaciones de datos.
+ * @author Nicolás Sabogal
  */
 @Embeddable
 @Getter
@@ -28,13 +30,13 @@ import com.eps.apexeps.models.ServicioMedico;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrdenaId {
+public class GeneraId {
 
     // Se ignora la relación para evitar problemas de recursividad al serializar a JSON.
     @JsonIgnore
     @ManyToOne
     @JoinColumn(
-        name = "agenda_ordena",
+        name = "agenda_genera",
         referencedColumnName = "id_agenda",
         nullable = false
     )
@@ -42,10 +44,10 @@ public class OrdenaId {
 
     @ManyToOne
     @JoinColumn(
-        name = "servicio_ordena",
-        referencedColumnName = "cups_sermed",
+        name = "diagnostico_genera",
+        referencedColumnName = "cie_diagnostico",
         nullable = false
     )
-    private ServicioMedico servicio;
+    private Diagnostico diagnostico;
     
 }

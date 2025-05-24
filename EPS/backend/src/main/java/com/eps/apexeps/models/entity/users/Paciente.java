@@ -1,4 +1,5 @@
-package com.eps.apexeps.models.users;
+package com.eps.apexeps.models.entity.users;
+
 import java.time.Instant;
 import java.time.LocalDate;
 

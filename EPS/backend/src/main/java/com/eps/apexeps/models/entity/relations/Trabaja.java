@@ -1,11 +1,11 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.users.Medico;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

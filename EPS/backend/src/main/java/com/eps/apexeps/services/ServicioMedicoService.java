@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.entity.ServicioMedico;
 import com.eps.apexeps.repositories.ServicioMedicoRepository;
 
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,7 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
-import com.eps.apexeps.models.Diagnostico;
+import com.eps.apexeps.models.entity.ServicioMedico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -12,17 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Table genera {
-//   agenda_genera integer [pk, ref: > agenda.id_agenda]
-//   diagnostico_genera varchar(10) [pk, ref: > diagnostico.cie_diagnostico]
-//   obs_genera text [null]
+// Table ordena {
+//   agenda_ordena integer [pk, ref: > agenda.id_agenda]
+//   servicio_ordena varchar(10) [pk, ref: > servicio_medico.cups_sermed]
 // }
 
 /**
- * Esta clase representa la clave primaria compuesta de la relación Genera en la base de datos.
- * Se utiliza para mapear la tabla 'genera' y sus columnas a un objeto Java.
+ * Esta clase representa la clave primaria compuesta de la relación Ordena en la base de datos.
+ * Se utiliza para mapear la tabla 'ordena' y sus columnas a un objeto Java.
  * Incluye anotaciones de JPA para la persistencia y validaciones de datos.
- * @author Nicolás Sabogal
  */
 @Embeddable
 @Getter
@@ -30,13 +27,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GeneraId {
+public class OrdenaId {
 
     // Se ignora la relación para evitar problemas de recursividad al serializar a JSON.
     @JsonIgnore
     @ManyToOne
     @JoinColumn(
-        name = "agenda_genera",
+        name = "agenda_ordena",
         referencedColumnName = "id_agenda",
         nullable = false
     )
@@ -44,10 +41,10 @@ public class GeneraId {
 
     @ManyToOne
     @JoinColumn(
-        name = "diagnostico_genera",
-        referencedColumnName = "cie_diagnostico",
+        name = "servicio_ordena",
+        referencedColumnName = "cups_sermed",
         nullable = false
     )
-    private Diagnostico diagnostico;
+    private ServicioMedico servicio;
     
 }

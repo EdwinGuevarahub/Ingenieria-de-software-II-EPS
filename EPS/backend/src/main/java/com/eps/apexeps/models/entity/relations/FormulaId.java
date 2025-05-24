@@ -1,6 +1,6 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
-import com.eps.apexeps.models.Diagnostico;
+import com.eps.apexeps.models.entity.Diagnostico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Embeddable;

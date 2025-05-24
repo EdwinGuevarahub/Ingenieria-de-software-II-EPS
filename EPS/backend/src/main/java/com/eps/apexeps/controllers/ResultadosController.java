@@ -5,13 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.eps.apexeps.models.Diagnostico;
-import com.eps.apexeps.models.Medicamento;
-import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.response.ApiResponse;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
-import com.eps.apexeps.models.relations.Agenda;
+import com.eps.apexeps.models.entity.Diagnostico;
+import com.eps.apexeps.models.entity.Medicamento;
+import com.eps.apexeps.models.entity.ServicioMedico;
+import com.eps.apexeps.models.entity.relations.Agenda;
 
 import com.eps.apexeps.services.ResultadosService;
 

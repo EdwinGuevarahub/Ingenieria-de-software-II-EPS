@@ -5,7 +5,7 @@
 
 package com.eps.apexeps.response;
 
-import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.entity.Ips;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,11 +1,11 @@
-package com.eps.apexeps.models;
+package com.eps.apexeps.models.entity;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
 
-import com.eps.apexeps.models.users.AdmEps;
+import com.eps.apexeps.models.entity.users.AdmEps;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
 
 
 

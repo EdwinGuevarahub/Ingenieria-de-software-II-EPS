@@ -1,4 +1,4 @@
-package com.eps.apexeps.models.users;
+package com.eps.apexeps.models.entity.users;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -1,4 +1,4 @@
-package com.eps.apexeps.models;
+package com.eps.apexeps.models.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

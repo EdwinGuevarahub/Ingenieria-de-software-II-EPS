@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.relations.Agenda;
+import com.eps.apexeps.models.entity.relations.Agenda;
 
 /**
  * Repositorio para manejar las operaciones de acceso a datos relacionadas con la entidad Agenda.

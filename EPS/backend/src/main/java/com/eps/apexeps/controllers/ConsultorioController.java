@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.Consultorio;
+import com.eps.apexeps.models.entity.Consultorio;
 import com.eps.apexeps.response.ConsultorioEntradaLista;
 import com.eps.apexeps.response.ConsultorioLista;
 import com.eps.apexeps.services.ConsultorioService;

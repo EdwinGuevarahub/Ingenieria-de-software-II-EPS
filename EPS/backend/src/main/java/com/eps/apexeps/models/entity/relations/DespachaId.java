@@ -1,8 +1,8 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
 import java.time.Instant;
 
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.users.Paciente;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

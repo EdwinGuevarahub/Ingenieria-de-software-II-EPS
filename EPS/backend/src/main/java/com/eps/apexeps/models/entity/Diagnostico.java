@@ -1,4 +1,4 @@
-package com.eps.apexeps.models;
+package com.eps.apexeps.models.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,14 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Table medicamento {
-//   id_medicamento varchar(20) [pk]
-//   nom_medicamento varchar(100) [not null]
+// Table diagnostico {
+//   cie_diagnostico varchar(10) [pk]
+//   nom_diagnostico varchar(255) [not null]
+//   desc_diagnostico text [null]
 // }
 
 /**
- * Esta clase representa la entidad Medicamento en la base de datos.
- * Se utiliza para mapear la tabla 'medicamento' y sus columnas a un objeto Java.
+ * Esta clase representa la entidad Diagnostico en la base de datos.
+ * Se utiliza para mapear la tabla 'diagnostico' y sus columnas a un objeto Java.
  * Incluye anotaciones de JPA para la persistencia y validaciones de datos.
  * @author Nicolás Sabogal
  */
@@ -28,23 +29,29 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "medicamento")
-public class Medicamento {
+@Table(name = "diagnostico")
+public class Diagnostico {
 
     @Id
     @Column(
-        name = "id_medicamento",
-        length = 20,
+        name = "cie_diagnostico",
+        length = 10,
         nullable = false
     )
-    private String id;
+    private String cie;
 
     @NotEmpty
     @Column(
-        name = "nom_medicamento",
-        length = 100,
+        name = "nom_diagnostico",
+        length = 255,
         nullable = false
     )
     private String nombre;
+
+    @Column(
+        name = "desc_diagnostico",
+        columnDefinition = "text"
+    )
+    private String descripcion;
     
 }

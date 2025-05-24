@@ -1,4 +1,4 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
 import java.util.List;
 

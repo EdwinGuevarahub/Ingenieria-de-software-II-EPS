@@ -1,10 +1,10 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
 import java.time.Instant;
 import java.util.List;
 
-import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.ServicioMedico;
+import com.eps.apexeps.models.entity.users.Paciente;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

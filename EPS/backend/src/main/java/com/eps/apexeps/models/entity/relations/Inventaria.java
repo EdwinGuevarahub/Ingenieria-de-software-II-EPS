@@ -1,7 +1,7 @@
-package com.eps.apexeps.models.relations;
+package com.eps.apexeps.models.entity.relations;
 
-import com.eps.apexeps.models.Ips;
-import com.eps.apexeps.models.Medicamento;
+import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.Medicamento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,8 +1,8 @@
 package com.eps.apexeps.response;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.Ips;
-import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.ServicioMedico;
 
 import lombok.Builder;
 import lombok.Data;

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.relations.Agenda;
+import com.eps.apexeps.models.entity.relations.Agenda;
 import com.eps.apexeps.response.AgendaEntradaLista;
 import com.eps.apexeps.response.AgendaLista;
 import com.eps.apexeps.services.AgendaService;

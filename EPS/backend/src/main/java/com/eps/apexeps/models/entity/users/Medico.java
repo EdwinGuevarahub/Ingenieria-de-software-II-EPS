@@ -1,11 +1,11 @@
-package com.eps.apexeps.models.users;
+package com.eps.apexeps.models.entity.users;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.entity.ServicioMedico;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

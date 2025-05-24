@@ -1,6 +1,6 @@
 package com.eps.apexeps.response;
 
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.users.Medico;
 
 import lombok.Builder;
 import lombok.Data;

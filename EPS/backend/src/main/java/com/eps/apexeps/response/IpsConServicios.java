@@ -8,9 +8,9 @@ package com.eps.apexeps.response;
 import java.time.Instant;
 import java.util.List;
 
-import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
-import com.eps.apexeps.models.users.AdmEps;
+import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.users.AdmEps;
 
 import lombok.Builder;
 import lombok.Data;
