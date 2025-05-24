@@ -7,7 +7,7 @@ export async function loginAuth(prevState, queryData) {
   };
 
   try {
-    const response = await axios.post('https://redesigned-carnival-9xq4446vg5gfgrv-8080.app.github.dev/auth/login', data);
+    const response = await axios.post('http://localhost:8080/auth/login', data);
     localStorage.setItem('authToken', response.data);
 
     return {

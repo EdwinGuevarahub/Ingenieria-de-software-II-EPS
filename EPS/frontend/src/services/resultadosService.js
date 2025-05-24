@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://redesigned-carnival-9xq4446vg5gfgrv-8080.app.github.dev/api/resultados";
+const API_URL = "http://localhost:8080/api/resultados";
 
 // Obtener un paciente y el listado de citas pendientes
 export const obtenerPacienteCitas = async (dniPaciente) =>
@@ -23,4 +23,3 @@ export const registrarResultado = async (resultado) =>
 // Actualizar unicamente el resultado de la agenda
 export const actualizarResultadoAgenda = async (idAgenda, resultado) =>
   await axios.put(`${API_URL}/${idAgenda}`, resultado);
-
