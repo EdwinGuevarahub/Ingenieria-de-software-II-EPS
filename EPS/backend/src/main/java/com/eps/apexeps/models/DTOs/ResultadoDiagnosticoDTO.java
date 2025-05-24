@@ -5,12 +5,15 @@ import java.util.List;
 import com.eps.apexeps.models.relations.DetalleFormula;
 
 // Resultado de la cita (agenda) y diagnosticos generados
-public class ResultadoDiagnostico {
+public class ResultadoDiagnosticoDTO {
     private Integer agendaId;
     private String resultadoAgenda;
     private String diagnostico;
     private String observacion;
+
+    // Uno u otro
     private List<DetalleFormula> medicamentos;
+    private String servicioMedico;
 
     public Integer getAgendaId() {
         return agendaId;
@@ -50,5 +53,13 @@ public class ResultadoDiagnostico {
 
     public void setMedicamentos(List<DetalleFormula> medicamentos) {
         this.medicamentos = medicamentos;
+    }
+
+    public String getServicioMedico() {
+        return servicioMedico;
+    }
+
+    public void setServicioMedico(String servicioMedico) {
+        this.servicioMedico = servicioMedico;
     }
 }
