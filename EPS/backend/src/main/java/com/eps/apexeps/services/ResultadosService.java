@@ -112,18 +112,18 @@ public class ResultadosService {
                                 .build();
                 generaRepository.save(genera);
 
-                FormulaId formulaId = FormulaId.builder()
-                                .agenda(agenda)
-                                .diagnostico(diagnostico)
-                                .build();
-
-                Formula formula = Formula.builder()
-                                .id(formulaId)
-                                .observaciones(resultado.getObservacion())
-                                .build();
-                formulaRepository.save(formula);
-
                 if (resultado.getMedicamentos() != null && !resultado.getMedicamentos().isEmpty()) {
+                        FormulaId formulaId = FormulaId.builder()
+                                        .agenda(agenda)
+                                        .diagnostico(diagnostico)
+                                        .build();
+
+                        Formula formula = Formula.builder()
+                                        .id(formulaId)
+                                        .observaciones(resultado.getObservacion())
+                                        .build();
+                        formulaRepository.save(formula);
+
                         List<DetalleFormula> medicamentos = resultado.getMedicamentos();
                         for (int i = 0; i < medicamentos.size(); i++) {
                                 DetalleFormula df = medicamentos.get(i);
