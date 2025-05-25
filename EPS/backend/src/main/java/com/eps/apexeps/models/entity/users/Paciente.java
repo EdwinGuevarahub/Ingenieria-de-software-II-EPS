@@ -16,6 +16,7 @@ import lombok.Setter;
 
 // Table paciente {
 //     dni_paciente bigint [pk]
+//     tipo_dni tipo_dni [not null]
 //     beneficiario_paciente bigint [null, ref: > paciente.dni_paciente]
 //     nom_paciente varchar(80) [not null]
 //     fnac_paciente date [not null]
@@ -24,6 +25,7 @@ import lombok.Setter;
 //     tel_paciente varchar(20) [null]
 //     sexo_paciente char [not null]
 //     dir_paciente varchar(255) [not null]
+//     parentezco_paciente varchar(20) [null]
 //     admreg_paciente varchar(255) [not null, ref: > adm_eps.email_admeps]
 //     fafili_paciente timestamp [not null]
 // }
@@ -49,6 +51,13 @@ public class Paciente {
         nullable = false
     )
     private Long dni;
+
+    @Column(
+        name = "tipo_dni",
+        nullable = false,
+        columnDefinition = "tipo_dni"
+    )
+    private String tipoDni;
 
     @ManyToOne
     @JoinColumn(
@@ -95,6 +104,12 @@ public class Paciente {
         length = 20
     )
     private String telefono;
+
+    @Column(
+        name = "parentezco_paciente",
+        length = 20
+    )
+    private String parentezco;
 
     @NotEmpty
     @Column(

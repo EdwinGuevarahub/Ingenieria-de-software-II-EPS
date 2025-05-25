@@ -89,6 +89,13 @@ public class Ips {
     )
     private Instant fechaRegistro;
 
+    @Column(
+        name = "activo_ips",
+        nullable = false,
+        columnDefinition = "boolean default true"
+    )
+    private Boolean activo;
+
     /**
      * Imagen de la IPS en formato PNG cargada como un arreglo de bytes.
      * Se utiliza la anotación @Transient para indicar que este campo no se debe persistir en la base de datos.

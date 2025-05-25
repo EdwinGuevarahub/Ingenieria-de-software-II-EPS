@@ -14,6 +14,7 @@ import lombok.Setter;
 //   paciente_pagoafiliacion bigint [pk, ref: > paciente.dni_paciente]
 //   f_pagoafiliacion timestamp [pk]
 //   tarifa_pagoafiliacion numeric(10, 2) [not null]
+//   estado_pagoafiliacion estado_pago_afiliacion [not null, default: 'pendiente']
 // }
 
 /**
@@ -40,5 +41,13 @@ public class PagoAfiliacion {
         columnDefinition = "numeric(10, 2)"
     )
     private Double tarifa;
+
+    @Builder.Default
+    @Column(
+        name = "estado_pagoafiliacion",
+        nullable = false,
+        columnDefinition = "estado_pago_afiliacion"
+    )
+    private String estado = "pendiente";
 
 }

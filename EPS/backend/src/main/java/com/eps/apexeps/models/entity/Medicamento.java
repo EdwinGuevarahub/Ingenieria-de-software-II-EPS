@@ -14,6 +14,7 @@ import lombok.Setter;
 // Table medicamento {
 //   id_medicamento varchar(20) [pk]
 //   nom_medicamento varchar(100) [not null]
+//   valor_medicamento numeric(10,2) [not null]
 // }
 
 /**
@@ -46,5 +47,12 @@ public class Medicamento {
         nullable = false
     )
     private String nombre;
+
+    @Column(
+        name = "valor_medicamento",
+        nullable = false,
+        columnDefinition = "numeric(10,2)"
+    )
+    private Double valor;
     
 }
