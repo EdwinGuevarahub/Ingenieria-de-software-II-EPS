@@ -40,7 +40,7 @@ public class AgendaEntradaLista {
     public static AgendaEntradaLista of(Agenda agenda) {
         return AgendaEntradaLista.builder()
                 .idAgenda(agenda.getId())
-                // TODO: Revisar cómo determinar la zona horaria.
+              
                 .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate())
                 .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalTime())
                 .idConsultorio(agenda.getTrabaja().getConsultorio().getId().getIdConsultorio())

@@ -136,7 +136,7 @@ public class MedicoService {
                     .orElse(null)
             );
                 
-        // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
+
 
         medicoRepository.save(trabaja.getMedico());
         return trabajaRepository.save(trabaja);

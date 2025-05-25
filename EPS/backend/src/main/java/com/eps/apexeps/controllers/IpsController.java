@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.Ips;
 import com.eps.apexeps.response.IpsEntradaLista;
-import com.eps.apexeps.services.IpsService;
+import com.eps.apexeps.services.ServicioIps;
 
 /**
  * Controlador para manejar las operaciones relacionadas con las IPS.
@@ -36,7 +36,7 @@ import com.eps.apexeps.services.IpsService;
 public class IpsController {
 
     @Autowired
-    private IpsService ipsService;
+    private ServicioIps ipsService;
 
     @GetMapping("/all")
     public List<Ips> findAll() {

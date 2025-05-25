@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.eps.apexeps.models.ServicioMedico;
 import com.eps.apexeps.models.users.Paciente;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -113,6 +114,7 @@ public class Agenda {
         insertable = false,
         updatable = false
     )
+    @JsonIgnore
     private List<Genera> generaciones;
 
     /**

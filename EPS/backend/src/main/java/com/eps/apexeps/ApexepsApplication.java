@@ -8,25 +8,21 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.servers.Server;
+
+@OpenAPIDefinition (
+	servers = @Server (
+	url = "https://potential-space-potato-5g4796r59qg2759v-8080.app.github.dev/",
+	description = "5432"                  )
+	               )
+	
+	
 @SpringBootApplication
 public class ApexepsApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ApexepsApplication.class, args);
 	}
-
-	@Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
-    }
 
 }
