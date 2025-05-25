@@ -123,6 +123,7 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> createConsultorio(
         @RequestBody Consultorio consultorio
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(consultorioService.createConsultorio(consultorio));
         }
@@ -141,6 +142,7 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> updateConsultorio(
         @RequestBody Consultorio consultorio
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(consultorioService.updateConsultorio(consultorio));
         }

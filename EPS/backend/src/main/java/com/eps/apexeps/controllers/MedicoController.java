@@ -110,6 +110,7 @@ public class MedicoController {
      */
     @PostMapping
     public ResponseEntity<Trabaja> createMedico(@RequestBody Trabaja trabaja) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(medicoService.createMedico(trabaja));
         }
@@ -126,6 +127,7 @@ public class MedicoController {
      */
     @PutMapping
     public ResponseEntity<Medico> updateMedico(@RequestBody Medico medico) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(medicoService.updateMedico(medico));
         }
@@ -167,6 +169,7 @@ public class MedicoController {
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(
                         medicoService.addDominioMedico(dniMedico, cupsServicioMedico)
@@ -192,6 +195,7 @@ public class MedicoController {
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(
                         medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico)
