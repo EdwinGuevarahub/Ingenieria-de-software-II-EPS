@@ -11,6 +11,8 @@ import MedicoLista from '../pages/IPS/Medico/MedicoLista';
 import ConsultorioLista from '../pages/IPS/Consultorio/ConsultorioLista';
 import RegistrarResultado from "../pages/IPS/RegistrarResultado";
 import HistoriaClinica from '../pages/EPS/HistoriaClinica';
+import GestionAfiliado from '../pages/EPS/GestionAfiliado';
+import GestionPagos from '../pages/EPS/GestionPagos';
 
 const AppRouter = () => (
   <Routes>
@@ -29,6 +31,8 @@ const AppRouter = () => (
     <Route path="/medicos" element={<MainLayout><MedicoLista /></MainLayout>} />
     <Route path="/consultorios" element={<MainLayout><ConsultorioLista /></MainLayout>} />
     <Route path="/historia-clinica" element={<MainLayout><HistoriaClinica /></MainLayout>} />
+    <Route path="/registrar-afiliado" element={<MainLayout><GestionAfiliado /></MainLayout>} />
+    <Route path="/gestion-pagos" element={<MainLayout><GestionPagos /></MainLayout>} />
 
   </Routes>
 );

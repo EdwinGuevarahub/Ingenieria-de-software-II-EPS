@@ -57,8 +57,9 @@ const Navbar = () => {
             {/* Con roles */}
             {logged && role === 'ADM_EPS' && (
               <>
+                <Button color="inherit" component={Link} to="/gestion-pagos">Gestión de pagos</Button>
                 <Button color="inherit" component={Link} to="/IPS">Gestionar IPS</Button>
-                <Button color="inherit" component={Link} to="/">Registrar Afiliado</Button>
+                <Button color="inherit" component={Link} to="/registrar-afiliado">Registrar Afiliado</Button>
                 <Button color="inherit" component={Link} to="/">Consultar Estado de Cuenta</Button>
                 <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
               </>
