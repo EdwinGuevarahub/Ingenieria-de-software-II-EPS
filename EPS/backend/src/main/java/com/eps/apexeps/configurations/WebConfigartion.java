@@ -23,7 +23,7 @@ public class WebConfigartion {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://redesigned-carnival-9xq4446vg5gfgrv-3000.app.github.dev/")
+                        .allowedOrigins("http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
