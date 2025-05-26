@@ -25,4 +25,12 @@ public interface AdmIpsRespository extends JpaRepository<AdmIps, String> {
     boolean existsByEmail(String email);
     
     Optional<AdmIps> findByTelefono(String telefono);
+
+    /**
+     * Busca un administrador IPS por su correo electrónico.
+     * @param email El correo electrónico del administrador.
+     * @return Un Optional que contiene el administrador si existe, o vacío si no.
+     */
+    Optional<AdmIps> findByEmail(String email);
+
 }

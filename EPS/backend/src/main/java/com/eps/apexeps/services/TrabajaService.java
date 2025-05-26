@@ -244,4 +244,17 @@ public class TrabajaService {
         return trabajaRepository.save(existente);
     }
 
+    /**
+     * Método para encontrar todas las IPS asociadas a un médico por su DNI.
+     * @param dni El DNI del médico.
+     * @return Una lista de IDs de IPS donde el médico trabaja.
+     */
+    public List<Integer> findAllIdIpsByDniMedico(Long dni) {
+        return trabajaRepository.findAllByMedico_Dni(dni)
+                .stream()
+                .map(trabaja -> trabaja.getConsultorio().getId().getIps().getId())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
 }
