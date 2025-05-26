@@ -284,4 +284,22 @@ public class MedicoService {
         return new Object[] { medico, servicioMedico };
     }
 
+    /**
+     * Método para encontrar el DNI de un médico a partir de su correo electrónico.
+     * @param name El correo electrónico del médico.
+     * @return El DNI del médico o null si no se encuentra el médico.
+     * @throws IllegalArgumentException Si el correo electrónico es nulo.
+     */
+    public Long findDniByEmail(String name) {
+        if (name == null)
+            throw new IllegalArgumentException("El correo electrónico no puede ser nulo.");
+
+        Medico medico = medicoRepository.findByEmail(name).orElse(null);
+
+        if (medico == null)
+            return null;
+
+        return medico.getDni();
+    }
+
 }
