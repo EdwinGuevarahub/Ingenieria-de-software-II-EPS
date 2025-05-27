@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AgendaLista {
+public class AgendaListaPaciente {
 
     /** Número total de páginas de agenda. */
     private Integer totalPages;
     /** Lista de entradas de agenda. */
-    private List<AgendaEntradaLista> agendas;
+    private List<AgendaEntradaListaPaciente> agendas;
     
 }

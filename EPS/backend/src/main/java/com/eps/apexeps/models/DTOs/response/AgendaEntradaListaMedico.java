@@ -16,7 +16,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class AgendaEntradaLista {
+public class AgendaEntradaListaMedico {
 
     /** Identificador único de la agenda. */
     private Integer idAgenda;
@@ -29,23 +29,23 @@ public class AgendaEntradaLista {
     private Integer idConsultorio;
     /** Nombre del consultorio asociado a la cita. */
     private String nombreServicioMedico;
-    /** Nombre del médico asignado a la cita. */
-    private String nombreMedico;
+    /** Nombre del paciente asignado a la cita. */
+    private String nombrePaciente;
 
     /**
      * Método estático para crear una instancia de AgendaEntradaLista a partir de una entidad Agenda.
      * @param agenda La entidad Agenda de la que se creará la instancia.
      * @return Una nueva instancia de AgendaEntradaLista.
      */
-    public static AgendaEntradaLista of(Agenda agenda) {
-        return AgendaEntradaLista.builder()
+    public static AgendaEntradaListaMedico of(Agenda agenda) {
+        return AgendaEntradaListaMedico.builder()
                 .idAgenda(agenda.getId())
                 // TODO: Revisar cómo determinar la zona horaria.
                 .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate())
                 .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalTime())
                 .idConsultorio(agenda.getTrabaja().getConsultorio().getId().getIdConsultorio())
                 .nombreServicioMedico(agenda.getTrabaja().getConsultorio().getServicioMedico().getNombre())
-                .nombreMedico(agenda.getTrabaja().getMedico().getNombre())
+                .nombrePaciente(agenda.getPaciente().getNombre())
                 .build();
     }
 
