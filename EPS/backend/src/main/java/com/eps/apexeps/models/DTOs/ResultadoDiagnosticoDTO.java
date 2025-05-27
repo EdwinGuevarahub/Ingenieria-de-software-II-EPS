@@ -2,7 +2,7 @@ package com.eps.apexeps.models.DTOs;
 
 import java.util.List;
 
-import com.eps.apexeps.models.relations.DetalleFormula;
+import com.eps.apexeps.models.entity.relations.DetalleFormula;
 
 // Resultado de la cita (agenda) y diagnosticos generados
 public class ResultadoDiagnosticoDTO {

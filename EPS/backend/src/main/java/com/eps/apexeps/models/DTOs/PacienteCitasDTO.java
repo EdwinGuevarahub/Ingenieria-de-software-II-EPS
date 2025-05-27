@@ -3,8 +3,8 @@ package com.eps.apexeps.models.DTOs;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.entity.users.Paciente;
 
 // Modelo para la informacion del paciente y las citas pendientes que le corresponden
 public class PacienteCitasDTO {

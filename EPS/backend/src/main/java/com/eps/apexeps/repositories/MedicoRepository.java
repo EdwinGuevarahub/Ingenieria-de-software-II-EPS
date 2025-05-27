@@ -1,12 +1,11 @@
 package com.eps.apexeps.repositories;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.users.Medico;
 
 /**
  * Esta interfaz es un repositorio de JPA para la entidad Medico.
@@ -56,7 +55,7 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
                 )
             )
     """)
-    public List<Medico> findAllFiltered(
+    public Page<Medico> findAllFiltered(
         Integer idIps,
         String dniNombreLike,
         String cupsServicioMedico,

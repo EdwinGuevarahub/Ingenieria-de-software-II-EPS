@@ -1,7 +1,7 @@
 package com.eps.apexeps.controllers;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.response.AgendaEntradaLista;
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaLista;
 import com.eps.apexeps.services.AgendaService;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/paciente/{dniPaciente}")
-    public List<AgendaEntradaLista> getAllAgendasPaciente(
+    public ResponseEntity<AgendaLista> getAllAgendasPaciente(
         @PathVariable Long dniPaciente,
         @RequestParam(required = false) String dniNombreMedicoLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -51,22 +52,29 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    dniPaciente,
-                    null,
-                    null,
-                    dniNombreMedicoLike,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        // TODO: Extraer el DNI del paciente de la sesión en lugar de pasarlo como parámetro.
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    dniPaciente,
+                                    null,
+                                    null,
+                                    dniNombreMedicoLike,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return ResponseEntity.ok(
+                        new AgendaLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(AgendaEntradaLista::of)
+                                    .toList()
+                        )
+                    );
     }
 
     /**
@@ -82,7 +90,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/medico/{dniMedico}")
-    public List<AgendaEntradaLista> getAllAgendasMedico(
+    public ResponseEntity<AgendaLista> getAllAgendasMedico(
         @PathVariable Long dniMedico,
         @RequestParam(required = false) String dniNombrePacienteLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -92,22 +100,29 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    null,
-                    dniMedico,
-                    dniNombrePacienteLike,
-                    null,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        // TODO: Extraer el DNI del médico de la sesión en lugar de pasarlo como parámetro.
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    null,
+                                    dniMedico,
+                                    dniNombrePacienteLike,
+                                    null,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return ResponseEntity.ok(
+                    new AgendaLista(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(AgendaEntradaLista::of)
+                                .toList()
+                    )
+                );
     }
 
     /**
@@ -116,8 +131,8 @@ public class AgendaController {
      * @return La agenda correspondiente al ID proporcionado o null si no se encuentra.
      */
     @GetMapping("/{id}")
-    public Agenda getAgendaById(@PathVariable Integer id) {
-        return agendaService.getAgendaById(id);
+    public ResponseEntity<Agenda> getAgendaById(@PathVariable Integer id) {
+        return ResponseEntity.ok(agendaService.getAgendaById(id));
     }
 
     /**
@@ -127,9 +142,9 @@ public class AgendaController {
      * @throws RuntimeException Si ocurre un error al actualizar la agenda.
      */
     @PutMapping("/update/trabajaFecha")
-    public Agenda updateTrabajaFechaAgenda(@RequestParam Agenda agenda) {
+    public ResponseEntity<Agenda> updateTrabajaFechaAgenda(@RequestParam Agenda agenda) {
         try {
-            return agendaService.updateTrabajaFechaAgenda(agenda);
+            return ResponseEntity.ok(agendaService.updateTrabajaFechaAgenda(agenda));
         } catch (Exception e) {
             throw new RuntimeException("Error al actualizar la relación trabaja o la fecha de la agenda: " + e.getMessage(), e);
         }
