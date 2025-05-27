@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://redesigned-carnival-9xq4446vg5gfgrv-8080.app.github.dev/api/";
+const BASE_URL = "http://localhost:8080/auth/login";
 
 export const AxiosInstance = axios.create({
   baseURL: BASE_URL,
