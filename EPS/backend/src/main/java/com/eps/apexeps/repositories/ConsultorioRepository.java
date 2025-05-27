@@ -1,15 +1,15 @@
 package com.eps.apexeps.repositories;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.ConsultorioId;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.ConsultorioId;
 
 /**
  * Esta interfaz es un repositorio de JPA para la entidad Consultorio.
@@ -41,7 +41,7 @@ public interface ConsultorioRepository extends JpaRepository<Consultorio, Consul
                 OR c.servicioMedico.cups = :cupsServicioMedico
             )
     """)
-    List<Consultorio> findAllFiltered(
+    Page<Consultorio> findAllFiltered(
         Integer idIps,
         String idConsultorioLike,
         String cupsServicioMedico,

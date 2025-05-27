@@ -10,7 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.users.AdmIps;
+import com.eps.apexeps.models.entity.users.AdmIps;
 import com.eps.apexeps.repositories.AdmIpsRespository;
 
 /**
