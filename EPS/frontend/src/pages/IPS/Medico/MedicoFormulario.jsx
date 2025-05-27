@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
+import { Link } from 'react-router-dom';
 import {
   listaServiciosMedicosPorMedico,
   listaServiciosMedicos,
@@ -136,6 +137,7 @@ const MedicoFormulario = ({
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button variant="contained" color="error" onClick={onCancel}>Cancelar</Button>
+          <Button variant="contained" component={Link} to="/horario">Horario</Button>
           <Button type="submit" variant="outlined">Guardar</Button>
         </Box>
 
