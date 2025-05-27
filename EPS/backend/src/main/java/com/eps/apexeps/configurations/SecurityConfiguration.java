@@ -61,6 +61,9 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "api/agenda/**").hasAnyAuthority(ERol.MEDICO.name(), ERol.PACIENTE.name())
                     .requestMatchers("api/agenda/**").hasAuthority(ERol.PACIENTE.name())
 
+                    // Rutas de Registro de Resultados.
+                    .requestMatchers("api/resultados/**").hasAuthority(ERol.MEDICO.name())
+
                     // TODO: Cuando se haya adaptado el login en todas las rutas, quitar el permitAll.
                     .anyRequest().permitAll()
                 )
