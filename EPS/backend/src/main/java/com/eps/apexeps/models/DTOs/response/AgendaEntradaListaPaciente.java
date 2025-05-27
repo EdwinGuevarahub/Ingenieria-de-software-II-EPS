@@ -26,7 +26,7 @@ public class AgendaEntradaListaPaciente {
     /** Hora de inicio de la cita. */
     private LocalTime horaInicio;
     /** Nombre de la IPS asociada a la cita. */
-    private String ipsNombre;
+    private String nombreIps;
     /** Nombre del consultorio asociado a la cita. */
     private String nombreServicioMedico;
     /** Nombre del médico asignado a la cita. */
@@ -43,7 +43,7 @@ public class AgendaEntradaListaPaciente {
                 // TODO: Revisar cómo determinar la zona horaria.
                 .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate())
                 .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalTime())
-                .ipsNombre(agenda.getTrabaja().getConsultorio().getId().getIps().getNombre())
+                .nombreIps(agenda.getTrabaja().getConsultorio().getId().getIps().getNombre())
                 .nombreServicioMedico(agenda.getTrabaja().getConsultorio().getServicioMedico().getNombre())
                 .nombreMedico(agenda.getTrabaja().getMedico().getNombre())
                 .build();
