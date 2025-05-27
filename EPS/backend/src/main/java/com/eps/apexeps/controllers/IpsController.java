@@ -33,7 +33,7 @@ import com.eps.apexeps.services.IpsService;
 @RestController
 @RequestMapping("/api/ips")
 @CrossOrigin(origins = "http://localhost:3000")
-public class IPSController {
+public class IpsController {
 
     @Autowired
     private IpsService ipsService;
