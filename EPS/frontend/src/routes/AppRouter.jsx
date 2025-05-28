@@ -27,7 +27,6 @@ const AppRouter = () => (
     <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout> } />
     <Route path="/medicos" element={<MainLayout><MedicoLista /></MainLayout>} />
     <Route path="/consultorios" element={<MainLayout><ConsultorioLista /></MainLayout>} />
-
   </Routes>
 );
 

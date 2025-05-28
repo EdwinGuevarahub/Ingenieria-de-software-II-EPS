@@ -8,8 +8,11 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    Typography
+    Typography,
+    IconButton
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+
 
 const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDetails }) => {
     const [openRowIndex, setOpenRowIndex] = useState(null);
@@ -64,18 +67,17 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
                                 boxShadow: 6
                             }
                         }}
-                        onClick={() => handleRowClick(index, row)}
                     >
                         <TableContainer>
-                            <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+                            <Table sx={{ tableLayout: 'fix', width: '100%' }}>
                                 <TableBody>
                                     {openRowIndex !== index && (
-                                        <TableRow hover>
+                                        <TableRow hover onClick={() => handleRowClick(index, row)}>
                                             {columns.map((col, i) => (
                                                 <TableCell
                                                     key={col.key}
                                                     sx={{
-                                                        width: i === 0 ? '200px' : 'auto',
+                                                        width: i === 0 ? '20px' : 'auto',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
                                                         whiteSpace: 'nowrap'
@@ -91,7 +93,17 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
                         </TableContainer>
 
                         <Collapse in={openRowIndex === index} timeout="auto" unmountOnExit>
-                            <Box sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                            <Box sx={{ p: 4, bgcolor: '#f5f5f5', position: 'relative' }}>
+                                <IconButton
+                                    size="big"
+                                    onClick={() => {
+                                        setOpenRowIndex(null);
+                                        setExpandedData(null);
+                                    }}
+                                    sx={{ position: 'absolute', top: 8, right: 8 }}
+                                >
+                                    <CloseIcon/>
+                                </IconButton>
                                 {loadingRowIndex === index ? (
                                     <Typography variant="body2">Cargando detalles...</Typography>
                                 ) : expandedData ? (

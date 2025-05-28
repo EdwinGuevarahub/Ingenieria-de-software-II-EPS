@@ -12,6 +12,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
 import { listaServiciosMedicosPorMedico, listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
 import MedicoFormulario from './MedicoFormulario';
+import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import ExpandableTable from '../../../components/list/ExpandableTable';
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
@@ -21,6 +22,7 @@ const MedicoLista = () => {
   // Estados
   const [editandoMedico, setEditandoMedico] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [modalHorarioAbierto, setModalHorarioAbierto] = useState(false);
 
   // Sobre la tabla
   const [listaMedicos, setListaMedicos] = useState([]);
@@ -282,7 +284,7 @@ const MedicoLista = () => {
                 >
                   Editar
                 </Button>
-                <button style={{ background: '#1e88e5', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Horario</button>
+                <Button variant="contained" onClick={() => setModalHorarioAbierto(true)}>Horario</Button>
               </Box>
 
               <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -323,8 +325,8 @@ const MedicoLista = () => {
           <AddIcon />
         </Fab>
       </Box>
+      <Horario open={modalHorarioAbierto} onClose={() => setModalHorarioAbierto(false)} />
     </Box >
-
   );
 };
 
