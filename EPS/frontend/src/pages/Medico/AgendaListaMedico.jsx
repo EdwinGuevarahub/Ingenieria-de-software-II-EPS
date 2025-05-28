@@ -211,10 +211,19 @@ const AgendaListaMedico = () => {
                                 <Typography variant="body2">
                                     {new Date(detalle[0].fecha).toLocaleString("es-CO")}
                                 </Typography>
+                                <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    <Chip
+                                        key={detalle[0].trabaja.consultorio.servicioMedico.id}
+                                        label={detalle[0].trabaja.consultorio.servicioMedico.nombre}
+                                        color="primary"
+                                        variant="outlined"
+                                    />
+                                </Box>
                             </Box>
                         </Box>
                     )}
                 />
+
                 
                 <Pagination
                     count={totalPaginas}
