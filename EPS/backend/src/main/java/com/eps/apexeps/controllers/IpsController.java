@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.models.entity.Ips;
 import com.eps.apexeps.models.DTOs.response.IpsEntradaLista;
-import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
-import com.eps.apexeps.models.DTOs.response.AgendaLista;
 import com.eps.apexeps.models.DTOs.response.IpsConServicios;
 import com.eps.apexeps.models.DTOs.response.IpsLista;
 import com.eps.apexeps.services.IpsService;
