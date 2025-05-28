@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,9 +18,13 @@ import {
   Backdrop,
   Fade,
 } from '@mui/material';
-import { crearPaciente } from '../../services/pacientesService'; // Importar el servicio
+import { useParams, useNavigate } from 'react-router-dom';
+import { listarPacientes, actualizarPaciente } from '../../services/pacientesService'; // Importar servicios
 
-const GestionAfiliado = () => {
+const EdicionAfiliado = () => {
+  const { afiliadoId } = useParams(); // ID del afiliado a editar
+  const navigate = useNavigate();
+
   // Estados para el formulario
   const [datosAfiliado, setDatosAfiliado] = useState({
     // Datos cotizante (titular)
@@ -39,15 +43,16 @@ const GestionAfiliado = () => {
     passwordAdmRegistrador: '',
     telefonoAdmRegistrador: '',
 
-    // Beneficiarios (array de beneficiarios) - Por defecto vacío
+    // Beneficiarios (array de beneficiarios)
     beneficiarios: []
   });
 
   // Estados para la UI
   const [cargando, setCargando] = useState(false);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
   const [mensaje, setMensaje] = useState(null);
-  const [tipoMensaje, setTipoMensaje] = useState('success'); // 'success', 'error', 'warning'
-  const [mostrarValidacion, setMostrarValidacion] = useState(false); // Para mostrar errores visuales
+  const [tipoMensaje, setTipoMensaje] = useState('success');
+  const [mostrarValidacion, setMostrarValidacion] = useState(false);
 
   // Estados para modales de resultado
   const [modalExitoAbierto, setModalExitoAbierto] = useState(false);
@@ -69,14 +74,113 @@ const GestionAfiliado = () => {
     { value: 'Hermana', label: 'Hermana' }
   ];
 
-  // Función para verificar si un campo es obligatorio y está vacío
+  // Cargar datos del afiliado al montar el componente
+  useEffect(() => {
+    const cargarDatosAfiliado = async () => {
+      setCargandoDatos(true);
+
+      try {
+        const resultado = await listarPacientes();
+
+        if (resultado.success) {
+          // Buscar el afiliado específico
+          const afiliadoEncontrado = resultado.data.find(p => p.dni.toString() === afiliadoId);
+
+          if (afiliadoEncontrado) {
+            // Poblar datos del formulario con datos reales + mock data
+            setDatosAfiliado({
+              dniCotizante: afiliadoEncontrado.dni.toString(),
+              nombreCotizante: afiliadoEncontrado.nombre,
+              fechaNacimientoCotizante: afiliadoEncontrado.fechaNacimiento || '1985-06-15',
+              emailCotizante: afiliadoEncontrado.email,
+              passwordCotizante: '********', // Password oculto
+              telefonoCotizante: afiliadoEncontrado.telefono || '3001234567',
+              sexoCotizante: afiliadoEncontrado.sexo || 'M',
+              direccionCotizante: afiliadoEncontrado.direccion || 'Calle 123 #45-67',
+
+              // Datos administrador (mock)
+              emailAdmRegistrador: 'admin@eps.com',
+              nombreAdmRegistrador: 'Administrador EPS',
+              passwordAdmRegistrador: 'admin123',
+              telefonoAdmRegistrador: '3009876543',
+
+              // Beneficiarios mock basados en el afiliado
+              beneficiarios: generarBeneficiariosMock(afiliadoEncontrado.nombre)
+            });
+          } else {
+            setMensajeError(`Afiliado con ID ${afiliadoId} no encontrado`);
+            setModalErrorAbierto(true);
+          }
+        } else {
+          setMensajeError('Error al cargar datos del afiliado');
+          setModalErrorAbierto(true);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setMensajeError('Error inesperado al cargar datos');
+        setModalErrorAbierto(true);
+      } finally {
+        setCargandoDatos(false);
+      }
+    };
+
+    if (afiliadoId) {
+      cargarDatosAfiliado();
+    }
+  }, [afiliadoId]);
+
+  // Función para generar beneficiarios mock
+  const generarBeneficiariosMock = (nombreTitular) => {
+    const apellido = nombreTitular.split(' ').pop();
+
+    return [
+      {
+        dni: '1122334455',
+        nombre: `María ${apellido}`,
+        fechaNacimiento: '1990-03-22',
+        email: `maria.${apellido.toLowerCase()}@email.com`,
+        password: '********',
+        telefono: '3002345678',
+        sexo: 'F',
+        parentesco: 'Conyuge',
+        direccion: 'Calle 123 #45-67'
+      },
+      {
+        dni: '1133445566',
+        nombre: `Carlos ${apellido}`,
+        fechaNacimiento: '2010-11-07',
+        email: `carlos.${apellido.toLowerCase()}@email.com`,
+        password: '********',
+        telefono: '3003456789',
+        sexo: 'M',
+        parentesco: 'Hijo',
+        direccion: 'Calle 123 #45-67'
+      }
+    ];
+  };
+
+  // Función para verificar si un campo es obligatorio y está vacío (solo para validación)
   const esCampoObligatorioVacio = (valor) => {
     return mostrarValidacion && (!valor || valor.toString().trim() === '');
   };
 
-  // Función para obtener los estilos de input con validación
-  const getInputStyles = (esObligatorio, valor) => {
-    const baseStyles = { backgroundColor: 'white' };
+  // Función para obtener estilos de campos obligatorios (bloqueados)
+  const getInputStyles = (esObligatorio, valor, esBloqueado = false) => {
+    const baseStyles = { backgroundColor: esBloqueado ? '#f5f5f5' : 'white' };
+
+    if (esBloqueado) {
+      return {
+        ...baseStyles,
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#e0e0e0'
+          }
+        },
+        '& .MuiInputLabel-root': {
+          color: '#999'
+        }
+      };
+    }
 
     if (esObligatorio && esCampoObligatorioVacio(valor)) {
       return {
@@ -105,9 +209,23 @@ const GestionAfiliado = () => {
     return baseStyles;
   };
 
-  // Función para obtener estilos de FormControl con validación
-  const getFormControlStyles = (esObligatorio, valor) => {
-    const baseStyles = { backgroundColor: 'white' };
+  // Función para obtener estilos de FormControl
+  const getFormControlStyles = (esObligatorio, valor, esBloqueado = false) => {
+    const baseStyles = { backgroundColor: esBloqueado ? '#f5f5f5' : 'white' };
+
+    if (esBloqueado) {
+      return {
+        ...baseStyles,
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#e0e0e0'
+          }
+        },
+        '& .MuiInputLabel-root': {
+          color: '#999'
+        }
+      };
+    }
 
     if (esObligatorio && esCampoObligatorioVacio(valor)) {
       return {
@@ -136,8 +254,11 @@ const GestionAfiliado = () => {
     return baseStyles;
   };
 
-  // Función para obtener el label con asterisco para campos obligatorios
-  const getLabelConAsterisco = (label, esObligatorio = true) => {
+  // Función para obtener el label con indicador de campo bloqueado
+  const getLabelConIndicador = (label, esObligatorio = true, esBloqueado = false) => {
+    if (esBloqueado) {
+      return `${label} (No editable)`;
+    }
     return esObligatorio ? `${label} *` : label;
   };
 
@@ -163,7 +284,6 @@ const GestionAfiliado = () => {
   };
 
   const agregarBeneficiario = () => {
-    // Solo permitir máximo 3 beneficiarios
     if (datosAfiliado.beneficiarios.length < 3) {
       setDatosAfiliado(prev => ({
         ...prev,
@@ -195,7 +315,6 @@ const GestionAfiliado = () => {
   const mostrarMensaje = (texto, tipo = 'success') => {
     setMensaje(texto);
     setTipoMensaje(tipo);
-    // Ocultar mensaje después de 5 segundos
     setTimeout(() => {
       setMensaje(null);
     }, 5000);
@@ -212,8 +331,7 @@ const GestionAfiliado = () => {
 
   const cerrarModalExito = () => {
     setModalExitoAbierto(false);
-    setMostrarValidacion(false); // Resetear validación visual
-    limpiarFormulario();
+    navigate(-1); // Volver a la página anterior
   };
 
   const cerrarModalError = () => {
@@ -221,45 +339,18 @@ const GestionAfiliado = () => {
     setMensajeError('');
   };
 
-  const limpiarFormulario = () => {
-    setDatosAfiliado({
-      dniCotizante: '',
-      nombreCotizante: '',
-      fechaNacimientoCotizante: '',
-      emailCotizante: '',
-      passwordCotizante: '',
-      telefonoCotizante: '',
-      sexoCotizante: '',
-      direccionCotizante: '',
-      emailAdmRegistrador: '',
-      nombreAdmRegistrador: '',
-      passwordAdmRegistrador: '',
-      telefonoAdmRegistrador: '',
-      beneficiarios: []
-    });
-  };
-
   const validarFormulario = () => {
-    setMostrarValidacion(true); // Activar validación visual
+    setMostrarValidacion(true);
 
-    // Validar cotizante
-    if (!datosAfiliado.dniCotizante || !datosAfiliado.nombreCotizante ||
-        !datosAfiliado.emailCotizante || !datosAfiliado.passwordCotizante) {
-      mostrarModalError('Por favor complete todos los campos requeridos del cotizante');
-      return false;
-    }
+    // Solo validar campos editables (no obligatorios)
+    // Los campos obligatorios ya están poblados y no se pueden editar
 
-    // Validar administrador registrador
-    if (!datosAfiliado.emailAdmRegistrador || !datosAfiliado.nombreAdmRegistrador) {
-      mostrarModalError('Por favor complete los campos requeridos del administrador registrador');
-      return false;
-    }
-
-    // Validar beneficiarios si existen
+    // Validar beneficiarios nuevos si existen
     for (let i = 0; i < datosAfiliado.beneficiarios.length; i++) {
       const beneficiario = datosAfiliado.beneficiarios[i];
-      if (!beneficiario.dni || !beneficiario.nombre || !beneficiario.email || !beneficiario.password) {
-        mostrarModalError(`Por favor complete todos los campos requeridos del beneficiario ${i + 1}`);
+      // Solo validar beneficiarios que no tengan datos completos (nuevos)
+      if (beneficiario.dni && (!beneficiario.nombre || !beneficiario.email)) {
+        mostrarModalError(`Por favor complete todos los campos del beneficiario ${i + 1}`);
         return false;
       }
     }
@@ -267,65 +358,14 @@ const GestionAfiliado = () => {
     return true;
   };
 
-  const construirJSONRequest = () => {
-    // Construir objeto principal del cotizante
-    const cotizante = {
-      dni: parseInt(datosAfiliado.dniCotizante),
-      beneficiario: null, // El cotizante no tiene beneficiario
-      nombre: datosAfiliado.nombreCotizante,
-      fechaNacimiento: datosAfiliado.fechaNacimientoCotizante,
-      email: datosAfiliado.emailCotizante,
-      password: datosAfiliado.passwordCotizante,
-      telefono: datosAfiliado.telefonoCotizante,
-      sexo: datosAfiliado.sexoCotizante,
-      direccion: datosAfiliado.direccionCotizante,
-      admRegistrador: {
-        email: datosAfiliado.emailAdmRegistrador,
-        nombre: datosAfiliado.nombreAdmRegistrador,
-        password: datosAfiliado.passwordAdmRegistrador,
-        telefono: datosAfiliado.telefonoAdmRegistrador
-      },
-      fechaAfiliacion: new Date().toISOString()
-    };
-
-    // Construir array de beneficiarios
-    const beneficiarios = datosAfiliado.beneficiarios.map(beneficiario => ({
-      dni: parseInt(beneficiario.dni),
-      beneficiario: datosAfiliado.dniCotizante, // DNI del cotizante como beneficiario
-      nombre: beneficiario.nombre,
-      fechaNacimiento: beneficiario.fechaNacimiento,
-      email: beneficiario.email,
-      password: beneficiario.password,
-      telefono: beneficiario.telefono,
-      sexo: beneficiario.sexo,
-      parentesco: beneficiario.parentesco,
-      direccion: beneficiario.direccion,
-      admRegistrador: {
-        email: datosAfiliado.emailAdmRegistrador,
-        nombre: datosAfiliado.nombreAdmRegistrador,
-        password: datosAfiliado.passwordAdmRegistrador,
-        telefono: datosAfiliado.telefonoAdmRegistrador
-      },
-      fechaAfiliacion: new Date().toISOString()
-    }));
-
-    return {
-      cotizante,
-      beneficiarios
-    };
-  };
-
   const handleValidar = () => {
-    const requestData = construirJSONRequest();
-    console.log('Validando datos:', requestData);
-
     if (validarFormulario()) {
       mostrarMensaje('Formulario validado correctamente', 'success');
-      setMostrarValidacion(false); // Ocultar errores visuales si todo está bien
+      setMostrarValidacion(false);
     }
   };
 
-  const handleRegistrar = async () => {
+  const handleActualizar = async () => {
     if (!validarFormulario()) {
       return;
     }
@@ -334,64 +374,71 @@ const GestionAfiliado = () => {
     setMensaje(null);
 
     try {
-      const requestData = construirJSONRequest();
-      console.log('JSON para el request POST:', requestData);
+      // Construir datos para actualización (solo campos editables)
+      const datosActualizacion = {
+        dni: parseInt(datosAfiliado.dniCotizante), // No cambia, solo para identificar
+        telefono: datosAfiliado.telefonoCotizante,
+        direccion: datosAfiliado.direccionCotizante,
+        // Otros campos editables...
+      };
 
-      // Crear cotizante primero
-      const resultadoCotizante = await crearPaciente(requestData.cotizante);
+      console.log('Actualizando afiliado:', datosActualizacion);
 
-      if (!resultadoCotizante.success) {
-        mostrarModalError(resultadoCotizante.message);
-        setCargando(false);
-        return;
-      }
+      // Aquí harías la llamada al servicio de actualización
+      // const resultado = await actualizarPaciente(datosActualizacion);
 
-      console.log('Cotizante creado exitosamente:', resultadoCotizante.data);
-
-      // Crear beneficiarios si existen
-      if (requestData.beneficiarios.length > 0) {
-        const resultadosBeneficiarios = [];
-        let erroresBeneficiarios = [];
-
-        for (const beneficiario of requestData.beneficiarios) {
-          const resultadoBeneficiario = await crearPaciente(beneficiario);
-
-          if (resultadoBeneficiario.success) {
-            resultadosBeneficiarios.push(resultadoBeneficiario.data);
-            console.log('Beneficiario creado exitosamente:', resultadoBeneficiario.data);
-          } else {
-            console.error('Error creando beneficiario:', resultadoBeneficiario.message);
-            erroresBeneficiarios.push(resultadoBeneficiario.message);
-          }
-        }
-
-        if (erroresBeneficiarios.length > 0) {
-          mostrarModalError(`Cotizante creado pero hubo errores con beneficiarios: ${erroresBeneficiarios.join(', ')}`);
-        } else {
-          mostrarModalExito();
-        }
-      } else {
+      // Simular éxito por ahora
+      setTimeout(() => {
         mostrarModalExito();
-      }
+        setCargando(false);
+      }, 1500);
 
     } catch (error) {
       console.error('Error inesperado:', error);
-      mostrarModalError('Error inesperado al registrar el afiliado');
-    } finally {
+      mostrarModalError('Error inesperado al actualizar el afiliado');
       setCargando(false);
     }
   };
 
+  const handleVolver = () => {
+    navigate(-1);
+  };
+
+  if (cargandoDatos) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress sx={{ mb: 2 }} />
+        <Typography variant="h6">Cargando datos del afiliado...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       {/* Header */}
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-        Registro de Usuario
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={handleVolver}
+          sx={{
+            borderColor: '#d32f2f',
+            color: '#d32f2f',
+            '&:hover': {
+              borderColor: '#b71c1c',
+              backgroundColor: 'rgba(211, 47, 47, 0.04)'
+            }
+          }}
+        >
+          ← Volver
+        </Button>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Edición de Afiliado
+        </Typography>
+      </Box>
 
-      {/* Nota sobre campos obligatorios */}
-      <Alert severity="info" sx={{ mb: 3, maxWidth: 1200, margin: '0 auto 24px auto' }}>
-        Los campos marcados con asterisco (*) son obligatorios
+      {/* Nota sobre campos no editables */}
+      <Alert severity="warning" sx={{ mb: 3, maxWidth: 1200, margin: '0 auto 24px auto' }}>
+        Los campos marcados como "No editable" no pueden ser modificados. Solo se pueden editar campos opcionales y agregar/eliminar beneficiarios.
       </Alert>
 
       <Card sx={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -413,26 +460,24 @@ const GestionAfiliado = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={getLabelConAsterisco("DNI")}
+                label={getLabelConIndicador("DNI", true, true)}
                 variant="outlined"
                 size="small"
                 type="number"
                 value={datosAfiliado.dniCotizante}
-                onChange={(e) => handleInputChange('Cotizante', 'dni', e.target.value)}
-                sx={getInputStyles(true, datosAfiliado.dniCotizante)}
-                error={esCampoObligatorioVacio(datosAfiliado.dniCotizante)}
+                sx={getInputStyles(true, datosAfiliado.dniCotizante, true)}
+                disabled={true}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={getLabelConAsterisco("Nombre completo")}
+                label={getLabelConIndicador("Nombre completo", true, true)}
                 variant="outlined"
                 size="small"
                 value={datosAfiliado.nombreCotizante}
-                onChange={(e) => handleInputChange('Cotizante', 'nombre', e.target.value)}
-                sx={getInputStyles(true, datosAfiliado.nombreCotizante)}
-                error={esCampoObligatorioVacio(datosAfiliado.nombreCotizante)}
+                sx={getInputStyles(true, datosAfiliado.nombreCotizante, true)}
+                disabled={true}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -459,7 +504,6 @@ const GestionAfiliado = () => {
                   value={datosAfiliado.sexoCotizante}
                   label="Sexo"
                   onChange={(e) => handleInputChange('Cotizante', 'sexo', e.target.value)}
-                  style={{minWidth: '100px'}}
                 >
                   {opcionesSexo.map((opcion) => (
                     <MenuItem key={opcion.value} value={opcion.value}>
@@ -472,27 +516,25 @@ const GestionAfiliado = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={getLabelConAsterisco("Email")}
+                label={getLabelConIndicador("Email", true, true)}
                 type="email"
                 variant="outlined"
                 size="small"
                 value={datosAfiliado.emailCotizante}
-                onChange={(e) => handleInputChange('Cotizante', 'email', e.target.value)}
-                sx={getInputStyles(true, datosAfiliado.emailCotizante)}
-                error={esCampoObligatorioVacio(datosAfiliado.emailCotizante)}
+                sx={getInputStyles(true, datosAfiliado.emailCotizante, true)}
+                disabled={true}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label={getLabelConAsterisco("Password")}
+                label={getLabelConIndicador("Password", true, true)}
                 type="password"
                 variant="outlined"
                 size="small"
                 value={datosAfiliado.passwordCotizante}
-                onChange={(e) => handleInputChange('Cotizante', 'password', e.target.value)}
-                sx={getInputStyles(true, datosAfiliado.passwordCotizante)}
-                error={esCampoObligatorioVacio(datosAfiliado.passwordCotizante)}
+                sx={getInputStyles(true, datosAfiliado.passwordCotizante, true)}
+                disabled={true}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -519,10 +561,65 @@ const GestionAfiliado = () => {
             </Grid>
           </Grid>
 
+          {/* Sección Administrador Registrador (Solo lectura) */}
+          <Divider sx={{ my: 4 }} />
+
+          <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold', color: '#333' }}>
+            Datos administrador registrador (Solo lectura)
+          </Typography>
+
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                variant="outlined"
+                size="small"
+                value={datosAfiliado.emailAdmRegistrador}
+                sx={getInputStyles(false, datosAfiliado.emailAdmRegistrador, true)}
+                disabled={true}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nombre completo"
+                variant="outlined"
+                size="small"
+                value={datosAfiliado.nombreAdmRegistrador}
+                sx={getInputStyles(false, datosAfiliado.nombreAdmRegistrador, true)}
+                disabled={true}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                variant="outlined"
+                size="small"
+                value={datosAfiliado.passwordAdmRegistrador}
+                sx={getInputStyles(false, datosAfiliado.passwordAdmRegistrador, true)}
+                disabled={true}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Teléfono"
+                variant="outlined"
+                size="small"
+                value={datosAfiliado.telefonoAdmRegistrador}
+                sx={getInputStyles(false, datosAfiliado.telefonoAdmRegistrador, true)}
+                disabled={true}
+              />
+            </Grid>
+          </Grid>
+
           {/* Sección Beneficiarios */}
           <Divider sx={{ my: 4 }} />
 
-          {/* Header de Beneficiarios con botón para agregar */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
               Beneficiarios {datosAfiliado.beneficiarios.length > 0 && `(${datosAfiliado.beneficiarios.length}/3)`}
@@ -540,7 +637,6 @@ const GestionAfiliado = () => {
             </Button>
           </Box>
 
-          {/* Mostrar mensaje si no hay beneficiarios */}
           {datosAfiliado.beneficiarios.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
               No hay beneficiarios agregados. Haga clic en "Agregar Beneficiario" para añadir uno.
@@ -552,6 +648,11 @@ const GestionAfiliado = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
                   Datos beneficiario {index + 1}
+                  {beneficiario.dni && beneficiario.nombre && (
+                    <Typography component="span" sx={{ fontWeight: 'normal', color: '#666', ml: 1 }}>
+                      (Existente)
+                    </Typography>
+                  )}
                 </Typography>
                 <Button
                   variant="outlined"
@@ -567,26 +668,26 @@ const GestionAfiliado = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={getLabelConAsterisco("DNI")}
+                    label={getLabelConIndicador("DNI", true, beneficiario.dni && beneficiario.nombre)}
                     variant="outlined"
                     size="small"
                     type="number"
                     value={beneficiario.dni}
                     onChange={(e) => handleInputChange('beneficiarios', 'dni', e.target.value, index)}
-                    sx={getInputStyles(true, beneficiario.dni)}
-                    error={esCampoObligatorioVacio(beneficiario.dni)}
+                    sx={getInputStyles(true, beneficiario.dni, beneficiario.dni && beneficiario.nombre)}
+                    disabled={beneficiario.dni && beneficiario.nombre}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={getLabelConAsterisco("Nombre completo")}
+                    label={getLabelConIndicador("Nombre completo", true, beneficiario.dni && beneficiario.nombre)}
                     variant="outlined"
                     size="small"
                     value={beneficiario.nombre}
                     onChange={(e) => handleInputChange('beneficiarios', 'nombre', e.target.value, index)}
-                    sx={getInputStyles(true, beneficiario.nombre)}
-                    error={esCampoObligatorioVacio(beneficiario.nombre)}
+                    sx={getInputStyles(true, beneficiario.nombre, beneficiario.dni && beneficiario.nombre)}
+                    disabled={beneficiario.dni && beneficiario.nombre}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -613,7 +714,6 @@ const GestionAfiliado = () => {
                       value={beneficiario.sexo}
                       label="Sexo"
                       onChange={(e) => handleInputChange('beneficiarios', 'sexo', e.target.value, index)}
-                      style={{minWidth: '100px'}}
                     >
                       {opcionesSexo.map((opcion) => (
                         <MenuItem key={opcion.value} value={opcion.value}>
@@ -634,7 +734,6 @@ const GestionAfiliado = () => {
                       value={beneficiario.parentesco}
                       label="Parentesco"
                       onChange={(e) => handleInputChange('beneficiarios', 'parentesco', e.target.value, index)}
-                      style={{minWidth: '100px'}}
                     >
                       {opcionesParentesco.map((opcion) => (
                         <MenuItem key={opcion.value} value={opcion.value}>
@@ -647,27 +746,26 @@ const GestionAfiliado = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={getLabelConAsterisco("Email")}
+                    label={getLabelConIndicador("Email", true, beneficiario.dni && beneficiario.email && beneficiario.email !== '')}
                     type="email"
                     variant="outlined"
                     size="small"
                     value={beneficiario.email}
                     onChange={(e) => handleInputChange('beneficiarios', 'email', e.target.value, index)}
-                    sx={getInputStyles(true, beneficiario.email)}
-                    error={esCampoObligatorioVacio(beneficiario.email)}
+                    sx={getInputStyles(true, beneficiario.email, beneficiario.dni && beneficiario.email && beneficiario.email !== '')}
+                    disabled={beneficiario.dni && beneficiario.email && beneficiario.email !== ''}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={getLabelConAsterisco("Password")}
+                    label={getLabelConIndicador("Password", true, true)}
                     type="password"
                     variant="outlined"
                     size="small"
                     value={beneficiario.password}
-                    onChange={(e) => handleInputChange('beneficiarios', 'password', e.target.value, index)}
-                    sx={getInputStyles(true, beneficiario.password)}
-                    error={esCampoObligatorioVacio(beneficiario.password)}
+                    sx={getInputStyles(true, beneficiario.password, true)}
+                    disabled={true}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -728,7 +826,7 @@ const GestionAfiliado = () => {
             </Button>
             <Button
               variant="contained"
-              onClick={handleRegistrar}
+              onClick={handleActualizar}
               disabled={cargando}
               sx={{
                 px: 4,
@@ -751,13 +849,13 @@ const GestionAfiliado = () => {
                   }}
                 />
               )}
-              {cargando ? 'Registrando...' : 'Registrar'}
+              {cargando ? 'Actualizando...' : 'Actualizar'}
             </Button>
           </Box>
         </CardContent>
       </Card>
 
-      {/* Modal de Registro Exitoso */}
+      {/* Modal de Actualización Exitosa */}
       <Modal
         open={modalExitoAbierto}
         onClose={cerrarModalExito}
@@ -787,7 +885,7 @@ const GestionAfiliado = () => {
               mb: 3,
               color: '#333'
             }}>
-              Registro exitoso
+              Actualización exitosa
             </Typography>
 
             {/* Icono de check */}
@@ -811,6 +909,10 @@ const GestionAfiliado = () => {
               </Typography>
             </Box>
 
+            <Typography variant="body1" sx={{ mb: 3, color: '#666' }}>
+              Los datos del afiliado han sido actualizados correctamente
+            </Typography>
+
             <Button
               variant="contained"
               onClick={cerrarModalExito}
@@ -832,7 +934,7 @@ const GestionAfiliado = () => {
         </Fade>
       </Modal>
 
-      {/* Modal de Registro Erróneo */}
+      {/* Modal de Error */}
       <Modal
         open={modalErrorAbierto}
         onClose={cerrarModalError}
@@ -862,7 +964,7 @@ const GestionAfiliado = () => {
               mb: 3,
               color: '#333'
             }}>
-              Registro no exitoso
+              Error en la actualización
             </Typography>
 
             {/* Icono de X */}
@@ -921,4 +1023,4 @@ const GestionAfiliado = () => {
   );
 };
 
-export default GestionAfiliado;
+export default EdicionAfiliado;
