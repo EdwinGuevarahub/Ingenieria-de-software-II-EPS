@@ -41,6 +41,9 @@ public class MedicoService {
     /** Repositorio de IPS para acceder a la base de datos. */
     private final IpsRepository ipsRepository;
 
+    /** Servicio de Trabaja para manejar la lógica de negocio relacionada con las relaciones entre médicos y consultorios. */
+    private final TrabajaService trabajaService; 
+
     /**
      * Método para obtener todos los médicos de la base de datos filtrarlos por diferentes criterios.
      * @param idIps El id de la IPS que se usará para filtrar los médicos (opcional).
@@ -140,13 +143,12 @@ public class MedicoService {
                     .orElse(null)
             );
                 
-        // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
         // TODO: Validar que el médico no tenga un horario de trabajo que se solape con el nuevo.
-        // TODO: Consumir TrabajaService para realizar el guardado de la relación trabaja.
-
+        
         // Primero intenta guardar el médico y la relación trabaja.
         medicoRepository.save(trabaja.getMedico());
-        trabaja = trabajaRepository.save(trabaja);
+        trabaja = trabajaService.crearTrabaja(trabaja);
+        
         // Luego intenta guardar la imagen del médico en el sistema de archivos.
         trabaja.getMedico().saveImage();
 
