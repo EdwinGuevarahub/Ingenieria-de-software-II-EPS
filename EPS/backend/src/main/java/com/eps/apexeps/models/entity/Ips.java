@@ -44,7 +44,7 @@ public class Ips {
      * Ruta donde se guardan las imágenes de las IPS.
      * Se utiliza para guardar y cargar las imágenes de la base de datos.
      */
-    public static final String RUTA_IMAGENES = "EPS/backend/src/main/resources/static/images/ips/";
+    public static final String RUTA_IMAGENES = "src/main/resources/static/images/ips/";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
