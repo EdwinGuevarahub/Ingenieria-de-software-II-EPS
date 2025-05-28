@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Table, TableBody,
   TableCell, TableHead, TableRow, TextField, MenuItem, Select, InputLabel, FormControl, Paper, IconButton,
-  Tooltip, Chip
+  Tooltip, Checkbox
 } from '@mui/material';
 import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';
 
@@ -71,46 +71,60 @@ function HorarioFormDialog({ open, onClose, onSave, initialData }) {
       <DialogTitle sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
         {isEditing ? 'Editar Horario' : 'Nuevo Horario'}
       </DialogTitle>
+
       <DialogContent dividers>
         <Grid container spacing={2} sx={{ pt: 2 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel id="dia-label">Día</InputLabel>
-              <Select
-                labelId="dia-label"
-                name="dia"
-                value={formHorario.dia}
-                label="Día"
-                onChange={handleChange}
-              >
-                {diasSemana.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
-              </Select>
-            </FormControl>
+
+          {/* Días de la semana */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Días de atención
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {diasSemana.map((dia) => (
+                <Box key={dia} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <Typography variant="caption">{dia}</Typography>
+                  <Checkbox
+                    checked={formHorario.dias?.includes(dia) || false}
+                    onChange={(e) => {
+                      const newDias = formHorario.dias || [];
+                      const updatedDias = e.target.checked
+                        ? [...newDias, dia]
+                        : newDias.filter((d) => d !== dia);
+                      handleChange({ target: { name: 'dias', value: updatedDias } });
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               name="horaInicio"
-              label="Hora Inicio"
+              label="Hora de inicio"
               type="time"
               fullWidth
               value={formHorario.horaInicio}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ step: 1800 }} // 30 min
+              inputProps={{ step: 1800 }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               name="horaFin"
-              label="Hora Fin"
+              label="Hora de fin"
               type="time"
               fullWidth
               value={formHorario.horaFin}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ step: 1800 }} // 30 min
+              inputProps={{ step: 1800 }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel id="servicio-label">Servicio Médico</InputLabel>
@@ -121,12 +135,15 @@ function HorarioFormDialog({ open, onClose, onSave, initialData }) {
                 label="Servicio Médico"
                 onChange={handleChange}
               >
-                {servicios.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                {servicios.map((s) => (
+                  <MenuItem key={s} value={s}>{s}</MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
+
           {formHorario.servicio && consultorios[formHorario.servicio] && (
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel id="consultorio-label">Consultorio</InputLabel>
                 <Select
@@ -136,13 +153,16 @@ function HorarioFormDialog({ open, onClose, onSave, initialData }) {
                   label="Consultorio"
                   onChange={handleChange}
                 >
-                  {consultorios[formHorario.servicio].map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                  {consultorios[formHorario.servicio].map((c) => (
+                    <MenuItem key={c} value={c}>{c}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
           )}
         </Grid>
       </DialogContent>
+
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={handleClear} color="warning" startIcon={<CleaningServices />}>Limpiar</Button>
         <Box sx={{ flexGrow: 1 }} />
@@ -361,7 +381,7 @@ export default function HorarioModal({ open, onClose }) {
                       border: '1px solid #ddd',
                       width: '80px',
                       backgroundColor: (theme) => theme.palette.background.paper,
-                      zIndex: 1 
+                      zIndex: 1
                     }}
                   >
                     Hora
