@@ -129,7 +129,6 @@ export async function detalleAgenda(idAgenda) {
         const response = await AxiosInstance.get(`agenda/${idAgenda}`);
         const agenda = response.data;
 
-        console.log(agenda)
         return {
             id: agenda.idAgenda,
             paciente: agenda.paciente,

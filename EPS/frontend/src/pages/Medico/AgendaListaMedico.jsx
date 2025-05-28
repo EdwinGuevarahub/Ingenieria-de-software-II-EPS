@@ -201,7 +201,7 @@ const AgendaListaMedico = () => {
                                     Consultorio {detalle[0].trabaja.consultorio.id.idConsultorio}
                                 </Typography>
                                 <Typography variant="body2">
-                                    Cita con: {detalle[0].paciente.nombre}
+                                    Cita con: {detalle[0].paciente.nombre} ({detalle[0].paciente.dni})
                                 </Typography>
                                 <Typography variant="body2">
                                     {new Date(detalle[0].fecha).toLocaleString("es-CO")}
