@@ -141,6 +141,8 @@ public class MedicoService {
             );
                 
         // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
+        // TODO: Validar que el médico no tenga un horario de trabajo que se solape con el nuevo.
+        // TODO: Consumir TrabajaService para realizar el guardado de la relación trabaja.
 
         // Primero intenta guardar el médico y la relación trabaja.
         medicoRepository.save(trabaja.getMedico());

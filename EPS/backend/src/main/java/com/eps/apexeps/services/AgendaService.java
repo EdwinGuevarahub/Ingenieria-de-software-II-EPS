@@ -137,6 +137,8 @@ public class AgendaService {
            )
             throw new IllegalArgumentException("El médico de la relación trabaja no coincide con el de la agenda");
 
+        // TODO: Validar que no exista otra agenda con la misma fecha, hora y trabaja.
+
         Agenda agendaActualizada = agendaRepository.findById(agenda.getId()).orElse(null);
         agendaActualizada.setFecha(agenda.getFecha());
         agendaActualizada.setTrabaja(agenda.getTrabaja());
