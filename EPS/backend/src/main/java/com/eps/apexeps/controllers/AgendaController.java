@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.entity.relations.Agenda;
-import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
-import com.eps.apexeps.models.DTOs.response.AgendaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaMedico;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaPaciente;
+import com.eps.apexeps.models.DTOs.response.AgendaListaMedico;
+import com.eps.apexeps.models.DTOs.response.AgendaListaPaciente;
 import com.eps.apexeps.models.auth.ERol;
 import com.eps.apexeps.services.AgendaService;
 import com.eps.apexeps.services.MedicoService;
@@ -54,7 +56,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/paciente")
-    public ResponseEntity<AgendaLista> getAllAgendasPaciente(
+    public ResponseEntity<AgendaListaPaciente> getAllAgendasPaciente(
         @RequestParam(required = false) Long dniPaciente,
         @RequestParam(required = false) String dniNombreMedicoLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -91,10 +93,10 @@ public class AgendaController {
                                 );
 
         return ResponseEntity.ok(
-                        new AgendaLista(
+                        new AgendaListaPaciente(
                             entradas.getTotalPages(),
                             entradas.stream()
-                                    .map(AgendaEntradaLista::of)
+                                    .map(AgendaEntradaListaPaciente::of)
                                     .toList()
                         )
                     );
@@ -113,7 +115,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/medico")
-    public ResponseEntity<AgendaLista> getAllAgendasMedico(
+    public ResponseEntity<AgendaListaMedico> getAllAgendasMedico(
         @RequestParam(required = false) Long dniMedico,
         @RequestParam(required = false) String dniNombrePacienteLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -150,10 +152,10 @@ public class AgendaController {
                                 );
 
         return ResponseEntity.ok(
-                    new AgendaLista(
+                    new AgendaListaMedico(
                         entradas.getTotalPages(),
                         entradas.stream()
-                                .map(AgendaEntradaLista::of)
+                                .map(AgendaEntradaListaMedico::of)
                                 .toList()
                     )
                 );

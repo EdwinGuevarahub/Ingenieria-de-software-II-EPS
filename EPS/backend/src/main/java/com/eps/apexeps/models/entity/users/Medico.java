@@ -50,7 +50,7 @@ public class Medico {
      * Ruta donde se guardan las imágenes de los médicos.
      * Se utiliza para guardar y cargar las imágenes de la base de datos.
      */
-    public static final String RUTA_IMAGENES = "EPS/backend/src/main/resources/static/images/medico/";
+    public static final String RUTA_IMAGENES = "src/main/resources/static/images/medico/";
 
     /** Número de identificación del médico. */
     @Id
