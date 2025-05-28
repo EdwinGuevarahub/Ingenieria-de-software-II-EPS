@@ -3,6 +3,9 @@ package com.eps.apexeps.controllers;
 import java.util.List;
 
 import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import com.eps.apexeps.models.relations.Agenda;
@@ -143,5 +146,18 @@ public class AgendaController {
             throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
         }
     }
-    
+
+    @PostMapping("/examenes")
+    public Agenda solicitarExamen(@RequestBody SolicitudExamenDTO dto) {
+        try{
+            return agendaService.registrarExamen(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
+        }
+    }
+
 }
