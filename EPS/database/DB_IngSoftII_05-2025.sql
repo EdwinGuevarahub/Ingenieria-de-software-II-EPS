@@ -59,7 +59,7 @@ CREATE TABLE "ips" (
   "dir_ips" varchar(255) NOT NULL,
   "tel_ips" varchar(20) NOT NULL,
   "admreg_ips" varchar(255) NOT NULL,
-  "activo_ips" boolean NOT NULL DEFAULT true
+  "activo_ips" boolean NOT NULL DEFAULT true,
   "freg_ips" timestamp NOT NULL
 );
 
@@ -92,7 +92,7 @@ CREATE TABLE "medicamento" (
 CREATE TABLE "pago_afiliacion" (
   "paciente_pagoafiliacion" bigint,
   "f_pagoafiliacion" timestamp,
-  "estado_pagoafiliacion" estado_pago_afiliacion NOT NULL DEFAULT 'pendiente'
+  "estado_pagoafiliacion" estado_pago_afiliacion NOT NULL DEFAULT 'pendiente',
   "tarifa_pagoafiliacion" numeric(10,2) NOT NULL,
   PRIMARY KEY ("paciente_pagoafiliacion", "f_pagoafiliacion")
 );

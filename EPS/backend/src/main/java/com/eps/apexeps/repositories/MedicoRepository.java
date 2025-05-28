@@ -5,7 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.users.Medico;
 
 /**
  * Esta interfaz es un repositorio de JPA para la entidad Medico.

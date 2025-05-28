@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.request.AuthenticationRequest;
-import com.eps.apexeps.response.AuthenticationResponse;
+import com.eps.apexeps.models.DTOs.request.AuthenticationRequest;
+import com.eps.apexeps.models.DTOs.response.AuthenticationResponse;
 import com.eps.apexeps.services.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author Nicolás Sabogal
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 

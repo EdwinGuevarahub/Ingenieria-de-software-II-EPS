@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
-import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.entity.Ips;
 
 /**
  * Repositorio para la entidad Ips.

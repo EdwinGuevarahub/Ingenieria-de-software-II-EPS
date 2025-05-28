@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.response.AgendaEntradaLista;
-import com.eps.apexeps.response.AgendaLista;
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaLista;
 import com.eps.apexeps.services.AgendaService;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,7 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
+        // TODO: Extraer el DNI del paciente de la sesión en lugar de pasarlo como parámetro.
         Page<Agenda> entradas = agendaService
                                 .getAgendas(
                                     dniPaciente,
@@ -99,6 +100,7 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
+        // TODO: Extraer el DNI del médico de la sesión en lugar de pasarlo como parámetro.
         Page<Agenda> entradas = agendaService
                                 .getAgendas(
                                     null,

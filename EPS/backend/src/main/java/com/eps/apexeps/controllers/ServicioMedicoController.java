@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.response.ServicioMedicoEntradaLista;
-import com.eps.apexeps.response.ServicioMedicoLista;
+import com.eps.apexeps.models.entity.ServicioMedico;
+import com.eps.apexeps.models.DTOs.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.models.DTOs.response.ServicioMedicoLista;
 import com.eps.apexeps.services.ServicioMedicoService;
 
 import lombok.RequiredArgsConstructor;

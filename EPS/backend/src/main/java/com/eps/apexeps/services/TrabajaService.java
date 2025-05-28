@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.relations.EntradaHorario;
-import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.relations.EntradaHorario;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.repositories.MedicoRepository;
 import com.eps.apexeps.repositories.TrabajaRepository;
 

@@ -4,9 +4,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.response.ConsultorioEntradaLista;
-import com.eps.apexeps.response.ConsultorioLista;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.DTOs.response.ConsultorioEntradaLista;
+import com.eps.apexeps.models.DTOs.response.ConsultorioLista;
 import com.eps.apexeps.services.ConsultorioService;
 
 import lombok.RequiredArgsConstructor;
@@ -123,6 +123,7 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> createConsultorio(
         @RequestBody Consultorio consultorio
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(consultorioService.createConsultorio(consultorio));
         }
@@ -141,6 +142,7 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> updateConsultorio(
         @RequestBody Consultorio consultorio
     ) {
+        // TODO: Verificar que el ADM pertenece a la IPS.
         try {
             return ResponseEntity.ok(consultorioService.updateConsultorio(consultorio));
         }
