@@ -11,13 +11,14 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
-import { Link } from 'react-router-dom';
 import {
   listaServiciosMedicosPorMedico,
   listaServiciosMedicos,
   agregarServiciosMedicosPorMedico,
   eliminarServiciosMedicosPorMedico,
 } from '@/../../src/services/serviciosMedicosService';
+import Horario from '@/../../src/pages/IPS/Horario/Horario';
+
 
 const MedicoFormulario = ({
   initialData = {},
@@ -28,6 +29,7 @@ const MedicoFormulario = ({
   const [serviciosMedicos, setServiciosMedicos] = useState([]);
   const [todosServicios, setTodosServicios] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [modalHorarioAbierto, setModalHorarioAbierto] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
 
   useEffect(() => {
@@ -137,7 +139,7 @@ const MedicoFormulario = ({
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button variant="contained" color="error" onClick={onCancel}>Cancelar</Button>
-          <Button variant="contained" component={Link} to="/horario">Horario</Button>
+          <Button variant="contained" onClick={() => setModalHorarioAbierto(true)}>Horario</Button>
           <Button type="submit" variant="outlined">Guardar</Button>
         </Box>
 
@@ -209,6 +211,8 @@ const MedicoFormulario = ({
           </Box>
         </Fade>
       </Modal>
+      <Horario open={modalHorarioAbierto} onClose={() => setModalHorarioAbierto(false)} />
+
     </form>
   );
 };
