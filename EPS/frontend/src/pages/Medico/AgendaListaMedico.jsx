@@ -4,15 +4,12 @@ import {
   Box,
   Pagination,
   Chip,
-  Fab,
   TextField,
   Button,
-  DatePicker
 } from '@mui/material';
 
-import AddIcon from '@mui/icons-material/Add';
 import { listarAgendaMedico, detalleAgenda } from '@/../../src/services/agendaService';
-import { listaServiciosMedicosPorMedico, listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
+import { listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
 import ExpandableTable from '../../components/list/ExpandableTable';
 import SearchFilter from '../../components/filters/SearchFilter';
 import SelectFilter from '../../components/filters/SelectFilter';
@@ -24,7 +21,6 @@ const AgendaListaMedico = () => {
     const [totalPaginas, setTotalPaginas] = useState(1);
 
     // Filtros
-    const [dniMedico, setDniMedico] = useState('');
     const [nombreFiltro, setNombreFiltro] = useState('');
     const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
     const [serviciosUnicos, setServiciosUnicos] = useState([]);
@@ -41,7 +37,6 @@ const AgendaListaMedico = () => {
                 const filtros = {
                     qPage: paginaActual - 1,
                     qSize: 10,
-                    dniMedico: dniMedico,
                     dniNombrePacienteLike: nombreFiltro || undefined,
                     ...filtrosExtras
                 };
