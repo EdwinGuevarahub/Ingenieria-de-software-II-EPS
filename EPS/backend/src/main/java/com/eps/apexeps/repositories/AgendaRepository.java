@@ -1,7 +1,6 @@
 package com.eps.apexeps.repositories;
-
-
 import java.util.List;
+import java.time.Instant;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +17,9 @@ import com.eps.apexeps.models.entity.relations.Agenda;
  */
 @Repository
 public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
-  
-  
     List<Agenda> findByPacienteDniAndEstado(Long dni, String estado);
+    List<Agenda> findByPaciente_Dni(Long dniPaciente);
+    List<Agenda> findByPaciente_DniAndFechaBetween(Long dniPaciente, Instant desde, Instant hasta);
 
     /**
      * Método para obtener todas las agendas de la base de datos con filtros opcionales.
@@ -86,5 +85,4 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
         String horaDeFin,
         Pageable pageable
     );
-
 }
