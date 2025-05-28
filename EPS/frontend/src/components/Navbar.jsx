@@ -71,6 +71,12 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/consultorios">Gestionar Consultorios</Button>
               </>
             )}
+
+            {logged && role === 'MEDICO' && (
+              <>
+                <Button color="inherit" component={Link} to="/medico/agenda">Consultar Agenda</Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
