@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
@@ -43,17 +45,19 @@ public class IpsService {
      * @param fechaRegistro Fecha de registro de la IPS (opcional)
      * @return Lista de IPS que cumplen con los criterios de búsqueda
      */
-    public List<Ips> filtrarIpsMulticriterio(String nombre, String telefono, String direccion, String fechaRegistro,
-            String cupsServicio) {
+    public Page<Ips> filtrarIpsMulticriterio(String nombre, String telefono, String direccion, String fechaRegistro,
+            String cupsServicio, Integer qSize, Integer qPage) {
         try {
             // Limpieza de datos
             nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
             telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
-            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
-                    cupsServicio);
+            Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
+            Page<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
+                    cupsServicio, pageable);
             // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
             // direccion);
+            
             return resultado;
 
         } catch (IllegalArgumentException e) {
