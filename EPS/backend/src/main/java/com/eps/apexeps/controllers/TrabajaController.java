@@ -5,11 +5,8 @@
 
 package com.eps.apexeps.controllers;
 
-import java.time.DayOfWeek;
 import java.util.List;
-import java.util.Map;
 
-import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +19,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.DTOs.response.HorarioTrabajaEntradaLista;
 import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.services.AdmIpsService;
 import com.eps.apexeps.services.TrabajaService;
 
@@ -45,9 +42,9 @@ public class TrabajaController {
     @Autowired
     private AdmIpsService admIpsService;
 
-    @GetMapping("/trabaja/dni/")
+    @GetMapping("{dniMedico}/trabaja")
     public ResponseEntity<List<HorarioTrabajaEntradaLista>> findByMedico_Dni(
-            @RequestParam(required = false) long dniMedico) {
+            @PathVariable long dniMedico) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentication.getName());
         List<Trabaja> trabajos = trabajaService.findByMedico_Dni(dniMedico, idIpsAdm);
@@ -60,15 +57,23 @@ public class TrabajaController {
     @PostMapping("/{dniMedico}/trabaja")
     public ResponseEntity<?> crearTrabaja(
             @PathVariable long dniMedico,
-            @RequestBody Trabaja trabaja) {
-        Integer idIps = trabaja.getConsultorio().getId().getIps().getId();
+            @RequestBody HorarioTrabajaEntradaLista trabajaDTO) {
+        Integer idIps = trabajaDTO.getIdIps();
         if (!isAdmIpsOfIdIps(idIps)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("El administrador no pertenece a la IPS del consultorio.");
         }
+
+        if (trabajaDTO.getIdTrabaja() != null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("El campo idTrabaja debe estar vacío");
+    
+        Trabaja trabaja = HorarioTrabajaEntradaLista.toTrabaja(trabajaDTO);
+        trabaja.setMedico(Medico.builder().dni(dniMedico).build());
+
         try {
-            trabajaService.crearTrabaja(dniMedico, trabaja);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Horario creado exitosamente.");
+            trabaja = trabajaService.crearTrabaja(dniMedico, trabaja);
+            return ResponseEntity.status(HttpStatus.CREATED).body(HorarioTrabajaEntradaLista.of(trabaja));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
@@ -80,15 +85,20 @@ public class TrabajaController {
     public ResponseEntity<?> actualizarHorario(
             @PathVariable long dniMedico,
             @PathVariable int idTrabaja,
-            @RequestBody Trabaja trabajaActualizado) {
-        Integer idIps = trabajaActualizado.getConsultorio().getId().getIps().getId();
+            @RequestBody HorarioTrabajaEntradaLista trabajaDTO) {
+        Integer idIps = trabajaDTO.getIdIps();
         if (!isAdmIpsOfIdIps(idIps)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("El administrador no pertenece a la IPS del consultorio.");
         }
+
+        Trabaja trabaja = HorarioTrabajaEntradaLista.toTrabaja(trabajaDTO);
+        trabaja.setId(idTrabaja);
+        trabaja.setMedico(Medico.builder().dni(dniMedico).build());
+
         try {
-            Trabaja actualizado = trabajaService.actualizarTrabaja(dniMedico, idTrabaja, trabajaActualizado);
-            return ResponseEntity.ok(actualizado);
+            trabaja = trabajaService.actualizarTrabaja(dniMedico, idTrabaja, trabaja);
+            return ResponseEntity.ok(HorarioTrabajaEntradaLista.of(trabaja));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (RuntimeException e) {
@@ -107,8 +117,6 @@ public class TrabajaController {
     private boolean isAdmIpsOfIdIps(Integer idIps) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentication.getName());
-        System.out.println("ID IPS del administrador: " + idIpsAdm);
-        System.out.println("ID IPS del consultorio: " + idIps);
         return idIpsAdm.equals(idIps);
     }
 
