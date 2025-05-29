@@ -69,4 +69,6 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
         Instant desde,
         Instant hasta
     );
+
+    List<Agenda> findByPaciente_DniAndEstado(Long dniPaciente, String estado);
 }

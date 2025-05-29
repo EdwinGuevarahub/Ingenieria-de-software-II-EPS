@@ -1,6 +1,6 @@
 package com.eps.apexeps.repositories;
 
-import com.eps.apexeps.models.PagoAfiliacion;
+import com.eps.apexeps.models.relations.PagoAfiliacion;
 import com.eps.apexeps.models.relations.PagoAfiliacionId;
 
 import org.springframework.data.jpa.repository.JpaRepository;

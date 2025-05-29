@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * DTO que representa una factura individual del estado de cuenta.
  * Incluye un identificador, fecha, monto y estado de la factura (pagada o pendiente).
- * 
+ *
  * @author DCanas
  */
 public class FacturaDTO {
@@ -15,15 +15,11 @@ public class FacturaDTO {
     private BigDecimal monto;
     private String estado;
 
-    // Constructor vacío requerido para frameworks como Jackson
-    public FacturaDTO() {
-    }
-
     // Constructor completo
-    public FacturaDTO(Long id, String fecha, BigDecimal monto, String estado) {
+    public FacturaDTO(Long id, String fecha, BigDecimal tarifa, String estado) {
         this.id = id;
         this.fecha = fecha;
-        this.monto = monto;
+        this.monto = tarifa;
         this.estado = estado;
     }
 

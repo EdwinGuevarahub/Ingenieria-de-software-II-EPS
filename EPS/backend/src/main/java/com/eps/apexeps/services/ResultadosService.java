@@ -83,7 +83,7 @@ public class ResultadosService {
                 Paciente paciente = pacienteRepository.findById(dniPaciente)
                                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
-                List<Agenda> agendas = agendaRepository.findByPacienteDniAndEstado(dniPaciente, "PENDIENTE");
+                List<Agenda> agendas = agendaRepository.findByPaciente_DniAndEstado(dniPaciente, "PENDIENTE");
                 return new PacienteCitasDTO(paciente, agendas);
         }
 

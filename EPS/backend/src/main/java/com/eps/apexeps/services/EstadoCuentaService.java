@@ -4,7 +4,7 @@ import com.eps.apexeps.dto.EstadoCuentaDTO;
 import com.eps.apexeps.dto.FacturaDTO;
 import com.eps.apexeps.dto.FacturaDetalleDTO;
 import com.eps.apexeps.dto.ServicioDTO;
-import com.eps.apexeps.models.PagoAfiliacion;
+import com.eps.apexeps.models.relations.PagoAfiliacion;
 import com.eps.apexeps.repositories.PagoAfiliacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class EstadoCuentaService {
 
         // Total facturado (antes de paginar)
         BigDecimal total = pagos.stream()
-                .map(PagoAfiliacion::getTarifa)
+                .map(p -> BigDecimal.valueOf(p.getTarifa())) // Should return BigDecimal
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Aplicar paginación manual
@@ -57,7 +57,7 @@ public class EstadoCuentaService {
             facturas.add(new FacturaDTO(
                     (long) contador++,
                     pago.getId().getFecha().toString(),
-                    pago.getTarifa(),
+                    BigDecimal.valueOf(pago.getTarifa()), // If getTarifa() returns double
                     estado
             ));
         }
@@ -65,7 +65,7 @@ public class EstadoCuentaService {
         // Total pagado (sobre todos los pagos, no sólo la página)
         BigDecimal pagado = pagos.stream()
                 .filter(p -> p.getId().getFecha().isBefore(LocalDateTime.now()))
-                .map(PagoAfiliacion::getTarifa)
+                .map(p -> BigDecimal.valueOf(p.getTarifa())) // Convert Double to BigDecimal
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new EstadoCuentaDTO(total.subtract(pagado), pagado, facturas);
