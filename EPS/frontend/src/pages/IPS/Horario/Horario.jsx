@@ -188,36 +188,6 @@ export default function HorarioModal({ open, onClose }) {
   const [editingHorario, setEditingHorario] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
 
-  const fetchTrabaja = async () => {
-    try {
-      const { trabaja } = await listarTrabaja('1002345678');
-    } catch (error) {
-      console.error('Error cargando los horarios del médico 1:', error);
-    }
-  };
-
-  const fetchObtenerHorarioCompleto = async () => {
-    try {
-      const { trabaja } = await obtenerHorarioCompleto();
-    } catch (error) {
-      console.error('Error cargando los horarios del médico 2:', error);
-    }
-  };
-
-  const fetchObtenerHorario = async () => {
-    try {
-      const { trabaja } = await obtenerHorario();
-    } catch (error) {
-      console.error('Error cargando los horarios del médico 3:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchTrabaja();
-    fetchObtenerHorarioCompleto();
-    fetchObtenerHorario();
-  }, []);
-
   const handleOpenFormForNew = () => {
     setEditingHorario(null);
     setFormOpen(true);
