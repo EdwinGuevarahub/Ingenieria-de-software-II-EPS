@@ -56,12 +56,12 @@ INSERT INTO medicamento (id_medicamento, nom_medicamento, valor_medicamento) VAL
 ('MED-005', 'Diclofenaco 50mg', 900.00);
 
 -- 6. Tabla paciente
-INSERT INTO paciente (dni_paciente, beneficiario_paciente, nom_paciente, fnac_paciente, email_paciente, pass_paciente, tel_paciente, sexo_paciente, parentezco_paciente, dir_paciente, admreg_paciente, fafili_paciente) VALUES
-(2001234567, NULL, 'Ana María López', '1985-06-15', 'ana.lopez@email.com', 'an4l0p3z', '3152001001', 'F', NULL, 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:30:00'),
-(2002345678, NULL, 'Roberto Sánchez', '1978-11-22', 'roberto.sanchez@email.com', 'r0b3rt0', '3152002002', 'M', NULL, 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:15:00'),
-(2003456789, 2001234567, 'Carmen López', '2010-03-30', 'carmen.lopez@email.com', 'c4rm3n', '3152003003', 'F', 'Hija', 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:35:00'),
-(2004567890, NULL, 'Diego Ramírez', '1990-07-18', 'diego.ramirez@email.com', 'd13g0', '3152004004', 'M', NULL, 'Avenida 34 #56-78', 'admin3@eps.com', '2022-03-10 14:20:00'),
-(2005678901, 2002345678, 'Patricia Sánchez', '2015-09-05', 'patricia.sanchez@email.com', 'p4tr1c14', '3152005005', 'F', 'Hija', 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:20:00');
+INSERT INTO paciente (dni_paciente, tipo_dni, beneficiario_paciente, nom_paciente, fnac_paciente, email_paciente, pass_paciente, tel_paciente, sexo_paciente, parentezco_paciente, dir_paciente, admreg_paciente, fafili_paciente) VALUES
+(2001234567, 'CC', NULL, 'Ana María López', '1985-06-15', 'ana.lopez@email.com', 'an4l0p3z', '3152001001', 'F', NULL, 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:30:00'),
+(2002345678, 'CC', NULL, 'Roberto Sánchez', '1978-11-22', 'roberto.sanchez@email.com', 'r0b3rt0', '3152002002', 'M', NULL, 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:15:00'),
+(2003456789, 'TI', 2001234567, 'Carmen López', '2010-03-30', 'carmen.lopez@email.com', 'c4rm3n', '3152003003', 'F', 'Hija', 'Calle 45 #23-67', 'admin1@eps.com', '2022-01-15 08:35:00'),
+(2004567890, 'CC', NULL, 'Diego Ramírez', '1990-07-18', 'diego.ramirez@email.com', 'd13g0', '3152004004', 'M', NULL, 'Avenida 34 #56-78', 'admin3@eps.com', '2022-03-10 14:20:00'),
+(2005678901, 'TI', 2002345678, 'Patricia Sánchez', '2015-09-05', 'patricia.sanchez@email.com', 'p4tr1c14', '3152005005', 'F', 'Hija', 'Carrera 67 #12-34', 'admin2@eps.com', '2022-02-20 10:20:00');
 
 -- 7. Tabla ips
 INSERT INTO ips (id_ips, nom_ips, dir_ips, tel_ips, admreg_ips, activo_ips, freg_ips) VALUES

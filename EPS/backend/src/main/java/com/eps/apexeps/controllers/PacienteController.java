@@ -1,6 +1,6 @@
 package com.eps.apexeps.controllers;
 
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.users.Paciente;
 import com.eps.apexeps.repositories.PacienteRepository;
 
 import lombok.RequiredArgsConstructor;

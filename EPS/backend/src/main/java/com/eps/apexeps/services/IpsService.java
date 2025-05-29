@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
-import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.entity.Ips;
 import com.eps.apexeps.repositories.IpsRepository;
-import com.eps.apexeps.response.IpsConServicios;
+import com.eps.apexeps.models.DTOs.response.IpsConServicios;
 
 import jakarta.transaction.Transactional;
 

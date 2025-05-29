@@ -3,20 +3,20 @@ package com.eps.apexeps.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.Diagnostico;
-import com.eps.apexeps.models.Medicamento;
-import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.models.relations.DetalleFormula;
-import com.eps.apexeps.models.relations.DetalleFormulaId;
-import com.eps.apexeps.models.relations.Formula;
-import com.eps.apexeps.models.relations.FormulaId;
-import com.eps.apexeps.models.relations.Genera;
-import com.eps.apexeps.models.relations.GeneraId;
-import com.eps.apexeps.models.relations.Ordena;
-import com.eps.apexeps.models.relations.OrdenaId;
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.entity.relations.DetalleFormula;
+import com.eps.apexeps.models.entity.relations.DetalleFormulaId;
+import com.eps.apexeps.models.entity.relations.Formula;
+import com.eps.apexeps.models.entity.relations.FormulaId;
+import com.eps.apexeps.models.entity.relations.Genera;
+import com.eps.apexeps.models.entity.relations.GeneraId;
+import com.eps.apexeps.models.entity.relations.Ordena;
+import com.eps.apexeps.models.entity.relations.OrdenaId;
+import com.eps.apexeps.models.entity.users.Paciente;
 import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
+import com.eps.apexeps.models.entity.Diagnostico;
+import com.eps.apexeps.models.entity.Medicamento;
+import com.eps.apexeps.models.entity.ServicioMedico;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
 
 import com.eps.apexeps.repositories.AgendaRepository;
@@ -112,18 +112,18 @@ public class ResultadosService {
                                 .build();
                 generaRepository.save(genera);
 
-                FormulaId formulaId = FormulaId.builder()
-                                .agenda(agenda)
-                                .diagnostico(diagnostico)
-                                .build();
-
-                Formula formula = Formula.builder()
-                                .id(formulaId)
-                                .observaciones(resultado.getObservacion())
-                                .build();
-                formulaRepository.save(formula);
-
                 if (resultado.getMedicamentos() != null && !resultado.getMedicamentos().isEmpty()) {
+                        FormulaId formulaId = FormulaId.builder()
+                                        .agenda(agenda)
+                                        .diagnostico(diagnostico)
+                                        .build();
+
+                        Formula formula = Formula.builder()
+                                        .id(formulaId)
+                                        .observaciones(resultado.getObservacion())
+                                        .build();
+                        formulaRepository.save(formula);
+
                         List<DetalleFormula> medicamentos = resultado.getMedicamentos();
                         for (int i = 0; i < medicamentos.size(); i++) {
                                 DetalleFormula df = medicamentos.get(i);

@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.relations.EntradaHorario;
-import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.relations.EntradaHorario;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.services.TrabajaService;
 
 /**

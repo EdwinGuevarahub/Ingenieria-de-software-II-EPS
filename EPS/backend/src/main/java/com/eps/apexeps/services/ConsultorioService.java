@@ -4,8 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.Ips;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.Ips;
 import com.eps.apexeps.repositories.ConsultorioRepository;
 import com.eps.apexeps.repositories.IpsRepository;
 

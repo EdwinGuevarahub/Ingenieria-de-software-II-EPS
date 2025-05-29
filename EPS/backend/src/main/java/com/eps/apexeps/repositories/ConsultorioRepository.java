@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.ConsultorioId;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.ConsultorioId;
 
 /**
  * Esta interfaz es un repositorio de JPA para la entidad Consultorio.

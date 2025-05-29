@@ -8,11 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.Consultorio;
-import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.models.relations.EntradaHorario;
-import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.models.users.Medico;
+import com.eps.apexeps.models.entity.Consultorio;
+import com.eps.apexeps.models.entity.ServicioMedico;
+import com.eps.apexeps.models.entity.relations.EntradaHorario;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
