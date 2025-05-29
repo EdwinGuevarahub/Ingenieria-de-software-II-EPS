@@ -15,6 +15,8 @@ import ExpandableTable from '../../components/list/ExpandableTable';
 import SearchFilter from '../../components/filters/SearchFilter';
 import SelectFilter from '../../components/filters/SelectFilter';
 
+import { DatePicker } from '@mui/x-date-pickers'
+
 const AgendaListaPaciente = () => {
 
     // Estados
@@ -29,7 +31,7 @@ const AgendaListaPaciente = () => {
     const [nombreFiltro, setNombreFiltro] = useState('');
     const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
     const [serviciosUnicos, setServiciosUnicos] = useState([]);
-    const [fechaFiltro, setFechaFiltro] = useState('');
+    const [fechaFiltro, setFechaFiltro] = useState(null);
     const [horaInicioFiltro, setHoraInicioFiltro] = useState('');
     const [horaFinalFiltro, setHoraFinFiltro] = useState('');
 
@@ -108,18 +110,11 @@ const AgendaListaPaciente = () => {
 
                 <Box>
                     <Typography variant="subtitle1">Fecha</Typography>
-                    <TextField
-                        label="Día"
-                        value={fechaFiltro}
-                        onChange={(e) => setFechaFiltro(e.target.value)}
-                        size="small"
-                    />
-                    {/*TODO: Incluir selector de fecha
                     <DatePicker
-                        label="Escoja una fecha"
+                        label="Día"
                         value = {fechaFiltro}
                         onChange={setFechaFiltro}
-                    />*/}
+                    />
                 </Box>
 
                 <Box>
@@ -148,7 +143,7 @@ const AgendaListaPaciente = () => {
                     onClick={() => {
                         const nuevosFiltros = {
                             cupsServicioMedico: servicioMedicoFiltro || undefined,
-                            fecha: fechaFiltro || undefined,
+                            fecha: fechaFiltro ? fechaFiltro.format('DD-MM-YYYY') : undefined,
                             horaDeInicio: horaInicioFiltro || undefined,
                             hordaDeFin: horaFinalFiltro || undefined,
                         };
