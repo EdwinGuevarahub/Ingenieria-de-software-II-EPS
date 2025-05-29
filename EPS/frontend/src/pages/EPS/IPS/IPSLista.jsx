@@ -63,7 +63,7 @@ const IPSLista = () => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 10,
+        qSize: 2,
         nombre: nombreFiltro || undefined,
         telefono: undefined,
         direccion: undefined,
@@ -73,8 +73,9 @@ const IPSLista = () => {
         idConsultorioLike: undefined,
       };
 
-      const data = await listarIPS(filtros);
-      setListaIPS(data);
+      const { totalPaginas, ips } = await listarIPS(filtros);
+      setListaIPS(ips);
+      setTotalPaginas(totalPaginas);
     } catch (error) {
       console.error('Error cargando las IPS:', error);
     }

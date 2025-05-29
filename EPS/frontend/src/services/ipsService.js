@@ -26,10 +26,17 @@ export async function listarIPS({
       }
     });
 
-    return response.data.map(ip => ({
-      id: ip.id,
-      nombre: ip.nombre
-    }));
+    console.log("Respuesta del backend ", response.data);
+
+    const { totalPages, ips } = response.data;
+
+    return {
+            totalPaginas: totalPages,
+            ips: ips.map(ips => ({
+                id: ips.id,
+                nombre: ips.nombre
+            }))
+        };
 
   } catch (err) {
     if (isAxiosError(err)) {
