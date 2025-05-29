@@ -72,8 +72,8 @@ public class TrabajaController {
         trabaja.setMedico(Medico.builder().dni(dniMedico).build());
 
         try {
-            trabajaService.crearTrabaja(dniMedico, trabaja);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Horario creado exitosamente.");
+            trabaja = trabajaService.crearTrabaja(dniMedico, trabaja);
+            return ResponseEntity.status(HttpStatus.CREATED).body(HorarioTrabajaEntradaLista.of(trabaja));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
@@ -97,8 +97,8 @@ public class TrabajaController {
         trabaja.setMedico(Medico.builder().dni(dniMedico).build());
 
         try {
-            trabajaService.actualizarTrabaja(dniMedico, idTrabaja, trabaja);
-            return ResponseEntity.ok("Horario actualizado existosamente.");
+            trabaja = trabajaService.actualizarTrabaja(dniMedico, idTrabaja, trabaja);
+            return ResponseEntity.ok(HorarioTrabajaEntradaLista.of(trabaja));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (RuntimeException e) {
