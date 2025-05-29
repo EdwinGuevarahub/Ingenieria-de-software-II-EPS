@@ -60,12 +60,14 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
                             mb: 2,
                             borderRadius: 2,
                             overflow: 'hidden',
-                            cursor: 'pointer',
                             transition: 'all 0.3s ease',
-                            '&:hover': {
-                                transform: 'scale(1.01)',
-                                boxShadow: 6
-                            }
+                            cursor: openRowIndex === index ? 'default' : 'pointer',
+                            '&:hover': openRowIndex === index
+                                ? {}
+                                : {
+                                    transform: 'scale(1.01)',
+                                    boxShadow: 6
+                                  }
                         }}
                     >
                         <TableContainer>
