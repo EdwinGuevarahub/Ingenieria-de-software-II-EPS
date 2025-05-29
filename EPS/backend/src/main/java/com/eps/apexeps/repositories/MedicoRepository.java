@@ -1,5 +1,7 @@
 package com.eps.apexeps.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -65,5 +67,12 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
         Boolean estaActivo,
         Pageable pageable
     );
+
+    /**
+     * Método para encontrar un médico por su correo electrónico.
+     * @param name El correo electrónico del médico.
+     * @return Un Optional que contiene el médico si se encuentra, o vacío si no se encuentra.
+     */
+    public Optional<Medico> findByEmail(String name);
 
 }

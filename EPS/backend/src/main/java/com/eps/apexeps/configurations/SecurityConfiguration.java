@@ -34,6 +34,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+            .cors().and()
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     // Rutas de prueba de rol.
@@ -58,8 +59,10 @@ public class SecurityConfiguration {
                     .requestMatchers("api/medico/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Agendas.
-                    .requestMatchers(HttpMethod.GET, "api/agenda/**").hasAnyAuthority(ERol.MEDICO.name(), ERol.PACIENTE.name())
-                    .requestMatchers("api/agenda/**").hasAuthority(ERol.PACIENTE.name())
+                    .requestMatchers(HttpMethod.GET, "api/agenda/paciente").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+                    .requestMatchers(HttpMethod.GET, "api/agenda/medico").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name())
+                    .requestMatchers("api/agenda/update/**").hasAnyAuthority(ERol.PACIENTE.name())
+                    .requestMatchers("api/agenda/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name(), ERol.PACIENTE.name())
 
                     // TODO: Cuando se haya adaptado el login en todas las rutas, quitar el permitAll.
                     .anyRequest().permitAll()

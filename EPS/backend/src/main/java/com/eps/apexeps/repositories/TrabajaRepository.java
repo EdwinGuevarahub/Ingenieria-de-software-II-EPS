@@ -1,5 +1,6 @@
 package com.eps.apexeps.repositories;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,5 +30,12 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
     List<Trabaja> findByMedico_Dni(long dniMedico);
 
     List<Trabaja> findByConsultorio(Consultorio consultorio);
+
+    /**
+     * Método para encontrar todas las relaciones de trabajo asociadas a un médico por su DNI.
+     * @param dni El DNI del médico para el cual se desean encontrar las relaciones de trabajo.
+     * @return Una colección de relaciones de trabajo asociadas al médico con el DNI proporcionado.
+     */
+    Collection<Trabaja> findAllByMedico_Dni(Long dni);
     
 }

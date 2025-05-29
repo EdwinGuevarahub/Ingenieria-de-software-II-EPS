@@ -3,7 +3,10 @@ package com.eps.apexeps.controllers;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +22,9 @@ import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.models.DTOs.response.MedicoEntradaLista;
 import com.eps.apexeps.models.DTOs.response.MedicoLista;
 import com.eps.apexeps.models.DTOs.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.services.AdmIpsService;
 import com.eps.apexeps.services.MedicoService;
+import com.eps.apexeps.services.TrabajaService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +40,12 @@ public class MedicoController {
 
     /** Servicio de médicos para manejar la lógica de negocio. */
     private final MedicoService medicoService;
+
+    /** Servicio de administradores de IPS para verificar permisos. */
+    private final AdmIpsService admIpsService;
+
+    /** Servicio de relaciones de trabajo para manejar las relaciones entre médicos y consultorios. */
+    private final TrabajaService trabajaService;
 
     /**
      * Endpoint para obtener todos los médicos de la base de datos.
@@ -110,7 +121,11 @@ public class MedicoController {
      */
     @PostMapping
     public ResponseEntity<Trabaja> createMedico(@RequestBody Trabaja trabaja) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentification.getName());
+        if (trabaja.getConsultorio().getId().getIps().getId() != idIpsAdm)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(medicoService.createMedico(trabaja));
         }
@@ -127,7 +142,9 @@ public class MedicoController {
      */
     @PutMapping
     public ResponseEntity<Medico> updateMedico(@RequestBody Medico medico) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        if (!isAdmIpsOfDniMedico(medico.getDni()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(medicoService.updateMedico(medico));
         }
@@ -169,7 +186,9 @@ public class MedicoController {
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        if (!isAdmIpsOfDniMedico(dniMedico))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(
                         medicoService.addDominioMedico(dniMedico, cupsServicioMedico)
@@ -195,7 +214,9 @@ public class MedicoController {
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        if (!isAdmIpsOfDniMedico(dniMedico))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(
                         medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico)
@@ -207,6 +228,19 @@ public class MedicoController {
         catch (Exception e) {
             throw new RuntimeException("Error al eliminar el dominio: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Endpoint para determinar si el médico pertenece a la IPS del administrador actual.
+     * @param dniMedico El DNI del médico a verificar.
+     * @return true si el médico pertenece a la IPS del administrador, false en caso contrario.
+     * @throws RuntimeException Si ocurre un error al verificar la pertenencia del médico a la IPS.
+     */
+    private boolean isAdmIpsOfDniMedico(Long dniMedico) {
+        Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentification.getName());
+        List<Integer> idIpsList = trabajaService.findAllIdIpsByDniMedico(dniMedico);
+        return idIpsList.contains(idIpsAdm);
     }
 
 }

@@ -141,6 +141,8 @@ public class MedicoService {
             );
                 
         // TODO: Validar que el horario en el consultorio no esté ocupado por otro médico.
+        // TODO: Validar que el médico no tenga un horario de trabajo que se solape con el nuevo.
+        // TODO: Consumir TrabajaService para realizar el guardado de la relación trabaja.
 
         // Primero intenta guardar el médico y la relación trabaja.
         medicoRepository.save(trabaja.getMedico());
@@ -282,6 +284,24 @@ public class MedicoService {
             throw new IllegalArgumentException("El servicio médico no existe.");
 
         return new Object[] { medico, servicioMedico };
+    }
+
+    /**
+     * Método para encontrar el DNI de un médico a partir de su correo electrónico.
+     * @param name El correo electrónico del médico.
+     * @return El DNI del médico o null si no se encuentra el médico.
+     * @throws IllegalArgumentException Si el correo electrónico es nulo.
+     */
+    public Long findDniByEmail(String name) {
+        if (name == null)
+            throw new IllegalArgumentException("El correo electrónico no puede ser nulo.");
+
+        Medico medico = medicoRepository.findByEmail(name).orElse(null);
+
+        if (medico == null)
+            return null;
+
+        return medico.getDni();
     }
 
 }

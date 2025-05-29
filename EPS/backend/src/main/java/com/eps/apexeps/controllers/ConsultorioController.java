@@ -7,12 +7,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eps.apexeps.models.entity.Consultorio;
 import com.eps.apexeps.models.DTOs.response.ConsultorioEntradaLista;
 import com.eps.apexeps.models.DTOs.response.ConsultorioLista;
+import com.eps.apexeps.services.AdmIpsService;
 import com.eps.apexeps.services.ConsultorioService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +35,9 @@ public class ConsultorioController {
 
     /** Servicio de consultorios para manejar la lógica de negocio. */
     private final ConsultorioService consultorioService;
+
+    /** Servicio de administración de IPS para verificar la pertenencia de un administrador a una IPS. */
+    private final AdmIpsService admIpsService;
 
     /**
      * Endpoint para obtener todos los consultorios de la base de datos.
@@ -123,7 +130,9 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> createConsultorio(
         @RequestBody Consultorio consultorio
     ) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        if (!isAdmIpsOfIdIps(consultorio.getId().getIps().getId()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(consultorioService.createConsultorio(consultorio));
         }
@@ -142,13 +151,26 @@ public class ConsultorioController {
     public ResponseEntity<Consultorio> updateConsultorio(
         @RequestBody Consultorio consultorio
     ) {
-        // TODO: Verificar que el ADM pertenece a la IPS.
+        if (!isAdmIpsOfIdIps(consultorio.getId().getIps().getId()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
             return ResponseEntity.ok(consultorioService.updateConsultorio(consultorio));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el consultorio: " + e.getMessage(), e);
         }
-    }   
+    }
+
+    /**
+     * Verifica si el administrador de la sesión actual pertenece a la IPS del consultorio.
+     * @param idIps El id de la IPS del consultorio.
+     * @return true si el administrador no pertenece a la IPS, false en caso contrario.
+     */
+    private boolean isAdmIpsOfIdIps(Integer idIps) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentication.getName());
+        return idIpsAdm != idIps;
+    }
     
 }
