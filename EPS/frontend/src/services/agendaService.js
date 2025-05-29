@@ -130,7 +130,7 @@ export async function detalleAgenda(idAgenda) {
         const agenda = response.data;
 
         return {
-            id: agenda.idAgenda,
+            id: agenda.id,
             paciente: agenda.paciente,
             trabaja: agenda.trabaja,
             fecha: agenda.fecha,
