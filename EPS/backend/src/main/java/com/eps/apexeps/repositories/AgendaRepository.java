@@ -74,6 +74,7 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
                     AND EXTRACT(MINUTE FROM a.fecha) <= EXTRACT(MINUTE FROM TO_TIMESTAMP(CAST(:horaDeFin AS String), 'HH24:MI'))
                 )
             )
+            AND a.estado = 'PENDIENTE'
     """)
     public Page<Agenda> findAllFiltered(
         Long dniPaciente,
