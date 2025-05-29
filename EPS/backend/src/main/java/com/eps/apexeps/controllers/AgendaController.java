@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -185,5 +186,19 @@ public class AgendaController {
             throw new RuntimeException("Error al actualizar la relación trabaja o la fecha de la agenda: " + e.getMessage(), e);
         }
     }
-    
+
+    /**
+     * Método para cancelar la cita de una agenda por su ID.
+     * @param id El ID de la agenda.
+     * @return la agenda actualizada.
+     * @throws RuntimeException Si ocurre un error al actualizar la agenda.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Agenda> cancelarAgenda(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(agendaService.cancelarAgendaById(id));
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cancelar la cita de la agenda: " + e.getMessage(), e);
+        }
+    }
 }
