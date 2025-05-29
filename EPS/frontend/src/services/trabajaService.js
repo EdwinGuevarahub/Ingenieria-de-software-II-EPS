@@ -1,24 +1,9 @@
 import { AxiosInstance } from '../services/axios';
 import { isAxiosError } from 'axios';
 
-export async function listarTrabaja(dniMedico) {
+export async function obtenerHorario(dniMedico = '1001234567') {
     try {
-        const response = await AxiosInstance.get(`medico/trabaja/trabaja/dni/`, {
-            params: { dniMedico }
-        });
-        const trabaja = response.data;
-        console.log(trabaja);
-    } catch (err) {
-        if (isAxiosError(err)) {
-            throw err;
-        }
-    }
-}
-
-
-export async function obtenerHorarioCompleto(dniMedico = '1001234567', sedeId = 1, diaSemana = 'MONDAY') {
-    try {
-        const response = await AxiosInstance.get(`medico/trabaja/${dniMedico}/full/trabaja/${sedeId}/${diaSemana}`);
+        const response = await AxiosInstance.get(`/medico/${dniMedico}/trabaja`);
         console.log(response.data);
     } catch (err) {
         if (isAxiosError(err)) throw err;
@@ -26,20 +11,9 @@ export async function obtenerHorarioCompleto(dniMedico = '1001234567', sedeId = 
     }
 }
 
-export async function obtenerHorario(dniMedico = '1001234567', sedeId = 1, diaSemana = 'MONDAY') {
+export async function crearHorario(data) {
     try {
-        const response = await AxiosInstance.get(`medico/trabaja/${dniMedico}/trabaja/${sedeId}/${diaSemana}`);
-        console.log(response.data);
-    } catch (err) {
-        if (isAxiosError(err)) throw err;
-        return null;
-    }
-}
-
-
-export async function crearMedico(data) {
-    try {
-        const response = await AxiosInstance.post('/medico', data);
+        const response = await AxiosInstance.post('/medico/${dniMedico}/trabaja', data);
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
@@ -48,9 +22,9 @@ export async function crearMedico(data) {
     }
 }
 
-export async function actualizarMedico(data) {
+export async function actualizarMedico(dniMedico, idTrabaja, data) {
     try {
-        const response = await AxiosInstance.put(`/medico`, data);
+        const response = await AxiosInstance.put(`/medico/${dniMedico}/trabaja/${idTrabaja}`, data);
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
