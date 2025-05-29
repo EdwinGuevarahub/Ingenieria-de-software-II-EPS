@@ -10,11 +10,16 @@ import {
 
 import { listarAgendaPaciente, detalleAgenda } from '@/../../src/services/agendaService';
 import { listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
+import CanceladoCita from '@/../../src/pages/Paciente/ComponentesCita/CanceladoCita';
 import ExpandableTable from '../../components/list/ExpandableTable';
 import SearchFilter from '../../components/filters/SearchFilter';
 import SelectFilter from '../../components/filters/SelectFilter';
 
 const AgendaListaPaciente = () => {
+
+    // Estados
+    const [modalCanceladoCitaAbierto, setModalCanceladoCitaAbierto] = useState(false);
+
     // Sobre la tabla
     const [listaAgendas, setListaAgendas] = useState([]);
     const [pagina, setPagina] = useState(1);
@@ -184,90 +189,109 @@ const AgendaListaPaciente = () => {
                     rowKey="id"
                     fetchDetails={[ (id) => detalleAgenda(id) ]}
                     renderExpandedContent={(detalle) => (
-                        <Box sx={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'flex-start',
+                                padding: 2,
+                                borderRadius: 2,
+                                gap: 2,
+                                flexWrap: 'wrap',
+                                width: '100%'
+                            }}
+                        >
                             <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'flex-start',
-                                    padding: 2,
-                                    borderRadius: 2,
-                                    gap: 2,
-                                    flexWrap: 'wrap',
-                                    width: '100%'
-                                }}
-                            >
-                                <Box
-                                    component="img"
-                                    src={`data:image/png;base64,${detalle[0].trabaja.consultorio.id.ips.imagen}`}
-                                    alt="IPS"
-                                    sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+                                component="img"
+                                src={`data:image/png;base64,${detalle[0].trabaja.consultorio.id.ips.imagen}`}
+                                alt="IPS"
+                                sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+                            />
+                            <Box sx={{ flex: 1, minWidth: 200 }}>
+                                <Typography variant="h6">
+                                    {detalle[0].trabaja.consultorio.id.ips.nombre}
+                                </Typography>
+                                <Typography variant="body2">
+                                    {detalle[0].trabaja.consultorio.id.ips.direccion}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Consultorio {detalle[0].trabaja.consultorio.id.idConsultorio}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Cita con: {detalle[0].trabaja.medico.nombre}
+                                </Typography>
+                                <Typography variant="body2">
+                                    {new Date(detalle[0].fecha).toLocaleString("es-CO")}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Button
+                                    style={{
+                                        background: '#e53935', 
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 12px',
+                                        borderRadius: 4
+                                    }}
+                                    onClick={() => setModalCanceladoCitaAbierto(true)}
+                                >
+                                    Cancelar Cita
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        // TODO: Modificado de cita en AgendaListaPaciente.
+                                        console.log("Le puchaste al de modificar.")
+                                    }}
+                                >
+                                    Modificar Cita
+                                </Button>
+                                <Button
+                                    style={{
+                                        background: '#1e88e5', 
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 12px',
+                                        borderRadius: 4
+                                    }}
+                                    onClick={() => {
+                                        // TODO: Pago de cita en AgendaListaPaciente.
+                                        console.log("Le puchaste al de pagar.")
+                                    }}
+                                >
+                                    Pagar Cita
+                                </Button>
+                            </Box>
+
+                            <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                <Chip
+                                    key={detalle[0].trabaja.consultorio.servicioMedico.id}
+                                    label={detalle[0].trabaja.consultorio.servicioMedico.nombre}
+                                    color="primary"
+                                    variant="outlined"
                                 />
-                                <Box sx={{ flex: 1, minWidth: 200 }}>
-                                    <Typography variant="h6">
-                                        {detalle[0].trabaja.consultorio.id.ips.nombre}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        {detalle[0].trabaja.consultorio.id.ips.direccion}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        Consultorio {detalle[0].trabaja.consultorio.id.idConsultorio}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        Cita con: {detalle[0].trabaja.medico.nombre}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        {new Date(detalle[0].fecha).toLocaleString("es-CO")}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                    <Chip
-                                        key={detalle[0].trabaja.consultorio.servicioMedico.id}
-                                        label={detalle[0].trabaja.consultorio.servicioMedico.nombre}
-                                        color="primary"
-                                        variant="outlined"
-                                    />
-                                </Box>
                             </Box>
-
-                            <Box>
-                                <Box sx={{ display: 'flex', gap: 2}}>
-                                    <Button
-                                        variant="red"
-                                        onClick={() => {
-                                            // TODO: Pago de cita en AgendaListaPaciente.
-                                            console.log("Le puchaste al de pagar.")
-                                        }}
-                                    >
-                                        Pagar Cita
-                                    </Button>
-
-                                    <Button
-                                        variant="red"
-                                        onClick={() => {
-                                            // TODO: Cancelado de cita en AgendaListaPaciente.
-                                            console.log("Le puchaste al de cancelar.")
-                                        }}
-                                    >
-                                        Cancelar Cita
-                                    </Button>
-                                </Box>
-                            </Box>
+                            
+                            <CanceladoCita
+                                open={modalCanceladoCitaAbierto}
+                                onClose={() => setModalCanceladoCitaAbierto(false)}
+                                idAgenda={detalle[0].id}
+                            />
                         </Box>
                     )}
                 />
 
+                <Pagination
+                    count={totalPaginas}
+                    page={pagina}
+                    onChange={(_, val) => setPagina(val)}
+                    sx={{ p: 2, display: 'flex', justifyContent: 'center' }}
+                    showFirstButton
+                    showLastButton
+                />
                     
-                    <Pagination
-                        count={totalPaginas}
-                        page={pagina}
-                        onChange={(_, val) => setPagina(val)}
-                        sx={{ p: 2, display: 'flex', justifyContent: 'center' }}
-                        showFirstButton
-                        showLastButton
-                    />
-                    
-                </Box>
+            </Box>
         </Box>
     );
 

@@ -146,5 +146,6 @@ export async function detalleAgenda(idAgenda) {
             throw err;
         }
     }
-
 }
+
+// TODO: Implementar servicio para eliminado de agenda.
