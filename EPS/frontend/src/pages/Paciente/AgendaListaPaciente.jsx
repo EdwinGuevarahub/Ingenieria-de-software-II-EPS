@@ -112,6 +112,7 @@ const AgendaListaPaciente = () => {
                     <Typography variant="subtitle1">Fecha</Typography>
                     <DatePicker
                         label="Día"
+                        format="DD/MM/YYYY"
                         value = {fechaFiltro}
                         onChange={setFechaFiltro}
                     />
