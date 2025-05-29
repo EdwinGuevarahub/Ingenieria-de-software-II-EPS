@@ -35,7 +35,6 @@ const Login = () => {
     formData.append('password', password);
 
     const result = await loginAuth({}, formData);
-    console.log('Login result:', result);
 
     setIsPending(false);
 

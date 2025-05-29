@@ -26,8 +26,6 @@ export async function listarIPS({
       }
     });
 
-    console.log("Respuesta del backend ", response.data);
-
     const { totalPages, ips } = response.data;
 
     return {
@@ -50,12 +48,15 @@ export async function detallesIPS(id) {
     const response = await AxiosInstance.get(`ips/ips/detalle?idIps=${id}`);
     const ips = response.data;
 
+    console.log("Respuesta del backend ", ips)
+
     return {
       id: ips.id,
       nombre: ips.nombre,
       telefono: ips.telefono,
       direccion: ips.direccion,
       fechaRegistro: ips.fechaRegistro,
+      imagen: ips.imagen,
       admEps: ips.admEps,
     };
 
