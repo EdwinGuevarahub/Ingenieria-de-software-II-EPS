@@ -42,7 +42,7 @@ const Navbar = () => {
           </Box>
         </Toolbar>
 
-        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText'}}>
+        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText' }}>
           <Box sx={{ display: 'flex', gap: 2, mx: 'auto' }}>
 
             {/* Sin loguear */}
@@ -57,9 +57,11 @@ const Navbar = () => {
             {/* Con roles */}
             {logged && role === 'ADM_EPS' && (
               <>
+                <Button color="inherit" component={Link} to="/gestion-pagos">Gestión de pagos</Button>
                 <Button color="inherit" component={Link} to="/IPS">Gestionar IPS</Button>
-                <Button color="inherit" component={Link} to="/">Registrar Afiliado</Button>
-                <Button color="inherit" component={Link} to="/">Consultar Estado de Cuenta</Button>
+                <Button color="inherit" component={Link} to="/registrar-afiliado">Registrar Afiliado</Button>
+                <Button color="inherit" component={Link} to="/estado-afiliado">Consultar Estado del Afiliado</Button>
+                <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Estado de Cuenta</Button>
                 <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
               </>
             )}
@@ -69,6 +71,17 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/registrar-resultados">Registrar Resultados</Button>
                 <Button color="inherit" component={Link} to="/medicos">Gestionar Médicos</Button>
                 <Button color="inherit" component={Link} to="/consultorios">Gestionar Consultorios</Button>
+              </>
+            )}
+
+            {logged && role === 'PACIENTE' && (
+              <>
+                <Button color="inherit" component={Link} to="/gestion-pagos">Gestión de pagos</Button>
+                <Button color="inherit" component={Link} to="/IPS">Gestionar IPS</Button>
+                <Button color="inherit" component={Link} to="/registrar-afiliado">Registrar Afiliado</Button>
+                <Button color="inherit" component={Link} to="/estado-afiliado">Consultar Estado del Afiliado</Button>
+                <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Estado de Cuenta</Button>
+                <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
               </>
             )}
           </Box>
