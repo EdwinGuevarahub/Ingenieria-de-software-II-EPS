@@ -24,10 +24,12 @@ import {
   Backdrop,
   Fade,
   IconButton,
+  Chip,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
-import { listarPacientes } from '../../services/pacientesService'; // Importar el servicio
+import { listarPacientes } from '../../services/pacientesService';
+import { obtenerHistoriasClinicasPorPaciente } from '../../services/historiaClinicaService'; // Importar la función específica
 
 const HistoriaClinica = () => {
   // Estado para el filtro de búsqueda
@@ -48,6 +50,11 @@ const HistoriaClinica = () => {
   const [cargandoPacientes, setCargandoPacientes] = useState(false);
   const [errorPacientes, setErrorPacientes] = useState(null);
 
+  // Estado para las historias clínicas del paciente seleccionado
+  const [historiasClinicas, setHistoriasClinicas] = useState([]);
+  const [cargandoHistorias, setCargandoHistorias] = useState(false);
+  const [errorHistorias, setErrorHistorias] = useState(null);
+
   // Cargar pacientes al montar el componente
   useEffect(() => {
     const cargarPacientes = async () => {
@@ -56,7 +63,7 @@ const HistoriaClinica = () => {
 
       try {
         const resultado = await listarPacientes();
-        console.log('Resultado del servicio:', resultado);
+        console.log('Resultado del servicio pacientes:', resultado);
 
         if (resultado.success) {
           console.log('Pacientes obtenidos:', resultado.data);
@@ -76,92 +83,101 @@ const HistoriaClinica = () => {
     cargarPacientes();
   }, []);
 
-  // Historial clínico por paciente con los nuevos campos médicos
-  const historialPorPaciente = {
-    '2001234567': [ // David Alexander Molina
-      {
-        fecha: '12/02/2023',
-        anamnesis: 'Cuidado de dientes por comer',
-        diagnostico: 'A021 - Septicemia debida a salmonella',
-        tratamiento: 'Medicamento contra la salmonela',
-        medicoTratante: 'Dr. Meschia',
-        detalle: {
-          fechaCompleta: '12 de febrero de 2023',
-          anamnesis: 'Paciente refiere dolor dental al masticar alimentos duros. Presenta sensibilidad aumentada en molares superiores.',
-          diagnostico: 'A021 - Septicemia debida a salmonella - Diagnóstico diferencial por sintomatología gastrointestinal asociada',
-          tratamiento: 'Medicamento contra la salmonela - Ciprofloxacina 500mg cada 12 horas por 7 días',
-          medicoTratante: 'Dr. Meschia - Medicina Interna',
-          observaciones: 'Control en 48 horas. Hidratación abundante. Dieta blanda.'
-        }
-      },
-      {
-        fecha: '01/02/2024',
-        anamnesis: 'Valoración por consulta médica',
-        diagnostico: 'Paciente recuperado satisfactoriamente',
-        tratamiento: 'Ninguno',
-        medicoTratante: 'Dra. Quinto',
-        detalle: {
-          fechaCompleta: '1 de febrero de 2024',
-          anamnesis: 'Paciente asiste a control médico. Refiere mejoría completa de síntomas previos.',
-          diagnostico: 'Paciente recuperado satisfactoriamente - Sin hallazgos patológicos',
-          tratamiento: 'Ninguno - Continuar con medidas preventivas',
-          medicoTratante: 'Dra. Quinto - Medicina General',
-          observaciones: 'Próximo control en 6 meses. Mantener hábitos saludables.'
-        }
-      },
-      {
-        fecha: '15/06/2024',
-        anamnesis: 'Dolor abdominal en la parte baja',
-        diagnostico: 'A023 - Infección por comer empanadas',
-        tratamiento: 'Sal de frutas y agua de limón',
-        medicoTratante: 'Dr. Galindo',
-        detalle: {
-          fechaCompleta: '15 de junio de 2024',
-          anamnesis: 'Paciente presenta dolor abdominal en hipogastrio, tipo cólico, asociado a náuseas después de ingesta de empanadas en la calle.',
-          diagnostico: 'A023 - Infección gastrointestinal por alimentos contaminados',
-          tratamiento: 'Sal de frutas (citrato de sodio) cada 8 horas, agua de limón abundante, dieta líquida por 24 horas',
-          medicoTratante: 'Dr. Galindo - Gastroenterología',
-          observaciones: 'Evolución favorable esperada en 48-72 horas. Regresar si persisten síntomas.'
-        }
+  // Cargar historias clínicas cuando se selecciona un paciente
+  useEffect(() => {
+    const cargarHistoriasClinicas = async () => {
+      if (!pacienteSeleccionado) {
+        setHistoriasClinicas([]);
+        return;
       }
-    ],
-    '2002345678': [ // María José García
-      {
-        fecha: '15/01/2024',
-        anamnesis: 'Control ginecológico anual',
-        diagnostico: 'Examen normal - Sin hallazgos',
-        tratamiento: 'Continuar controles anuales',
-        medicoTratante: 'Dra. Martínez',
-        detalle: {
-          fechaCompleta: '15 de enero de 2024',
-          anamnesis: 'Paciente asiste a control ginecológico de rutina. Sin síntomas. Última menstruación hace 10 días.',
-          diagnostico: 'Examen ginecológico normal - Sin hallazgos patológicos',
-          tratamiento: 'Continuar controles anuales - Citología al día',
-          medicoTratante: 'Dra. Martínez - Ginecología',
-          observaciones: 'Próximo control en 12 meses. Autoexamen mensual.'
+
+      setCargandoHistorias(true);
+      setErrorHistorias(null);
+
+      try {
+        const resultado = await obtenerHistoriasClinicasPorPaciente(pacienteSeleccionado.dni);
+        console.log('Resultado del servicio historias clínicas:', resultado);
+
+        if (resultado.success) {
+          console.log('Historias clínicas obtenidas:', resultado.data);
+          setHistoriasClinicas(resultado.data);
+        } else {
+          console.error('Error al cargar historias clínicas:', resultado.message);
+          setErrorHistorias(resultado.message);
+          setHistoriasClinicas([]);
         }
-      },
-      {
-        fecha: '20/03/2024',
-        anamnesis: 'Dolor pélvico intermitente',
-        diagnostico: 'Quiste ovárico funcional',
-        tratamiento: 'Analgésicos y observación',
-        medicoTratante: 'Dra. Martínez',
-        detalle: {
-          fechaCompleta: '20 de marzo de 2024',
-          anamnesis: 'Paciente refiere dolor pélvico intermitente del lado derecho, más intenso durante la ovulación.',
-          diagnostico: 'Quiste ovárico funcional de 3cm en ovario derecho',
-          tratamiento: 'Ibuprofeno 400mg cada 8 horas por dolor. Control ecográfico en 2 meses',
-          medicoTratante: 'Dra. Martínez - Ginecología',
-          observaciones: 'Quiste funcional. Resolución espontánea esperada en 2-3 ciclos.'
-        }
+      } catch (error) {
+        console.error('Error inesperado:', error);
+        setErrorHistorias('Error inesperado al cargar las historias clínicas');
+        setHistoriasClinicas([]);
+      } finally {
+        setCargandoHistorias(false);
       }
-    ]
+    };
+
+    cargarHistoriasClinicas();
+  }, [pacienteSeleccionado]); // Se ejecuta cuando cambia el paciente seleccionado
+
+  // Función para formatear fecha
+  const formatearFecha = (fechaString) => {
+    try {
+      const fecha = new Date(fechaString);
+      return fecha.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return fechaString;
+    }
+  };
+
+  // Función para formatear fecha completa
+  const formatearFechaCompleta = (fechaString) => {
+    try {
+      const fecha = new Date(fechaString);
+      return fecha.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return fechaString;
+    }
+  };
+
+  // Función para obtener el primer diagnóstico como texto
+  const obtenerDiagnosticoPrincipal = (diagnosticos) => {
+    if (!diagnosticos || diagnosticos.length === 0) {
+      return 'Sin diagnóstico registrado';
+    }
+    const principal = diagnosticos[0];
+    return `${principal.codigo} - ${principal.nombre}`;
+  };
+
+  // Función para obtener medicamentos como texto
+  const obtenerTratamiento = (medicamentos) => {
+    if (!medicamentos || medicamentos.length === 0) {
+      return 'Sin tratamiento registrado';
+    }
+    return medicamentos.map(med =>
+      `${med.nombre} ${med.dosis} - ${med.duracion}`
+    ).join(', ');
   };
 
   // Función para abrir el modal con los detalles
-  const abrirModal = (item) => {
-    setDetalleSeleccionado(item.detalle);
+  const abrirModal = (historia) => {
+    const detalle = {
+      fechaCompleta: formatearFechaCompleta(historia.fecha),
+      agendaId: historia.agendaId,
+      estado: historia.estado,
+      resultado: historia.resultado,
+      diagnosticos: historia.diagnosticos || [],
+      medicamentos: historia.medicamentos || [],
+      examenes: historia.examenes || []
+    };
+    setDetalleSeleccionado(detalle);
     setModalAbierto(true);
   };
 
@@ -179,10 +195,7 @@ const HistoriaClinica = () => {
 
     const textoFiltro = filtroTexto.toLowerCase().trim();
 
-    // Usar pacientes del backend si están disponibles, sino usar mock
-    const listaPacientes = pacientes.length > 0 ? pacientes : [];
-
-    return listaPacientes.filter(paciente =>
+    return pacientes.filter(paciente =>
       paciente.nombre?.toLowerCase().includes(textoFiltro) ||
       paciente.dni?.toString().includes(textoFiltro) ||
       paciente.email?.toLowerCase().includes(textoFiltro)
@@ -194,7 +207,8 @@ const HistoriaClinica = () => {
     setPacienteSeleccionado(paciente);
     setMostrarResultados(false);
     setFiltroTexto('');
-    setPaginaActual(1); // Resetear a la primera página al seleccionar nuevo paciente
+    setPaginaActual(1);
+    // Las historias clínicas se cargarán automáticamente por el useEffect
   };
 
   // Función para manejar la búsqueda
@@ -211,8 +225,8 @@ const HistoriaClinica = () => {
     setMostrarResultados(false);
   };
 
-  // Obtener historial del paciente seleccionado
-  const historialActual = pacienteSeleccionado ? historialPorPaciente[pacienteSeleccionado.dni] || [] : [];
+  // Obtener historias clínicas del paciente seleccionado
+  const historialActual = historiasClinicas;
 
   // Calcular datos de paginación
   const totalRegistros = historialActual.length;
@@ -243,15 +257,13 @@ const HistoriaClinica = () => {
   // Generar números de página para mostrar
   const generarNumerosPagina = () => {
     const numeros = [];
-    const maxVisible = 9; // Máximo 9 números visibles
+    const maxVisible = 9;
 
     if (totalPaginas <= maxVisible) {
-      // Si hay 9 páginas o menos, mostrar todas
       for (let i = 1; i <= totalPaginas; i++) {
         numeros.push(i);
       }
     } else {
-      // Lógica más compleja para muchas páginas
       const inicio = Math.max(1, paginaActual - 4);
       const fin = Math.min(totalPaginas, paginaActual + 4);
 
@@ -318,14 +330,27 @@ const HistoriaClinica = () => {
               }}
               onClick={limpiarFiltro}
             >
-              Enviar
+              Limpiar
             </Button>
           </Box>
 
-          {/* Mostrar error si existe */}
+          {/* Mostrar errores si existen */}
           {errorPacientes && (
             <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-              {errorPacientes}
+              Error pacientes: {errorPacientes}
+            </Typography>
+          )}
+
+          {errorHistorias && (
+            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+              Error historias: {errorHistorias}
+            </Typography>
+          )}
+
+          {/* Estado de carga de historias específico */}
+          {cargandoHistorias && pacienteSeleccionado && (
+            <Typography variant="body2" color="info" sx={{ mb: 2 }}>
+              Cargando historias clínicas de {pacienteSeleccionado.nombre}...
             </Typography>
           )}
 
@@ -510,28 +535,29 @@ const HistoriaClinica = () => {
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Fecha</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Anamnesis</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Agenda ID</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Estado</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Diagnóstico</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Tratamiento</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Médico tratante</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Detalle</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {historialActual.length > 0 ? (
-                  historialActual.map((row, index) => (
-                    <TableRow key={index} hover>
-                      <TableCell sx={{ fontSize: '0.875rem' }}>{row.fecha}</TableCell>
-                      <TableCell sx={{ fontSize: '0.875rem', maxWidth: 200 }}>
-                        <Typography variant="body2" sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical'
-                        }}>
-                          {row.anamnesis}
-                        </Typography>
+                {registrosPaginaActual.length > 0 ? (
+                  registrosPaginaActual.map((historia, index) => (
+                    <TableRow key={historia.agendaId || index} hover>
+                      <TableCell sx={{ fontSize: '0.875rem' }}>
+                        {formatearFecha(historia.fecha)}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.875rem' }}>
+                        {historia.agendaId}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.875rem' }}>
+                        <Chip
+                          label={historia.estado}
+                          size="small"
+                          color={historia.estado === 'Completado' ? 'success' : 'default'}
+                        />
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.875rem', maxWidth: 200 }}>
                         <Typography variant="body2" sx={{
@@ -541,10 +567,10 @@ const HistoriaClinica = () => {
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical'
                         }}>
-                          {row.diagnostico}
+                          {obtenerDiagnosticoPrincipal(historia.diagnosticos)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.875rem', maxWidth: 150 }}>
+                      <TableCell sx={{ fontSize: '0.875rem', maxWidth: 200 }}>
                         <Typography variant="body2" sx={{
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -552,13 +578,12 @@ const HistoriaClinica = () => {
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical'
                         }}>
-                          {row.tratamiento}
+                          {obtenerTratamiento(historia.medicamentos)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.875rem' }}>{row.medicoTratante}</TableCell>
                       <TableCell>
                         <IconButton
-                          onClick={() => abrirModal(row)}
+                          onClick={() => abrirModal(historia)}
                           sx={{ color: '#ff9800', p: 0.5 }}
                           size="small"
                         >
@@ -571,9 +596,13 @@ const HistoriaClinica = () => {
                   <TableRow>
                     <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                       <Typography variant="body2" color="text.secondary">
-                        {pacienteSeleccionado
-                          ? `No hay historia clínica disponible para ${pacienteSeleccionado.nombre}`
-                          : 'Seleccione un paciente para ver su historia clínica'
+                        {!pacienteSeleccionado
+                          ? 'Seleccione un paciente para ver su historia clínica'
+                          : cargandoHistorias
+                          ? 'Cargando historia clínica...'
+                          : errorHistorias
+                          ? `Error: ${errorHistorias}`
+                          : `No hay historia clínica disponible para ${pacienteSeleccionado.nombre}`
                         }
                       </Typography>
                     </TableCell>
@@ -602,12 +631,14 @@ const HistoriaClinica = () => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 600,
+            width: 700,
             bgcolor: 'background.paper',
             borderRadius: 2,
             boxShadow: 24,
             p: 0,
-            outline: 'none'
+            outline: 'none',
+            maxHeight: '90vh',
+            overflowY: 'auto'
           }}>
             {/* Header del Modal */}
             <Box sx={{
@@ -640,50 +671,97 @@ const HistoriaClinica = () => {
 
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
-                      Anamnesis:
+                      Agenda ID:
                     </Typography>
                     <Typography variant="body2">
-                      {detalleSeleccionado.anamnesis}
+                      {detalleSeleccionado.agendaId}
                     </Typography>
                   </Box>
 
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
-                      Diagnóstico:
+                      Estado:
+                    </Typography>
+                    <Chip label={detalleSeleccionado.estado} size="small" />
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
+                      Resultado:
                     </Typography>
                     <Typography variant="body2">
-                      {detalleSeleccionado.diagnostico}
+                      {detalleSeleccionado.resultado || 'Sin resultado registrado'}
                     </Typography>
                   </Box>
 
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
-                      Tratamiento:
+                      Diagnósticos:
                     </Typography>
-                    <Typography variant="body2">
-                      {detalleSeleccionado.tratamiento}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
-                      Médico Tratante:
-                    </Typography>
-                    <Typography variant="body2">
-                      {detalleSeleccionado.medicoTratante}
-                    </Typography>
-                  </Box>
-
-                  {detalleSeleccionado.observaciones && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
-                        Observaciones:
+                    {detalleSeleccionado.diagnosticos.length > 0 ? (
+                      detalleSeleccionado.diagnosticos.map((diagnostico, index) => (
+                        <Box key={index} sx={{ mb: 1, p: 1, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                            {diagnostico.codigo} - {diagnostico.nombre}
+                          </Typography>
+                          {diagnostico.observacion && (
+                            <Typography variant="body2" color="text.secondary">
+                              {diagnostico.observacion}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Sin diagnósticos registrados
                       </Typography>
-                      <Typography variant="body2">
-                        {detalleSeleccionado.observaciones}
+                    )}
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
+                      Medicamentos:
+                    </Typography>
+                    {detalleSeleccionado.medicamentos.length > 0 ? (
+                      detalleSeleccionado.medicamentos.map((medicamento, index) => (
+                        <Box key={index} sx={{ mb: 1, p: 1, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                            {medicamento.nombre}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Dosis: {medicamento.dosis} | Cantidad: {medicamento.cantidad} | Duración: {medicamento.duracion}
+                          </Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Sin medicamentos registrados
                       </Typography>
-                    </Box>
-                  )}
+                    )}
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2' }}>
+                      Exámenes:
+                    </Typography>
+                    {detalleSeleccionado.examenes.length > 0 ? (
+                      detalleSeleccionado.examenes.map((examen, index) => (
+                        <Box key={index} sx={{ mb: 1, p: 1, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                            {examen.nombre}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Servicio: {examen.servicio} |
+                            Estado: {examen.ordenado ? 'Ordenado' : 'No ordenado'}
+                          </Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Sin exámenes registrados
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               )}
 

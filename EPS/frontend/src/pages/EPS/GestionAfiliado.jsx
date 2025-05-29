@@ -249,12 +249,6 @@ const GestionAfiliado = () => {
       return false;
     }
 
-    // Validar administrador registrador
-    if (!datosAfiliado.emailAdmRegistrador || !datosAfiliado.nombreAdmRegistrador) {
-      mostrarModalError('Por favor complete los campos requeridos del administrador registrador');
-      return false;
-    }
-
     // Validar beneficiarios si existen
     for (let i = 0; i < datosAfiliado.beneficiarios.length; i++) {
       const beneficiario = datosAfiliado.beneficiarios[i];

@@ -29,7 +29,7 @@ import {
   obtenerMedicamentos,
   obtenerServiciosMedicos,
   registrarResultado,
-  actualizarResultadoAgenda,
+  actualizarResultadoAgenda
 } from "../../services/resultadosService";
 
 // Tipos de órdenes médicas
@@ -276,7 +276,7 @@ function MedicalOrderForm() {
 
         if (
           medicamentos.some(
-            (med) => !med.medicamento || !med.cantidad || !med.receta,
+            (med) => !med.medicamento || !med.cantidad || !med.receta
           )
         ) {
           isValid = false;
@@ -333,7 +333,7 @@ function MedicalOrderForm() {
     try {
       const medicamentosFormateados = medicamentos.map((med) => {
         const medicamentoSeleccionado = listaMedicamentos.find(
-          (medicamento) => medicamento.nombre === med.medicamento,
+          (medicamento) => medicamento.nombre === med.medicamento
         );
 
         return {
@@ -425,7 +425,7 @@ function MedicalOrderForm() {
                     handleMedicamentoChange(
                       index,
                       "medicamento",
-                      e.target.value,
+                      e.target.value
                     )
                   }
                 >
@@ -561,7 +561,7 @@ function MedicalOrderForm() {
       {/* Snackbar para mostrar mensajes al usuario */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={2500}
+        autoHideDuration={5000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         key={SlideTransition}
@@ -674,7 +674,7 @@ function MedicalOrderForm() {
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: true,
-                    },
+                    }
                   )}
                 </MenuItem>
               ))}
