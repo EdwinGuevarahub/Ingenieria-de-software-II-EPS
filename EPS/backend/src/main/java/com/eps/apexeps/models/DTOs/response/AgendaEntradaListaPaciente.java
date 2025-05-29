@@ -1,8 +1,8 @@
 package com.eps.apexeps.models.DTOs.response;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import com.eps.apexeps.models.entity.relations.Agenda;
 
@@ -22,7 +22,7 @@ public class AgendaEntradaListaPaciente {
     private Integer idAgenda;
 
     /** Fecha de la cita. */
-    private LocalDate fecha;
+    private String fecha;
     /** Hora de inicio de la cita. */
     private LocalTime horaInicio;
     /** Nombre de la IPS asociada a la cita. */
@@ -38,10 +38,11 @@ public class AgendaEntradaListaPaciente {
      * @return Una nueva instancia de AgendaEntradaLista.
      */
     public static AgendaEntradaListaPaciente of(Agenda agenda) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return AgendaEntradaListaPaciente.builder()
                 .idAgenda(agenda.getId())
                 // TODO: Revisar cómo determinar la zona horaria.
-                .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate())
+                .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate().format(formatter))
                 .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalTime())
                 .nombreIps(agenda.getTrabaja().getConsultorio().getId().getIps().getNombre())
                 .nombreServicioMedico(agenda.getTrabaja().getConsultorio().getServicioMedico().getNombre())
