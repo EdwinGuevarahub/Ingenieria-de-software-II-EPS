@@ -1,6 +1,7 @@
 import {CheckBox, Close} from "@mui/icons-material";
 import {Box, Button, Dialog, DialogContent, DialogTitle, Typography} from "@mui/material";
 import {useState} from "react";
+import {cancelarAgenda} from "../../../services/agendaService";
 
 function ConfirmacionDialog({ open, onClose }) {
   return (
@@ -53,10 +54,9 @@ export default function CanceladoCitaModal({ open, onClose, idAgenda }) {
   const [confirmacionOpen, setConfirmacionOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
 
-  const handleConfirm = () => {
-    // TODO: Implementar llamado a servicio para eliminación de la agenda.
-    console.log(`Estoy haciendo vainas raras de back con la agenda ${idAgenda}`);
-    if (true)
+  const handleConfirm = async () => {
+    const agenda = await cancelarAgenda(idAgenda);
+    if (agenda.estado === 'CANCELADA')
       setConfirmacionOpen(true);
     else
       setErrorOpen(true);

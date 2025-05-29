@@ -148,4 +148,31 @@ export async function detalleAgenda(idAgenda) {
     }
 }
 
-// TODO: Implementar servicio para eliminado de agenda.
+/**
+ * Cancelar una agenda dada por su ID.
+ * @param idAgenda ID de la agenda a cancelar.
+ * @returns {Promise<Object>} Un objeto con los detalles de la agenda actualizada.
+ */
+export async function cancelarAgenda(idAgenda) {
+    try {
+        const response = await AxiosInstance.delete(`agenda/${idAgenda}`);
+        const agenda = response.data;
+
+        return {
+            id: agenda.id,
+            paciente: agenda.paciente,
+            trabaja: agenda.trabaja,
+            fecha: agenda.fecha,
+            fechaPago : agenda.fechaPago,
+            resultado: agenda.resultado,
+            estado: agenda.estado,
+            generaciones: agenda.generaciones,
+            ordenes: agenda.ordenes
+        };
+    
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw err;
+        }
+    }
+}
