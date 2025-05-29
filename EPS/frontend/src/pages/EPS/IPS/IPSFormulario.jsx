@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Typography,
   Box,
@@ -15,6 +15,7 @@ const IPSFormulario = ({
 }) => {
   const [formData, setFormData] = useState(initialData || {});
   const [serviciosMedicos, setServiciosMedicos] = useState([]);
+  const fileInputRef = useRef();
 
   useEffect(() => {
     const fetchServiciosDeLaIPS = async () => {
@@ -32,6 +33,17 @@ const IPSFormulario = ({
 
   const handleChange = (key) => (e) => {
     setFormData({ ...formData, [key]: e.target.value });
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, imagen: reader.result });
+      };
+      reader.readAsDataURL(file); // convierte a base64
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -60,13 +72,27 @@ const IPSFormulario = ({
           backgroundColor: '#f9f9f9',
         }}
       >
-        <Box
-          component="img"
-          src="https://picsum.photos/300"
-          alt="Foto"
-          sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-        />
+        {/* Imagen cargada o placeholder */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+          <Box
+            component="img"
+            src={formData.imagen}
+            alt="Foto"
+            sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+          />
+          <Button variant="outlined" size="small" onClick={() => fileInputRef.current.click()}>
+            Cargar Imagen
+          </Button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
+        </Box>
 
+        {/* Campos de texto */}
         <Box sx={{ flex: 1, minWidth: 250, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography variant="body1">{formData.id || ''}</Typography>
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
@@ -74,11 +100,13 @@ const IPSFormulario = ({
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
         </Box>
 
+        {/* Botones */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button variant="contained" color="error" onClick={onCancel}>Cancelar</Button>
           <Button type="submit" variant="outlined">Guardar</Button>
         </Box>
 
+        {/* Servicios médicos */}
         <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {serviciosMedicos.length > 0 ? (
             serviciosMedicos.map((servicio) => (

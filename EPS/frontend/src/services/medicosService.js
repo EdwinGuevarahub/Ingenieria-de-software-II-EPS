@@ -53,6 +53,7 @@ export async function detalleMedico(dniMedico) {
             nombre: medico.nombre,
             telefono: medico.telefono,
             email: medico.email,
+            imagen: medico.imagen,
             activo: medico.activo,
         };
 

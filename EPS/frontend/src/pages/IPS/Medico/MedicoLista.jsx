@@ -59,6 +59,7 @@ const MedicoLista = () => {
           "email": medico.email,
           "password": "elsapato",
           "telefono": medico.telefono,
+          "imagen": medico.imagen,
           "activo": true
         },
         "consultorio": {
@@ -259,8 +260,8 @@ const MedicoLista = () => {
             >
               <Box
                 component="img"
-                src="https://picsum.photos/300"
-                alt="IPS"
+                src={`data:image/png;base64,${detalle[0].imagen}`}
+                alt="Médico"
                 sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
               />
               <Box sx={{ flex: 1, minWidth: 200 }}>

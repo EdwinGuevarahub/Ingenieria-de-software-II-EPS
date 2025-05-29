@@ -42,6 +42,7 @@ const IPSLista = () => {
         nombre: ips.nombre,
         direccion: ips.direccion,
         telefono: ips.telefono,
+        imagen: ips.imagen,
         admEps: {
           email: subEmail,
         },
@@ -181,7 +182,7 @@ const IPSLista = () => {
           >
             <Box
               component="img"
-              src="https://picsum.photos/300"
+              src={`data:image/png;base64,${detalle[0].imagen}`}
               alt="IPS"
               sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
             />

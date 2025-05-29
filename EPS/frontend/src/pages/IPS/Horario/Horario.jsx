@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Table, TableBody,
   TableCell, TableHead, TableRow, TextField, MenuItem, Select, InputLabel, FormControl, Paper, IconButton,
   Tooltip, Checkbox
 } from '@mui/material';
 import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';
+import { listarTrabaja, obtenerHorarioCompleto, obtenerHorario } from '@/../../src/services/trabajaService';
+
 
 // ... (Constantes como diasSemana, horasDia, servicios, etc. permanecen igual)
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -185,6 +187,36 @@ export default function HorarioModal({ open, onClose }) {
 
   const [editingHorario, setEditingHorario] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
+
+  const fetchTrabaja = async () => {
+    try {
+      const { trabaja } = await listarTrabaja('1002345678');
+    } catch (error) {
+      console.error('Error cargando los horarios del médico 1:', error);
+    }
+  };
+
+  const fetchObtenerHorarioCompleto = async () => {
+    try {
+      const { trabaja } = await obtenerHorarioCompleto();
+    } catch (error) {
+      console.error('Error cargando los horarios del médico 2:', error);
+    }
+  };
+
+  const fetchObtenerHorario = async () => {
+    try {
+      const { trabaja } = await obtenerHorario();
+    } catch (error) {
+      console.error('Error cargando los horarios del médico 3:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrabaja();
+    fetchObtenerHorarioCompleto();
+    fetchObtenerHorario();
+  }, []);
 
   const handleOpenFormForNew = () => {
     setEditingHorario(null);
