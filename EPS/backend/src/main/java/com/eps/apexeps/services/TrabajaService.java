@@ -179,9 +179,12 @@ public class TrabajaService {
         for (Trabaja existente : existentes) {
             for (EntradaHorario hExistente : existente.getHorario()) {
                 for (EntradaHorario hNuevo : trabaja.getHorario()) {
-
                     // Verifica que sea el mismo día
                     if (hExistente.getDia().equals(hNuevo.getDia())) {
+                        // Saltar verificación para el día que se está modificando.
+                        if (existente.getId().equals(trabaja.getId()))
+                            continue;
+
                         LocalTime iniExist = hExistente.getInicio();
                         LocalTime finExist = hExistente.getFin();
                         LocalTime iniNuevo = hNuevo.getInicio();
@@ -225,12 +228,6 @@ public class TrabajaService {
         if (!existente.getMedico().getDni().equals(dniMedico)) {
             throw new RuntimeException("El médico no coincide con el registro de trabajo");
         }
-
-        // Buscar otros trabaja en el mismo consultorio, excepto este mismo
-        List<Trabaja> enMismoConsultorio = trabajaRepository.findByConsultorio(trabajaActualizado.getConsultorio())
-                .stream()
-                .filter(t -> t.getId() != idTrabaja)
-                .toList();
 
         // Validar que no haya solapamiento con otros trabaja en el mismo consultorio
         if (haySolapamientoHorario(trabajaActualizado)) {
