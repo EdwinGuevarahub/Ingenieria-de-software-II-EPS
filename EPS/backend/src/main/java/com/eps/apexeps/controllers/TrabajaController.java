@@ -9,9 +9,12 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.entity.relations.EntradaHorario;
+import com.eps.apexeps.models.DTOs.response.HorarioTrabajaEntradaLista;
 import com.eps.apexeps.models.entity.relations.Trabaja;
-import com.eps.apexeps.models.entity.users.Medico;
+import com.eps.apexeps.services.AdmIpsService;
 import com.eps.apexeps.services.TrabajaService;
 
 /**
@@ -39,52 +42,30 @@ public class TrabajaController {
     @Autowired
     private TrabajaService trabajaService;
 
-    @GetMapping("/trabaja/all")
-    public List<Trabaja> findAll() {
-        return trabajaService.findAll();
-    }
+    @Autowired
+    private AdmIpsService admIpsService;
 
     @GetMapping("/trabaja/dni/")
-    public List<Trabaja> findByMedico_Dni(
+    public ResponseEntity<List<HorarioTrabajaEntradaLista>> findByMedico_Dni(
             @RequestParam(required = false) long dniMedico) {
-        return trabajaService.findByMedico_Dni(dniMedico);
-    }
-
-    @GetMapping("/{dniMedico}/trabaja/{idTrabaja}/{dia}")
-    public EntradaHorario obtenerHorarioPorDia(
-            @PathVariable Long dniMedico,
-            @PathVariable Integer idTrabaja,
-            @PathVariable DayOfWeek dia) {
-        return trabajaService.obtenerEntradaPorDia(dniMedico, idTrabaja, dia);
-    }
-
-    @GetMapping("/{dniMedico}/full/trabaja/{idTrabaja}/{dia}")
-    public Trabaja obtenerTrabajaPorDia(
-            @PathVariable Long dniMedico,
-            @PathVariable Integer idTrabaja,
-            @PathVariable DayOfWeek dia) {
-        return trabajaService.obtenerTrabajaConDia(dniMedico, idTrabaja, dia);
-    }
-
-    @GetMapping("/trabaja/filtrar")
-    public List<Medico> filtrarMedicosPorHorario(@RequestParam String horario) {
-        return trabajaService.filtrarMedicosPorDisponibilidad(horario);
-    }
-
-    @PostMapping("/trabaja")
-    public ResponseEntity<?> crearTrabaja(@RequestBody Trabaja nuevoTrabaja) {
-        try {
-            Trabaja guardado = trabajaService.crearTrabaja(nuevoTrabaja);
-            return ResponseEntity.ok(guardado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentication.getName());
+        List<Trabaja> trabajos = trabajaService.findByMedico_Dni(dniMedico, idIpsAdm);
+        return ResponseEntity.ok(
+                trabajos.stream()
+                        .map(HorarioTrabajaEntradaLista::of)
+                        .toList());
     }
 
     @PostMapping("/{dniMedico}/trabaja")
     public ResponseEntity<?> crearTrabaja(
             @PathVariable long dniMedico,
             @RequestBody Trabaja trabaja) {
+        Integer idIps = trabaja.getConsultorio().getId().getIps().getId();
+        if (!isAdmIpsOfIdIps(idIps)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("El administrador no pertenece a la IPS del consultorio.");
+        }
         try {
             trabajaService.crearTrabaja(dniMedico, trabaja);
             return ResponseEntity.status(HttpStatus.CREATED).body("Horario creado exitosamente.");
@@ -100,6 +81,11 @@ public class TrabajaController {
             @PathVariable long dniMedico,
             @PathVariable int idTrabaja,
             @RequestBody Trabaja trabajaActualizado) {
+        Integer idIps = trabajaActualizado.getConsultorio().getId().getIps().getId();
+        if (!isAdmIpsOfIdIps(idIps)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("El administrador no pertenece a la IPS del consultorio.");
+        }
         try {
             Trabaja actualizado = trabajaService.actualizarTrabaja(dniMedico, idTrabaja, trabajaActualizado);
             return ResponseEntity.ok(actualizado);
@@ -108,6 +94,22 @@ public class TrabajaController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
+    }
+
+    /**
+     * Verifica si el administrador de la sesión actual pertenece a la IPS del
+     * consultorio.
+     * 
+     * @param idIps El id de la IPS del consultorio.
+     * @return true si el administrador no pertenece a la IPS, false en caso
+     *         contrario.
+     */
+    private boolean isAdmIpsOfIdIps(Integer idIps) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentication.getName());
+        System.out.println("ID IPS del administrador: " + idIpsAdm);
+        System.out.println("ID IPS del consultorio: " + idIps);
+        return idIpsAdm.equals(idIps);
     }
 
 }

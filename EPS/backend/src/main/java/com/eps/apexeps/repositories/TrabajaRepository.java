@@ -37,5 +37,7 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
      * @return Una colección de relaciones de trabajo asociadas al médico con el DNI proporcionado.
      */
     Collection<Trabaja> findAllByMedico_Dni(Long dni);
+
+    List<Trabaja> findByMedico_DniAndConsultorio_Id_Ips_Id(long dniMedico, Integer idIps);
     
 }
