@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Box,
     Collapse,
@@ -18,6 +18,12 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
     const [openRowIndex, setOpenRowIndex] = useState(null);
     const [loadingRowIndex, setLoadingRowIndex] = useState(null);
     const [expandedData, setExpandedData] = useState(null);
+
+    useEffect(() => {
+        setOpenRowIndex(null);
+        setLoadingRowIndex(null);
+        setExpandedData(null);
+    }, [data]);
 
     const handleRowClick = async (index, row) => {
         const isSameRow = openRowIndex === index;
