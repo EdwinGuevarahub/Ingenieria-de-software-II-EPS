@@ -153,7 +153,7 @@ public class TrabajaService {
         return trabajaRepository.save(nuevoTrabaja);
     }
 
-    public void crearTrabaja(long dniMedico, Trabaja trabaja) {
+    public Trabaja crearTrabaja(long dniMedico, Trabaja trabaja) {
         try {
             Medico medico = medicoRepository.findById(dniMedico)
                     .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
@@ -164,7 +164,7 @@ public class TrabajaService {
             }
 
             trabaja.setMedico(medico);
-            trabajaRepository.save(trabaja);
+            return trabajaRepository.save(trabaja);
 
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Error al crear horario: " + e.getMessage());
