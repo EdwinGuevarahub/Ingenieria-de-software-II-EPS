@@ -286,7 +286,15 @@ const MedicoLista = () => {
                 >
                   Editar
                 </Button>
-                <Button variant="contained" onClick={() => setModalHorarioAbierto(true)}>Horario</Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setEditandoMedico(detalle[0]);
+                    setModalHorarioAbierto(true);
+                  }}
+                >
+                  Horario
+                </Button>
               </Box>
 
               <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -327,7 +335,14 @@ const MedicoLista = () => {
           <AddIcon />
         </Fab>
       </Box>
-      <Horario open={modalHorarioAbierto} onClose={() => setModalHorarioAbierto(false)} />
+
+      {editandoMedico && (
+        <Horario 
+          open={modalHorarioAbierto} 
+          onClose={() => setModalHorarioAbierto(false)} 
+          dniMedico={editandoMedico.dni}
+        />
+      )}
     </Box >
   );
 };
