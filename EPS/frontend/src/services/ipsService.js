@@ -48,8 +48,6 @@ export async function detallesIPS(id) {
     const response = await AxiosInstance.get(`ips/ips/detalle?idIps=${id}`);
     const ips = response.data;
 
-    console.log("Respuesta del backend ", ips)
-
     return {
       id: ips.id,
       nombre: ips.nombre,
@@ -70,7 +68,6 @@ export async function detallesIPS(id) {
 export async function crearIPS(data) {
     try {
         const response = await AxiosInstance.post('/ips', data);
-        console.log("Respuesta del backend ", response.data)
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
@@ -81,7 +78,6 @@ export async function crearIPS(data) {
 
 export async function actualizarIPS(data) {
     try {
-        console.log(data)
         const response = await AxiosInstance.put(`/ips`, data);
         return response.data;
     } catch (err) {
