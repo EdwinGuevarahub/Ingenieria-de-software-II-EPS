@@ -1,6 +1,16 @@
 import { AxiosInstance } from '../services/axios';
 import { isAxiosError } from 'axios';
 
+export async function getIpsByAdmIpsEmail(email) {
+  try {
+    const response = await AxiosInstance.get('admips', { params: {email} });
+    return response.data.ips;
+  } catch (err) {
+    if (isAxiosError(err))
+      throw err;
+  }
+};
+
 export async function listarIPS({
   qPage = 0,
   qSize = 10,
