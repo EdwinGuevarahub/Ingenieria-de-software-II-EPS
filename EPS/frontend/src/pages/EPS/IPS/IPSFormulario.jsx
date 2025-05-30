@@ -40,7 +40,7 @@ const IPSFormulario = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, imagen: reader.result });
+        setFormData({ ...formData, imagen: reader.result.substring(reader.result.indexOf(',') + 1) });
       };
       reader.readAsDataURL(file); // convierte a base64
     }
@@ -76,7 +76,7 @@ const IPSFormulario = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
           <Box
             component="img"
-            src={formData.imagen}
+            src={`data:image/png;base64,${formData.imagen}`}
             alt="Foto"
             sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
           />
