@@ -26,26 +26,43 @@ const services = [
 ];
 
 const LandingPage = () => {
-  const { isLogged, subEmail, role } = useAuthContext();
+  const { isLogged, role } = useAuthContext();
   const logged = isLogged();
-  const [ ips, setIps ] = useState('');
 
-  const fetchIps = useCallback(
-    async () => {
-      if (role !== 'ADM_IPS')
-        return;
-
-      try {
-        const result = await getIpsByAdmIpsEmail(subEmail);
-        setIps(result);
-      } catch(error) {
-        console.error('Error al cargar la ips del médico: ', error);
-      }
-  }, [role, subEmail]);
+  const [willRedirect, setWillRedirect] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   useEffect(() => {
-    fetchIps();
-  }, [fetchIps]);
+    if (logged === false || role)
+      setLoadingAuth(false);
+    else
+      return;
+
+    if (logged === false || !['ADM_IPS', 'ADM_EPS'].includes(role)) {
+      setWillRedirect(false);
+      return;
+    }
+
+    if (role === 'ADM_EPS')
+      window.location.href = '/HomeEPS';
+    else
+      window.location.href = '/HomeIPS';
+
+  }, [logged, role]);
+
+  if (loadingAuth)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Cargando...</Typography>
+      </Box>
+    )
+
+  if (willRedirect)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Redirigiendo...</Typography>
+      </Box>
+    )
 
   return (
     <Box>
@@ -54,8 +71,8 @@ const LandingPage = () => {
           <Grid size={{ xs: 6, md: 4 }} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <Box
               component="img"
-              src={logged && role === 'ADM_IPS' ? `data:image/png;base64,${ips.imagen}` : Doctor}
-              alt={logged && role === 'ADM_IPS' ? ips.nombre : 'Doctor'}
+              src={Doctor}
+              alt='Doctor'
               sx={{
                 width: '100%',
                 maxHeight: 500,
@@ -67,24 +84,13 @@ const LandingPage = () => {
           </Grid>
 
           <Grid size={{ xs: 6, md: 8 }} sx={{ textAlign: { xs: 'center', md: 'right' }, pr: { md: 6 } }}>
-            {/*Vista para cualquier usuario que no sea ADM_IPS.*/}
-            {(!logged || role !== 'ADM_IPS') ? (<>
-              <Typography variant="h3" gutterBottom>
-                Bienvenido a <b>ApexEPS</b>
-              </Typography>
-              <Typography variant="body1">
-                En ApexEPS trabajgamos cada día por tu bienestar y el de tu familia.
-                Te ofrecemos servicios de salud con calidad, oportunidad y atención humana.
-              </Typography>
-            {/* Vista para el usuario ADM_IPS*/}
-            </>) : (<>
-              <Typography variant="h3" gutterBottom>
-                Administrando <b>{ips.nombre}</b>
-              </Typography>
-              <Typography variant="body1">
-                En este espacio podrá gestionar los los médicos y consultorios de su IPS registrados en <b>ApexEPS</b>.
-              </Typography>
-            </>)}
+            <Typography variant="h3" gutterBottom>
+              Bienvenido a <b>ApexEPS</b>
+            </Typography>
+            <Typography variant="body1">
+              En ApexEPS trabajgamos cada día por tu bienestar y el de tu familia.
+              Te ofrecemos servicios de salud con calidad, oportunidad y atención humana.
+            </Typography>
           </Grid>
         </Grid>
       </Box>
