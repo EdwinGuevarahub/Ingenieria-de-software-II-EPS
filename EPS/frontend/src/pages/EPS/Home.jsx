@@ -31,7 +31,7 @@ const Home = () => {
   const [ isAuthLoading, setIsAuthLoading ] = useState(true);
   const [ willRedirect, setWillRedirect ] = useState(true);
 
-  // Redirigir si el usuario no está logueado o no es un administrador de IPS.
+  // Redirigir si el usuario no está logueado o no es un administrador de EPS.
   useEffect(() => {
     if (logged === false || role)
       setIsAuthLoading(false);
