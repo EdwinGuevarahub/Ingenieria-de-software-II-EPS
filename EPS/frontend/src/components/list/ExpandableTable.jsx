@@ -14,7 +14,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 
 
-const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDetails, onExpandedChange }) => {
+const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDetails, onExpandedChange = () => {} }) => {
 	const [expandedState, setExpandedState] = useState({
 		index: null, // Índice de la fila expandida
 		loadingIndex: null, // Índice de la fila que está cargando detalles.
