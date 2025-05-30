@@ -30,6 +30,7 @@ public class IpsConServicios {
     private String telefono;
     private Instant fechaRegistro;
     private AdmEps admEps;
+    private Boolean activo;
     private List<ServicioEnIpsDTO> servicios;
     private byte[] imagen;
 
@@ -40,6 +41,7 @@ public class IpsConServicios {
                 .direccion(ips.getDireccion())
                 .telefono(ips.getTelefono())
                 .fechaRegistro(ips.getFechaRegistro())
+                .activo(ips.getActivo())
                 .servicios(servicios)
                 .admEps(ips.getAdmEps())
                 .imagen(ips.getImagen())

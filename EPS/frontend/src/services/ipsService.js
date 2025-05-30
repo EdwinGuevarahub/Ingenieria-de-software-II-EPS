@@ -54,6 +54,7 @@ export async function detallesIPS(id) {
       telefono: ips.telefono,
       direccion: ips.direccion,
       fechaRegistro: ips.fechaRegistro,
+      activo: ips.activo,
       imagen: ips.imagen,
       admEps: ips.admEps,
     };
