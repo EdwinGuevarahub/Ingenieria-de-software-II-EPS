@@ -61,7 +61,7 @@ const IPSLista = () => {
         nombre: ips.nombre,
         direccion: ips.direccion,
         telefono: ips.telefono,
-        activo: ips.activo,
+        activo: true,
         imagen: ips.imagen,
         admEps: {
           email: subEmail,
