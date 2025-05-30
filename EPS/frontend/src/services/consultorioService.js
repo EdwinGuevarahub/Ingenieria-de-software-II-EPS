@@ -1,26 +1,6 @@
 import { AxiosInstance } from "../services/axios";
 import { isAxiosError } from "axios";
 
-/**
- * Listar consultorios de una IPS o todos los consultorios.
- * @param {Object} params - Parámetros de consulta.
- * @param {number|null} params.idIps - ID de la IPS para filtrar consultorios.
- * @param {number} params.qPage - Página de resultados (default: 0).
- * @param {number} params.qSize - Tamaño de página (default: 10).
- * @param {string} params.cupsServicioMedico - CUPS del servicio médico.
- * @param {string} params.idConsultorioLike - ID del consultorio para filtrar.
- * @returns {Promise<Object>} - Objeto con total de páginas y lista de consultorios.
- * @throws {Error} - Si ocurre un error al hacer la solicitud.
- * @example
- * listarConsultorios({
- *  idIps: 1,
- *  qPage: 0,
- * qSize: 10,
- *  cupsServicioMedico: 'CUPS123',
- * idConsultorioLike: 'CONS123'
- * })
- * .then(data => console.log(data))
- */
 export async function listarConsultorios({
   qPage = 0,
   qSize = 10,
@@ -28,7 +8,7 @@ export async function listarConsultorios({
   idConsultorioLike,
 } = {}) {
   try {
-    const response = await AxiosInstance.get("/consultorio", {
+    const response = await AxiosInstance.get("consultorio", {
       params: {
         qPage,
         qSize,
@@ -37,32 +17,58 @@ export async function listarConsultorios({
       },
     });
 
+    const { totalPages, consultorios } = response.data;
+
     return {
-      totalPaginas: response.data.totalPaginas,
-      consultorios: response.data.consultorios,
+      totalPaginas: totalPages,
+      consultorios: consultorios.map((c) => ({
+        idConsultorio: c.idConsultorio,
+        cupsServicioMedico: c.cupsServicioMedico,
+        nombreServicioMedico: c.nombreServicioMedico,
+        idIps: c.idIps,
+      })),
     };
   } catch (err) {
     if (isAxiosError(err)) {
       throw err;
     }
+    console.error("Error inesperado al listar consultorios:", err);
+    return { totalPaginas: 0, consultorios: [] };
   }
 }
 
 export async function obtenerConsultorio(idIps, idConsultorio) {
   try {
+    console.log(
+      "Obteniendo consultorio con ID IPS:",
+      idIps,
+      "y ID Consultorio:",
+      idConsultorio
+    );
     const response = await AxiosInstance.get(
       `/consultorio/${idIps}?idConsultorioLike=${idConsultorio}`
     );
-    const consultorio = response.data;
-
-    return {
-      id: consultorio.id,
-      nombre: consultorio.nombre,
-      telefono: consultorio.telefono,
-      direccion: consultorio.direccion,
-      fechaRegistro: consultorio.fechaRegistro,
-      admEps: consultorio.admEps,
-    };
+    const consultorioAPI = response.data;
+    console.log("API response data (wrapper):", consultorioAPI);
+    if (
+      consultorioAPI &&
+      consultorioAPI.consultorios &&
+      consultorioAPI.consultorios.length > 0
+    ) {
+      const consultorioActual = consultorioAPI.consultorios[0];
+      console.log("Consultorio actual extraído:", consultorioActual);
+      return {
+        idIps: consultorioActual.idIps,
+        idConsultorio: consultorioActual.idConsultorio,
+        cupsServicioMedico: consultorioActual.cupsServicioMedico,
+        nombreServicioMedico: consultorioActual.nombreServicioMedico,
+      };
+    } else {
+      console.warn(
+        "Consultorio no encontrado en la respuesta o estructura inesperada:",
+        consultorioAPI
+      );
+    }
   } catch (err) {
     if (isAxiosError(err)) {
       throw err;
