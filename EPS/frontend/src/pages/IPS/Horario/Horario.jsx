@@ -1,460 +1,570 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
-  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Table, TableBody,
-  TableCell, TableHead, TableRow, TextField, MenuItem, Select, InputLabel, FormControl, Paper, IconButton,
-  Tooltip, Checkbox
+    Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Table, TableBody,
+    TableCell, TableHead, TableRow, TextField, MenuItem, Select, InputLabel, FormControl, Paper, IconButton,
+    Tooltip, Checkbox, CircularProgress, Alert
 } from '@mui/material';
 import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';
-import { listarTrabaja, obtenerHorarioCompleto, obtenerHorario } from '@/../../src/services/trabajaService';
+import { obtenerHorario, crearHorario, actualizarHorario } from '@/../../src/services/trabajaService';
+import { listarConsultorios } from "@/../../src/services/consultorioService.js";
+import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";
 
-
-// ... (Constantes como diasSemana, horasDia, servicios, etc. permanecen igual)
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const horasDia = Array.from({ length: 17 }, (_, i) => `${String(i + 6).padStart(2, '0')}:00`);
 
-const servicios = ['Medicina General', 'Pediatría', 'Dermatología', 'Cardiología', 'Ginecología'];
-const consultorios = {
-  'Medicina General': ['Consultorio 101', 'Consultorio 102'],
-  'Pediatría': ['Consultorio 201', 'Consultorio 202'],
-  'Dermatología': ['Consultorio 301'],
-  'Cardiología': ['Consultorio 401', 'Consultorio 402'],
-  'Ginecología': ['Consultorio 501'],
-};
+const mapDiaCompletoACorto = { Lunes: 'L', Martes: 'M', Miércoles: 'R', Jueves: 'J', Viernes: 'V', Sábado: 'S', Domingo: 'D' };
 
-const mapDiaCortoACompleto = { L: 'Lunes', M: 'Martes', R: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado', D: 'Domingo' };
-const mapDiaCompletoACorto = Object.fromEntries(Object.entries(mapDiaCortoACompleto).map(([k, v]) => [v, k]));
+const backendToFrontendDayMap = {
+    SUNDAY: 'Domingo', MONDAY: 'Lunes', TUESDAY: 'Martes',
+    WEDNESDAY: 'Miércoles', THURSDAY: 'Jueves', FRIDAY: 'Viernes',
+    SATURDAY: 'Sábado'
+};
+const frontendToBackendDayMap = Object.fromEntries(Object.entries(backendToFrontendDayMap).map(([k, v]) => [v, k]));
 
 const coloresBase = ['#ffccbc', '#dcedc8', '#b2dfdb', '#bbdefb', '#f8bbd0', '#e1bee7', '#c5cae9', '#fff9c4', '#ffecb3'];
 
-function HorarioFormDialog({ open, onClose, onSave, initialData }) {
-  const [formHorario, setFormHorario] = useState({
-    dia: '', horaInicio: '', horaFin: '', servicio: '', consultorio: '',
-  });
-  const [isEditing, setIsEditing] = useState(false);
+let _serviciosOpts = [];
+let _consultoriosOpts = [];
 
-  React.useEffect(() => {
-    if (initialData) {
-      setFormHorario(initialData);
-      setIsEditing(true);
-    } else {
-      setFormHorario({ dia: '', horaInicio: '', horaFin: '', servicio: '', consultorio: '' });
-      setIsEditing(false);
+const getServicioNameFromIdConsultorio = (ConsultorioId) => {
+    const servicio = _consultoriosOpts.find(c => c.value === ConsultorioId);
+    return servicio ? servicio.nombreServicio : `Servicio CUPS ${servicio.cupsServicio}`;
+};
+
+const getIdServiceFromName = (name) => {
+    const servicio = _serviciosOpts.find(s => s.label === name);
+    return servicio ? servicio.value : null;
+};
+
+const getConsultorioNameFromId = (id) => {
+    const consultorio = _consultoriosOpts.find(c => c.value === id);
+    return consultorio ? consultorio.label : `Consultorio ID ${id}`;
+};
+
+const getIdConsultorioFromName = (name) => {
+    const consultorio = _consultoriosOpts.find(c => c.label === name);
+    return consultorio ? consultorio.value : null;
+};
+
+const getIdIPSFromConsultorio = (ConsultorioId) => {
+    const consultorio = _consultoriosOpts.find(c => c.value === ConsultorioId);
+    return consultorio ? consultorio.idIps : null;
+};
+
+
+function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, consultoriosOpts }) { // Changed prop name
+    const [formHorario, setFormHorario] = useState({
+        dias: [], horaInicio: '', horaFin: '', servicio: '', consultorio: '',
+    });
+    const [isEditing, setIsEditing] = useState(false);
+
+    useEffect(() => {
+        _serviciosOpts = serviciosOpts;
+        _consultoriosOpts = consultoriosOpts;
+    }, [serviciosOpts, consultoriosOpts]);
+
+    React.useEffect(() => {
+        if (open) {
+            if (initialData) {
+                setFormHorario({
+                    dias: initialData.dias || (initialData.dia ? [initialData.dia] : []),
+                    horaInicio: initialData.horaInicio || '',
+                    horaFin: initialData.horaFin || '',
+                    servicio: initialData.servicio || '',
+                    consultorio: initialData.consultorio || '',
+                });
+                setIsEditing(true);
+            } else {
+                setFormHorario({
+                    dias: [],
+                    horaInicio: '09:00',
+                    horaFin: '17:00',
+                    servicio: serviciosOpts.length > 0 ? serviciosOpts[0].label : '',
+                    consultorio: ''
+                });
+                setIsEditing(false);
+            }
+        }
+    }, [initialData, open, serviciosOpts]);
+
+    useEffect(() => {
+        if (open && !isEditing) {
+            if (formHorario.servicio && consultoriosOpts.length > 0) {
+                const selectedServiceId = getIdServiceFromName(formHorario.servicio);
+                const availableConsultorios = consultoriosOpts.filter(c => c.cupsServicio === selectedServiceId);
+                if (availableConsultorios.length > 0 && formHorario.consultorio === '') {
+                    setFormHorario(prev => ({
+                        ...prev,
+                        consultorio: availableConsultorios[0].label
+                    }));
+                } else if (availableConsultorios.length === 0 && formHorario.consultorio !== '') {
+                     setFormHorario(prev => ({
+                        ...prev,
+                        consultorio: ''
+                    }));
+                }
+            }
+        }
+    }, [formHorario.servicio, consultoriosOpts, open, isEditing]);
+
+
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setFormHorario(prev => {
+            const newState = { ...prev, [name]: value };
+            if (name === 'servicio') {
+                const servicioCups = getIdServiceFromName(value);
+                const relatedConsultorios = consultoriosOpts.filter(c => c.idIps === servicioCups);
+                newState.consultorio = relatedConsultorios.length > 0 ? relatedConsultorios[0].label : '';
+            }
+            return newState;
+        });
+    };
+
+    const handleCheckboxChange = (dia, checked) => {
+        setFormHorario(prev => {
+            const newDias = prev.dias || [];
+            const updatedDias = checked
+                ? [...newDias, dia]
+                : newDias.filter((d) => d !== dia);
+            return { ...prev, dias: updatedDias };
+        });
+    };
+
+    const handleSave = () => {
+        if (!formHorario.dias || formHorario.dias.length === 0 || !formHorario.horaInicio || !formHorario.horaFin || !formHorario.servicio || !formHorario.consultorio) {
+            alert('Por favor, complete todos los campos requeridos, incluyendo al menos un día.');
+            return;
+        }
+        if (formHorario.horaInicio >= formHorario.horaFin) {
+            alert('La hora de fin debe ser posterior a la hora de inicio.');
+            return;
+        }
+        onSave(formHorario, isEditing);
+    };
+
+    const handleClear = () => {
+        setFormHorario({
+            dias: [],
+            horaInicio: '09:00',
+            horaFin: '17:00',
+            servicio: serviciosOpts.length > 0 ? serviciosOpts[0].label : '',
+            consultorio: ''
+        });
     }
-  }, [initialData, open]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormHorario(prev => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'servicio' && { consultorio: '' }),
-    }));
-  };
+    const consultoriosForSelectedServicio = useMemo(() => {
+        const servicioCups = getIdServiceFromName(formHorario.servicio);
+        if (!servicioCups) return [];
+        return consultoriosOpts.filter(c => c.cupsServicio === servicioCups);
+    }, [formHorario.servicio, consultoriosOpts]);
 
-  const handleSave = () => {
-    if (!formHorario.dia || !formHorario.horaInicio || !formHorario.horaFin || !formHorario.servicio || !formHorario.consultorio) {
-      alert('Por favor, complete todos los campos.');
-      return;
-    }
-    if (formHorario.horaInicio >= formHorario.horaFin) {
-      alert('La hora de fin debe ser posterior a la hora de inicio.');
-      return;
-    }
-    onSave(formHorario, isEditing);
-    onClose();
-  };
-
-  const handleClear = () => {
-    setFormHorario({ dia: '', horaInicio: '', horaFin: '', servicio: '', consultorio: '' });
-  }
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-        {isEditing ? 'Editar Horario' : 'Nuevo Horario'}
-      </DialogTitle>
-
-      <DialogContent dividers>
-        <Grid container spacing={2} sx={{ pt: 2 }}>
-
-          {/* Días de la semana */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              Días de atención
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {diasSemana.map((dia) => (
-                <Box key={dia} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="caption">{dia}</Typography>
-                  <Checkbox
-                    checked={formHorario.dias?.includes(dia) || false}
-                    onChange={(e) => {
-                      const newDias = formHorario.dias || [];
-                      const updatedDias = e.target.checked
-                        ? [...newDias, dia]
-                        : newDias.filter((d) => d !== dia);
-                      handleChange({ target: { name: 'dias', value: updatedDias } });
-                    }}
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <TextField
-              name="horaInicio"
-              label="Hora de inicio"
-              type="time"
-              fullWidth
-              value={formHorario.horaInicio}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ step: 1800 }}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <TextField
-              name="horaFin"
-              label="Hora de fin"
-              type="time"
-              fullWidth
-              value={formHorario.horaFin}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ step: 1800 }}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel id="servicio-label">Servicio Médico</InputLabel>
-              <Select
-                labelId="servicio-label"
-                name="servicio"
-                value={formHorario.servicio}
-                label="Servicio Médico"
-                onChange={handleChange}
-              >
-                {servicios.map((s) => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {formHorario.servicio && consultorios[formHorario.servicio] && (
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="consultorio-label">Consultorio</InputLabel>
-                <Select
-                  labelId="consultorio-label"
-                  name="consultorio"
-                  value={formHorario.consultorio}
-                  label="Consultorio"
-                  onChange={handleChange}
-                >
-                  {consultorios[formHorario.servicio].map((c) => (
-                    <MenuItem key={c} value={c}>{c}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          )}
-        </Grid>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={handleClear} color="warning" startIcon={<CleaningServices />}>Limpiar</Button>
-        <Box sx={{ flexGrow: 1 }} />
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
-        <Button onClick={handleSave} variant="contained" color="primary" startIcon={<Save />}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                {isEditing ? 'Editar Horario' : 'Nuevo Horario'}
+            </DialogTitle>
+            <DialogContent dividers>
+                <Grid container spacing={2} sx={{ pt: 2 }}>
+                    <Grid item xs={12}>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>Días de atención</Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {diasSemana.map((dia) => (
+                                <Box key={dia} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
+                                    <Typography variant="caption">{dia}</Typography>
+                                    <Checkbox
+                                        checked={formHorario.dias?.includes(dia) || false}
+                                        onChange={(e) => handleCheckboxChange(dia, e.target.checked)}
+                                    />
+                                </Box>
+                            ))}
+                        </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField name="horaInicio" label="Hora de inicio" type="time" fullWidth value={formHorario.horaInicio} onChange={handleChange} InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField name="horaFin" label="Hora de fin" type="time" fullWidth value={formHorario.horaFin} onChange={handleChange} InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                            <InputLabel id="servicio-label">Servicio Médico</InputLabel>
+                            <Select labelId="servicio-label" name="servicio" value={formHorario.servicio} label="Servicio Médico" onChange={handleChange}>
+                                {serviciosOpts.map((s) => <MenuItem key={s.value} value={s.label}>{s.label}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    {formHorario.servicio && consultoriosForSelectedServicio.length > 0 && (
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                                <InputLabel id="consultorio-label">Consultorio</InputLabel>
+                                <Select labelId="consultorio-label" name="consultorio" value={formHorario.consultorio} label="Consultorio" onChange={handleChange}>
+                                    {consultoriosForSelectedServicio.map((c) => <MenuItem key={c.value} value={c.label}>{c.label}</MenuItem>)}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    )}
+                     {formHorario.servicio && consultoriosForSelectedServicio.length === 0 && (
+                        <Grid item xs={12} sm={6}>
+                            <Alert severity="warning">No hay consultorios disponibles para este servicio.</Alert>
+                        </Grid>
+                    )}
+                </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+                <Button onClick={handleClear} color="warning" startIcon={<CleaningServices />}>Limpiar</Button>
+                <Box sx={{ flexGrow: 1 }} />
+                <Button onClick={onClose} color="inherit">Cancelar</Button>
+                <Button onClick={handleSave} variant="contained" color="primary" startIcon={<Save />}>Guardar</Button>
+            </DialogActions>
+        </Dialog>
+    );
 }
 
 
-export default function HorarioModal({ open, onClose }) {
-  const [horariosGuardados, setHorariosGuardados] = useState([
-    { id: 'h1', dia: 'Lunes', horaInicio: '08:00', horaFin: '17:00', servicio: 'Medicina General', consultorio: 'Consultorio 101', color: coloresBase[0] },
-    { id: 'h2', dia: 'Martes', horaInicio: '09:00', horaFin: '13:00', servicio: 'Pediatría', consultorio: 'Consultorio 201', color: coloresBase[1] },
-    { id: 'h3', dia: 'Martes', horaInicio: '14:00', horaFin: '18:00', servicio: 'Pediatría', consultorio: 'Consultorio 201', color: coloresBase[1] },
-  ]);
+export default function HorarioModal({ open, onClose, dniMedico }) {
+    const [horariosGuardados, setHorariosGuardados] = useState([]);
+    const [editingHorario, setEditingHorario] = useState(null);
+    const [formOpen, setFormOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-  const [editingHorario, setEditingHorario] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
+    const [serviciosOpts, setServiciosOpts] = useState([]);
+    const [consultoriosOpts, setConsultoriosOpts] = useState([]);
 
-  const handleOpenFormForNew = () => {
-    setEditingHorario(null);
-    setFormOpen(true);
-  };
+    // Fetch all medical services
+    useEffect(() => {
+        if (open) {
+            const doFetchServicios = async () => {
+                try {
+                    const { servicio } = await listaServiciosMedicos();
+                    setServiciosOpts(servicio.map((s) => ({ label: s.nombre, value: s.cups })));
+                } catch (e) {
+                    console.error("Error cargando servicios:", e);
+                    setError("Error cargando lista de servicios médicos.");
+                }
+            };
+            doFetchServicios();
+        }
+    }, [open]);
 
-  const handleOpenFormForEdit = (horario) => {
-    setEditingHorario(horario);
-    setFormOpen(true);
-  };
+    useEffect(() => {
+        if (open && dniMedico) {
+            const doFetchConsultorios = async () => {
+                setIsLoading(true);
+                setError(null);
+                try {
+                    const { consultorios } = await listarConsultorios();
+                    
+                    setConsultoriosOpts(consultorios.map((c) => ({
+                        nombreServicio: c.nombreServicioMedico,
+                        cupsServicio: c.cupsServicioMedico,
+                        idIps: c.idIps,
+                        label: `Consultorio ${c.idConsultorio}`,
+                        value: c.idConsultorio,
+                    }))); 
 
-  const handleCloseForm = () => {
-    setFormOpen(false);
-    setEditingHorario(null);
-  };
+                } catch (e) {
+                    console.error("Error cargando consultorios:", e);
+                    setError("Error cargando lista de consultorios. " + (e.message || ""));
+                    setConsultoriosOpts([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
 
-  const handleSaveHorario = (formData, isEditing) => {
-    if (isEditing && editingHorario) {
-      setHorariosGuardados(prev => prev.map(h =>
-        h.id === editingHorario.id ? { ...h, ...formData } : h
-      ));
-    } else {
-      const colorIndex = horariosGuardados.length % coloresBase.length;
-      setHorariosGuardados(prev => [
-        ...prev,
-        { ...formData, id: `h${Date.now()}`, color: coloresBase[colorIndex] }
-      ]);
-    }
-    handleCloseForm();
-  };
+            doFetchConsultorios();
+        }
+    }, [open, dniMedico]);
 
-  const handleEliminarHorario = (idToDelete) => {
-    if (window.confirm('¿Está seguro de que desea eliminar este horario?')) {
-      setHorariosGuardados(prev => prev.filter(h => h.id !== idToDelete));
-    }
-  };
+    const fetchTrabaja = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const dataFromService = await obtenerHorario(dniMedico);
+            if (dataFromService) {
+                const transformedHorarios = dataFromService.flatMap((trabaja, index) =>
+                    trabaja.horario.map(h => ({
+                        id: trabaja.id,
+                        dniMedico: trabaja.dniMedico,
+                        idIps: trabaja.idIps,
+                        idConsultorio: trabaja.idConsultorio,
+                        dia: backendToFrontendDayMap[h.dia.toUpperCase()] || h.dia,
+                        _backendDia: h.dia.toUpperCase(),
+                        horaInicio: h.inicio.substring(0, 5),
+                        horaFin: h.fin.substring(0, 5),
+                        servicio: getServicioNameFromIdConsultorio(trabaja.idConsultorio),
+                        consultorio: getConsultorioNameFromId(trabaja.idConsultorio),
+                        color: coloresBase[index % coloresBase.length]
+                    }))
+                );
+                setHorariosGuardados(transformedHorarios);
+            } else {
+                setHorariosGuardados([]);
+            }
+        } catch (err) {
+            console.error('Error cargando los horarios:', err);
+            setError('No se pudieron cargar los horarios. Intente más tarde.');
+            setHorariosGuardados([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [dniMedico]);
 
-  const scheduleMatrix = useMemo(() => {
-    const matrix = {};
-    horariosGuardados.forEach(h => {
-      const diaCorto = mapDiaCompletoACorto[h.dia];
-      if (!diaCorto) return;
+    useEffect(() => {
+        if (open) {
+            fetchTrabaja();
+        }
+    }, [open, fetchTrabaja]);
 
-      const inicioNum = parseInt(h.horaInicio.split(':')[0]);
-      const finNum = parseInt(h.horaFin.split(':')[0]);
 
-      for (let hora = inicioNum; hora < finNum; hora++) {
-        const horaKey = `${String(hora).padStart(2, '0')}:00`;
-        if (!matrix[horaKey]) matrix[horaKey] = {};
-        matrix[horaKey][diaCorto] = {
-          color: h.color,
-          tooltip: `${h.servicio} (${h.consultorio})\n${h.horaInicio} - ${h.horaFin}`
-        };
-      }
-    });
-    return matrix;
-  }, [horariosGuardados]);
+    const handleOpenFormForNew = () => {
+        setEditingHorario(null);
+        setFormOpen(true);
+    };
 
-  const obtenerDatosCelda = (diaCompleto, horaCompleta) => {
-    const diaCorto = mapDiaCompletoACorto[diaCompleto];
-    return scheduleMatrix[horaCompleta]?.[diaCorto];
-  };
+    const handleOpenFormForEdit = (horario) => {
+        console.log('Editing horario:', horario);
+        setEditingHorario({
+            ...horario,
+            dias: [horario.dia]
+        });
+        setFormOpen(true);
+    };
 
-  const handleCeldaClick = (dia, hora) => {
-    const horarioExistente = horariosGuardados.find(h => {
-      const diaCortoH = mapDiaCompletoACorto[h.dia];
-      const diaCortoCelda = mapDiaCompletoACorto[dia];
-      const horaInicioNum = parseInt(h.horaInicio.split(':')[0]);
-      const horaFinNum = parseInt(h.horaFin.split(':')[0]);
-      const horaCeldaNum = parseInt(hora.split(':')[0]);
-      return diaCortoH === diaCortoCelda && horaCeldaNum >= horaInicioNum && horaCeldaNum < horaFinNum;
-    });
+    const handleCloseForm = () => {
+        setFormOpen(false);
+        setEditingHorario(null);
+    };
 
-    if (horarioExistente) {
-      handleOpenFormForEdit(horarioExistente);
-    } else {
-      setEditingHorario({ dia, horaInicio: hora, horaFin: '', servicio: '', consultorio: '' });
-      setFormOpen(true);
-    }
-  };
+    const handleSaveHorario = async (formData, isEditing) => {
+        setIsLoading(true);
+        setError(null);
 
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl">
-      <DialogTitle sx={{ textAlign: 'center', bgcolor: 'primary.dark', color: 'primary.contrastText', pb: 2 }}>
-        Gestión de Horarios del Médico
-      </DialogTitle>
-      <DialogContent
-        dividers
-        sx={{
-          p: 0,
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          bgcolor: 'background.default',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Panel Lateral (Izquierdo) */}
-        <Box
-          sx={{
-            width: { xs: '100%', md: 320 },
-            p: 2,
-            borderRight: { md: '1px solid' },
-            borderColor: { md: 'divider' },
-            bgcolor: 'background.default',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            overflowY: 'auto',
-            maxHeight: { xs: '300px', md: 'calc(100vh - 128px)' }
-          }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddCircleOutline />}
-            onClick={handleOpenFormForNew}
-            fullWidth
-          >
-            Nuevo Horario
-          </Button>
+        const idIps = getIdIPSFromConsultorio(getIdConsultorioFromName(formData.consultorio));
+        const idConsultorio = getIdConsultorioFromName(formData.consultorio);
 
-          <Typography variant="h6" sx={{ mt: 2, mb: 1, color: 'text.primary' }}>
-            Horarios Guardados
-          </Typography>
-          {horariosGuardados.length > 0 ? (
-            <Box>
-              {horariosGuardados.map((h) => (
-                <Paper
-                  key={h.id}
-                  elevation={2}
-                  sx={{
-                    p: 1.5,
-                    mb: 1.5,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderLeft: `4px solid ${h.color || coloresBase[0]}`,
-                    bgcolor: '#ffffff',
-                  }}
-                >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    {h.dia}: {h.horaInicio} - {h.horaFin}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {h.servicio} - {h.consultorio}
-                  </Typography>
-                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                    <Tooltip title="Editar">
-                      <IconButton size="small" onClick={() => handleOpenFormForEdit(h)} color="color_primary">
-                        <Edit fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Eliminar">
-                      <IconButton size="small" onClick={() => handleEliminarHorario(h.id)} color="error">
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Paper>
-              ))}
-            </Box>
-          ) : (
-            <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 2 }}>
-              No hay horarios guardados.
-            </Typography>
-          )}
-        </Box>
+        if (idIps === null) {
+            setError('Servicio no encontrado.');
+            setIsLoading(false);
+            return;
+        }
+        if (idConsultorio === null) {
+            setError('Consultorio no encontrado.');
+            setIsLoading(false);
+            return;
+        }
 
-        {/* Contenido Principal (Calendario) */}
-        <Box sx={{
-          flexGrow: 1,
-          p: 2
-        }}
-        >
-          <Box
-            sx={{
-              flexGrow: 1,
-              overflow: 'auto',
-              maxHeight: 'calc(100vh - 128px)'
-            }}
-          >
-            <Table
-              size="small"
-              stickyHeader
-              sx={{
-                borderCollapse: 'collapse',
-                minWidth: 800
-              }}
+        try {
+            if (isEditing && editingHorario) {
+                const backendDay = frontendToBackendDayMap[formData.dias[0]];
+                if (!backendDay) {
+                    throw new Error(`Día no válido: ${formData.dias[0]}`);
+                }
+                const dataToUpdate = {
+                    idConsultorio,
+                    idIps,
+                    horario: [{
+                        dia: backendDay,
+                        inicio: formData.horaInicio + ":00",
+                        fin: formData.horaFin + ":00",
+                    }]
+                };
+                console.log(editingHorario.id, dataToUpdate);
+                await actualizarHorario(dniMedico, editingHorario.id, dataToUpdate);
+            } else {
+                for (const diaFrontend of formData.dias) {
+                    const backendDay = frontendToBackendDayMap[diaFrontend];
+                    if (!backendDay) {
+                        throw new Error(`Día no válido: ${diaFrontend}`);
+                    }
+                    const dataToCreate = {
+                        idConsultorio,
+                        idIps,
+                        horario: [{
+                            dia: backendDay,
+                            inicio: formData.horaInicio + ":00",
+                            fin: formData.horaFin + ":00",
+                        }]
+                    };
+                    console.log(dataToCreate)
+                    await crearHorario(dniMedico, dataToCreate);
+                }
+            }
+            handleCloseForm();
+            fetchTrabaja();
+        } catch (err) {
+            console.error('Error guardando el horario:', err);
+            setError(err.response?.data?.message || err.message || 'Error al guardar el horario.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleEliminarHorario = async (idToDelete) => {
+        if (window.confirm('¿Está seguro de que desea eliminar este horario?')) {
+            setIsLoading(true);
+            setError(null);
+            try {
+                // TODO: Implement the actual delete API call here
+                // await eliminarHorario(dniMedico, idToDelete);
+                console.warn(`Funcionalidad de eliminar horario (ID: ${idToDelete}) no implementada con API. Realizando solo actualización optimista.`);
+                setHorariosGuardados(prev => prev.filter(h => h.id !== idToDelete));
+            } catch (err) {
+                console.error('Error eliminando el horario:', err);
+                setError(err.response?.data?.message || err.message || 'Error al eliminar el horario.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
+    const scheduleMatrix = useMemo(() => {
+        const matrix = {};
+        horariosGuardados.forEach(h => {
+            const diaCorto = mapDiaCompletoACorto[h.dia];
+            if (!diaCorto) return;
+
+            const inicioNum = parseInt(h.horaInicio.split(':')[0]);
+            const finNum = parseInt(h.horaFin.split(':')[0]);
+
+            for (let hora = inicioNum; hora < finNum; hora++) {
+                const horaKey = `${String(hora).padStart(2, '0')}:00`;
+                if (!matrix[horaKey]) matrix[horaKey] = {};
+                matrix[horaKey][diaCorto] = {
+                    color: h.color,
+                    tooltip: `${h.servicio} (${h.consultorio})\n${h.horaInicio} - ${h.horaFin}`
+                };
+            }
+        });
+        return matrix;
+    }, [horariosGuardados]);
+
+    const obtenerDatosCelda = (diaCompleto, horaCompleta) => {
+        const diaCorto = mapDiaCompletoACorto[diaCompleto];
+        return scheduleMatrix[horaCompleta]?.[diaCorto];
+    };
+
+    const handleCeldaClick = (dia, hora) => {
+        const horarioExistente = horariosGuardados.find(h => {
+            const diaH = h.dia;
+            const horaInicioNum = parseInt(h.horaInicio.split(':')[0]);
+            const horaFinNum = parseInt(h.horaFin.split(':')[0]);
+            const horaCeldaNum = parseInt(hora.split(':')[0]);
+            return diaH === dia && horaCeldaNum >= horaInicioNum && horaCeldaNum < horaFinNum;
+        });
+
+        if (horarioExistente) {
+            handleOpenFormForEdit(horarioExistente);
+        } else {
+            setEditingHorario({ dia: dia, horaInicio: hora, dias: [dia] });
+            setFormOpen(true);
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl">
+            <DialogTitle sx={{ textAlign: 'center', bgcolor: 'primary.dark', color: 'primary.contrastText', pb: 2 }}>
+                Gestión de Horarios del Médico (DNI: {dniMedico})
+                {isLoading && <CircularProgress size={24} sx={{ ml: 2, color: 'common.white' }} />}
+            </DialogTitle>
+            <DialogContent
+                dividers
+                sx={{ p: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, bgcolor: 'background.default', overflow: 'hidden' }}
             >
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      fontWeight: 'bold',
-                      border: '1px solid #ddd',
-                      width: '80px',
-                      backgroundColor: (theme) => theme.palette.background.paper,
-                      zIndex: 1
-                    }}
-                  >
-                    Hora
-                  </TableCell>
-                  {diasSemana.map((dia) => (
-                    <TableCell
-                      key={dia}
-                      sx={{
-                        fontWeight: 'bold',
-                        border: '1px solid #ddd',
-                        textAlign: 'center',
-                        backgroundColor: (theme) => theme.palette.background.paper,
-                        zIndex: 1
-                      }}
-                    >
-                      {dia}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {horasDia.map((hora) => (
-                  <TableRow key={hora} hover>
-                    <TableCell sx={{
-                      border: '1px solid #ddd',
-                      fontWeight: 'medium',
-                      color: 'text.secondary',
-                    }}
-                    >
-                      {hora}
-                    </TableCell>
-                    {diasSemana.map((dia) => {
-                      const cellData = obtenerDatosCelda(dia, hora);
-                      return (
-                        <Tooltip title={cellData?.tooltip || `Añadir horario para ${dia} a las ${hora}`} placement="top" key={`${dia}-${hora}`}>
-                          <TableCell
-                            onClick={() => handleCeldaClick(dia, hora)}
-                            sx={{
-                              cursor: 'pointer',
-                              bgcolor: cellData?.color || '#f9f9f9',
-                              border: '1px solid #ddd',
-                              height: 40,
-                              transition: 'background-color 0.2s ease',
-                              '&:hover': {
-                                bgcolor: cellData?.color ? `${cellData.color}E6` : '#e0e0e0',
-                                boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)',
-                              },
-                            }}
-                          />
-                        </Tooltip>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
-        <Button onClick={onClose} variant="red" startIcon={<Close />}>
-          Cerrar Ventana
-        </Button>
-      </DialogActions>
+                <Box
+                    sx={{ width: { xs: '100%', md: 320 }, p: 2, borderRight: { md: '1px solid' }, borderColor: { md: 'divider' }, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', maxHeight: { xs: '300px', md: 'calc(100vh - 160px)' } }}
+                >
+                    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                    <Button variant="contained" color="primary" startIcon={<AddCircleOutline />} onClick={handleOpenFormForNew} fullWidth disabled={isLoading}>
+                        Nuevo Horario
+                    </Button>
+                    <Typography variant="h6" sx={{ mt: 2, mb: 1, color: 'text.primary' }}>Horarios Guardados</Typography>
+                    {isLoading && horariosGuardados.length === 0 && <Typography>Cargando horarios...</Typography>}
+                    {!isLoading && horariosGuardados.length === 0 && !error && <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 2 }}>No hay horarios guardados.</Typography>}
 
-      <HorarioFormDialog
-        open={formOpen}
-        onClose={handleCloseForm}
-        onSave={handleSaveHorario}
-        initialData={editingHorario}
-      />
-    </Dialog>
-  );
+                    {horariosGuardados.length > 0 && (
+                        <Box>
+                            {horariosGuardados.map((h, index) => ( // Added index for a more unique key if id isn't always distinct
+                                <Paper key={`${h.id}-${h._backendDia}-${index}`} // Composite key for uniqueness
+                                    elevation={2}
+                                    sx={{ p: 1.5, mb: 1.5, display: 'flex', flexDirection: 'column', borderLeft: `4px solid ${h.color || coloresBase[0]}`, bgcolor: '#ffffff' }}
+                                >
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{h.dia}: {h.horaInicio} - {h.horaFin}</Typography>
+                                    <Typography variant="body2" color="textSecondary">{h.servicio} - {h.consultorio}</Typography>
+                                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                        <Tooltip title="Editar">
+                                            <IconButton size="small" onClick={() => handleOpenFormForEdit(h)} color="primary" disabled={isLoading}>
+                                                <Edit fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Eliminar">
+                                            <IconButton size="small" onClick={() => handleEliminarHorario(h.id)} color="error" disabled={isLoading}>
+                                                <Delete fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                </Paper>
+                            ))}
+                        </Box>
+                    )}
+                </Box>
+                <Box sx={{ flexGrow: 1, p: { xs: 1, md: 2 }, overflow: 'auto', maxHeight: 'calc(100vh - 160px)' }}>
+                    <Table size="small" stickyHeader sx={{ borderCollapse: 'collapse', minWidth: 800 }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: 'bold', border: '1px solid #ddd', width: '80px', backgroundColor: (theme) => theme.palette.grey[200], zIndex: 1, position: 'sticky', left: 0 }}>Hora</TableCell>
+                                {diasSemana.map((dia) => (
+                                    <TableCell key={dia} sx={{ fontWeight: 'bold', border: '1px solid #ddd', textAlign: 'center', backgroundColor: (theme) => theme.palette.grey[100] }}>{dia}</TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {horasDia.map((hora) => (
+                                <TableRow key={hora} hover>
+                                    <TableCell sx={{ border: '1px solid #ddd', fontWeight: 'medium', color: 'text.secondary', position: 'sticky', left: 0, backgroundColor: (theme) => theme.palette.grey[200] }}>{hora}</TableCell>
+                                    {diasSemana.map((dia) => {
+                                        const cellData = obtenerDatosCelda(dia, hora);
+                                        return (
+                                            <Tooltip title={cellData?.tooltip || `Añadir horario para ${dia} a las ${hora}`} placement="top" key={`${dia}-${hora}`}>
+                                                <TableCell
+                                                    onClick={() => !isLoading && handleCeldaClick(dia, hora)}
+                                                    sx={{
+                                                        cursor: isLoading ? 'default' : 'pointer',
+                                                        bgcolor: cellData?.color || '#f9f9f9',
+                                                        border: '1px solid #ddd',
+                                                        height: 40,
+                                                        minWidth: 80,
+                                                        transition: 'background-color 0.2s ease',
+                                                        '&:hover': {
+                                                            bgcolor: isLoading ? (cellData?.color || '#f9f9f9') : (cellData?.color ? `${cellData.color}E6` : '#e0e0e0'),
+                                                            boxShadow: isLoading ? 'none' : 'inset 0 0 5px rgba(0,0,0,0.1)',
+                                                        },
+                                                    }}
+                                                />
+                                            </Tooltip>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                <Button onClick={onClose} variant="outlined" color="primary" startIcon={<Close />}>
+                    Cerrar Ventana
+                </Button>
+            </DialogActions>
+
+            <HorarioFormDialog
+                open={formOpen}
+                onClose={handleCloseForm}
+                onSave={handleSaveHorario}
+                initialData={editingHorario}
+                serviciosOpts={serviciosOpts}
+                consultoriosOpts={consultoriosOpts}
+            />
+        </Dialog>
+    );
 }

@@ -8,6 +8,8 @@ import {
   Modal,
   Fade,
   Backdrop,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
@@ -18,6 +20,7 @@ import {
   eliminarServiciosMedicosPorMedico,
 } from '@/../../src/services/serviciosMedicosService';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
+import {Visibility, VisibilityOff} from '@mui/icons-material';
 
 
 const MedicoFormulario = ({
@@ -32,6 +35,11 @@ const MedicoFormulario = ({
   const [modalHorarioAbierto, setModalHorarioAbierto] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] = useState('');
   const fileInputRef = useRef();
+  
+  // Para mostrar y oculatar el contenido de la contraseña.
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
   useEffect(() => {
     const fetchServiciosDelMedico = async () => {
@@ -157,6 +165,25 @@ const MedicoFormulario = ({
 
         <Box sx={{ flex: 1, minWidth: 250, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
+          <TextField
+            label='Password'
+            type={showPassword ? "text" : "password"}
+            value={formData.password || ''}
+            onChange={handleChange('password')}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                  >
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+          />
           <TextField label="DNI" value={formData.dni || ''} onChange={handleChange('dni')} />
           <TextField label="Correo" value={formData.email || ''} onChange={handleChange('email')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
