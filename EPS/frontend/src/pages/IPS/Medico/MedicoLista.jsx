@@ -52,12 +52,13 @@ const MedicoLista = () => {
 
   const handleSubmitMedico = async (medico) => {
     try {
+      medico.imagen = medico.imagen.substring(medico.imagen.indexOf(",") + 1);
       const datosEnviar = {
         "medico": {
           "dni": medico.dni,
           "nombre": medico.nombre,
           "email": medico.email,
-          "password": "elsapato",
+          "password": medico.password,
           "telefono": medico.telefono,
           "imagen": medico.imagen,
           "activo": true
@@ -79,9 +80,9 @@ const MedicoLista = () => {
         ]
       };
       if (editandoMedico && editandoMedico.dni) {
-        await actualizarMedico(datosEnviar);
+        await actualizarMedico(medico);
       } else {
-        await crearMedico(medico);
+        await crearMedico(datosEnviar);
       }
       await fetchMedicos(1, filtrosAplicados);
       setMostrarFormulario(false);
@@ -285,7 +286,15 @@ const MedicoLista = () => {
                 >
                   Editar
                 </Button>
-                <Button variant="contained" onClick={() => setModalHorarioAbierto(true)}>Horario</Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setEditandoMedico(detalle[0]);
+                    setModalHorarioAbierto(true);
+                  }}
+                >
+                  Horario
+                </Button>
               </Box>
 
               <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -326,7 +335,14 @@ const MedicoLista = () => {
           <AddIcon />
         </Fab>
       </Box>
-      <Horario open={modalHorarioAbierto} onClose={() => setModalHorarioAbierto(false)} />
+
+      {editandoMedico && (
+        <Horario 
+          open={modalHorarioAbierto} 
+          onClose={() => setModalHorarioAbierto(false)} 
+          dniMedico={editandoMedico.dni}
+        />
+      )}
     </Box >
   );
 };
