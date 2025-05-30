@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -160,7 +161,7 @@ public class TrabajaService {
 
             // Validar solapamiento
             if (haySolapamientoHorario(trabaja)) {
-                throw new IllegalArgumentException("El nuevo horario se solapa con otro en el mismo consultorio.");
+                throw new IllegalArgumentException("El nuevo horario se solapa con otro del mismo consultorio o médico.");
             }
 
             trabaja.setMedico(medico);
@@ -174,8 +175,9 @@ public class TrabajaService {
     }
 
     public boolean haySolapamientoHorario(Trabaja trabaja) {
-        // Obtener todos los trabaja del mismo consultorio
-        List<Trabaja> existentes = trabajaRepository.findByConsultorio(trabaja.getConsultorio());
+        // Obtener todos los trabaja del mismo consultorio o médico
+        List<Trabaja> existentes = trabajaRepository.findByConsultorioOrMedico(trabaja.getConsultorio(), trabaja.getMedico());
+
         for (Trabaja existente : existentes) {
             for (EntradaHorario hExistente : existente.getHorario()) {
                 for (EntradaHorario hNuevo : trabaja.getHorario()) {
@@ -231,7 +233,7 @@ public class TrabajaService {
 
         // Validar que no haya solapamiento con otros trabaja en el mismo consultorio
         if (haySolapamientoHorario(trabajaActualizado)) {
-            throw new IllegalArgumentException("El nuevo horario se solapa con otro en el mismo consultorio.");
+            throw new IllegalArgumentException("El nuevo horario se solapa con otro del mismo consultorio o médico.");
         }
 
         // Actualizar campos (si es que deseas permitir cambiar consultorio y horario)

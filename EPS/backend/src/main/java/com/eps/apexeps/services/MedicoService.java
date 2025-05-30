@@ -143,8 +143,6 @@ public class MedicoService {
                     .orElse(null)
             );
                 
-        // TODO: Validar que el médico no tenga un horario de trabajo que se solape con el nuevo.
-        
         // Primero intenta guardar el médico y la relación trabaja.
         medicoRepository.save(trabaja.getMedico());
         trabaja = trabajaService.crearTrabaja(trabaja);

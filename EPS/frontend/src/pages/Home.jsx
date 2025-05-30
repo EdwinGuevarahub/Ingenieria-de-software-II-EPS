@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Typography, Button, Box, Container, Grid, Card, CardContent, CardMedia
 } from '@mui/material';
 import SpaIcon from '@mui/icons-material/Spa';
 import Doctor from '../assets/Images/Banner.png';
+import { useAuthContext } from '../contexts/AuthContext';
+import { getIpsByAdmIpsEmail } from '../services/ipsService';
 
 const services = [
   {
@@ -24,6 +26,27 @@ const services = [
 ];
 
 const LandingPage = () => {
+  const { isLogged, subEmail, role } = useAuthContext();
+  const logged = isLogged();
+  const [ ips, setIps ] = useState('');
+
+  const fetchIps = useCallback(
+    async () => {
+      if (role !== 'ADM_IPS')
+        return;
+
+      try {
+        const result = await getIpsByAdmIpsEmail(subEmail);
+        setIps(result);
+      } catch(error) {
+        console.error('Error al cargar la ips del médico: ', error);
+      }
+  }, [role, subEmail]);
+
+  useEffect(() => {
+    fetchIps();
+  }, [fetchIps]);
+
   return (
     <Box>
       <Box sx={{ bgcolor: 'secondary.main', position: 'relative', overflow: 'visible' }}>
@@ -31,8 +54,8 @@ const LandingPage = () => {
           <Grid size={{ xs: 6, md: 4 }} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <Box
               component="img"
-              src={Doctor}
-              alt="Doctor"
+              src={logged && role === 'ADM_IPS' ? `data:image/png;base64,${ips.imagen}` : Doctor}
+              alt={logged && role === 'ADM_IPS' ? ips.nombre : 'Doctor'}
               sx={{
                 width: '100%',
                 maxHeight: 500,
@@ -44,13 +67,24 @@ const LandingPage = () => {
           </Grid>
 
           <Grid size={{ xs: 6, md: 8 }} sx={{ textAlign: { xs: 'center', md: 'right' }, pr: { md: 6 } }}>
-            <Typography variant="h3" gutterBottom>
-              Bienvenido a <b>ApexEPS</b>
-            </Typography>
-            <Typography variant="body1">
-              En ApexEPS trabajamos cada día por tu bienestar y el de tu familia.
-              Te ofrecemos servicios de salud con calidad, oportunidad y atención humana.
-            </Typography>
+            {/*Vista para cualquier usuario que no sea ADM_IPS.*/}
+            {(!logged || role !== 'ADM_IPS') ? (<>
+              <Typography variant="h3" gutterBottom>
+                Bienvenido a <b>ApexEPS</b>
+              </Typography>
+              <Typography variant="body1">
+                En ApexEPS trabajgamos cada día por tu bienestar y el de tu familia.
+                Te ofrecemos servicios de salud con calidad, oportunidad y atención humana.
+              </Typography>
+            {/* Vista para el usuario ADM_IPS*/}
+            </>) : (<>
+              <Typography variant="h3" gutterBottom>
+                Administrando <b>{ips.nombre}</b>
+              </Typography>
+              <Typography variant="body1">
+                En este espacio podrá gestionar los los médicos y consultorios de su IPS registrados en <b>ApexEPS</b>.
+              </Typography>
+            </>)}
           </Grid>
         </Grid>
       </Box>
@@ -98,5 +132,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
-

@@ -145,4 +145,24 @@ public class AgendaService {
         return agendaRepository.save(agendaActualizada);
     }
 
+    /**
+     * Método para cancelar la cita de la agenda por su ID.
+     * @param id El ID de la agenda a cancelar.
+     * @return La agenda actualizada.
+     */
+    @Transactional
+    public Agenda cancelarAgendaById(Integer id) {
+        Agenda agenda = agendaRepository.findById(id).orElse(null);
+        if (agenda == null)
+            return agenda;
+
+        agenda.setEstado("CANCELADA");
+        agenda = agendaRepository.save(agenda);
+
+        // Cargar las relaciones necesarias para evitar LazyInitializationException.
+        agenda.getGeneraciones().size();
+        agenda.getOrdenes().size();
+        return agenda;
+    }
+
 }
