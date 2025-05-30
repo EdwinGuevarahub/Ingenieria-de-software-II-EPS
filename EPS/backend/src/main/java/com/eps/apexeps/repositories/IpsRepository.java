@@ -33,8 +33,8 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
         @Query(value = """
                         SELECT DISTINCT i.*
                         FROM ips i
-                        JOIN consultorio c ON c.ips_consultorio = i.id_ips
-                        JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                        LEFT JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                        LEFT JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
                         WHERE
                             (:nombre IS NULL OR LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', CAST(:nombre AS TEXT), '%'))) AND
                             (:telefono IS NULL OR LOWER(i.tel_ips) LIKE LOWER(CONCAT('%', CAST(:telefono AS TEXT), '%'))) AND
