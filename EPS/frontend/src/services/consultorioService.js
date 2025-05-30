@@ -37,6 +37,8 @@ export async function listarConsultorios({
       },
     });
 
+    console.log("Response data:", response.data.consultorios);
+
     return {
       totalPaginas: response.data.totalPaginas,
       consultorios: response.data.consultorios,
