@@ -26,7 +26,6 @@ export async function obtenerHorario(dniMedico = '1001234567') {
 export async function crearHorario(dniMedico, data) {
     try {
         const response = await AxiosInstance.post(`/medico/${dniMedico}/trabaja`, data);
-        console.log(response.data);
     } catch (err) {
         if (isAxiosError(err)) {
             throw err;
@@ -37,13 +36,9 @@ export async function crearHorario(dniMedico, data) {
 export async function actualizarHorario(dniMedico, idTrabaja, data) {
     try {
         const response = await AxiosInstance.put(`/medico/${dniMedico}/trabaja/${idTrabaja}`, data);
-        console.log(response.data);
     } catch (err) {
         if (isAxiosError(err)) {
             throw err;
         }
     }
 }
-
-
-

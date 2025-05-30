@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +26,6 @@ import com.eps.apexeps.models.entity.users.AdmIps;
  */
 @RestController
 @RequestMapping("/api/admips")
-@CrossOrigin(origins = "*")
 public class AdmIpsController {
 
     @Autowired
@@ -39,11 +37,7 @@ public class AdmIpsController {
         return ResponseEntity.ok(admIpsList);
     }
 
-    @GetMapping("path")
-    public String getMethodName(@RequestParam String param) {
-        return new String();
-    }
-    
+    @GetMapping
     public AdmIps findByEmail(@RequestParam String email) {
         return admIpsService.findByEmail(email);
     }
