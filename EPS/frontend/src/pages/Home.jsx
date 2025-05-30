@@ -54,8 +54,8 @@ const LandingPage = () => {
           <Grid size={{ xs: 6, md: 4 }} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <Box
               component="img"
-              src={Doctor}
-              alt="Doctor"
+              src={logged && role === 'ADM_IPS' ? `data:image/png;base64,${ips.imagen}` : Doctor}
+              alt={logged && role === 'ADM_IPS' ? ips.nombre : 'Doctor'}
               sx={{
                 width: '100%',
                 maxHeight: 500,
