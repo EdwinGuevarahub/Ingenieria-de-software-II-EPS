@@ -1,3 +1,4 @@
+// src/components/consultorios/ConsultorioFormulario.js
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -5,171 +6,188 @@ import {
   Typography,
   Button,
   Grid,
-  MenuItem, // Para usar con TextField select
+  MenuItem,
 } from '@mui/material';
 
-// Asumiendo que tienes un servicio para listar todos los CUPS (Servicios Médicos)
-// Este es el mismo que se usa en MedicoFormulario para poblar el modal.
-import { listaServiciosMedicos } from '../../services/serviciosMedicosService'; // Ajusta esta ruta!
+// Asumiendo que este servicio está disponible para poblar el selector de CUPS.
+import { listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService.js';
 
 const ConsultorioFormulario = ({
-  initialData = {},
+  initialData = {}, // Espera una estructura que refleje el DTO/entidad del backend
   onSubmit,
   onCancel,
 }) => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    telefono: '',
-    direccion: '',
-    idIps: '', // Podría ser un número
-    cupsServicioMedico: '', // Este será el CUPS principal
+    idIps: '',
+    idConsultorio: '', 
+    cupsServicioMedico: '',     // Para la relación con ServicioMedico
   });
-  const [todosServicios, setTodosServicios] = useState([]); // Para el selector de CUPS
+  const [isEditing, setIsEditing] = useState(false);
+  const [todosServiciosCUPS, setTodosServiciosCUPS] = useState([]);
 
-  // Efecto para cargar datos iniciales cuando se edita
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      setFormData({
-        nombre: initialData.nombre || '',
-        telefono: initialData.telefono || '',
-        direccion: initialData.direccion || '',
-        idIps: initialData.idIps || '',
-        cupsServicioMedico: initialData.cupsServicioMedico || '',
-        id: initialData.id || null, // Importante para la actualización
-      });
-    } else {
-      // Reset para formulario de creación
-      setFormData({
-        nombre: '',
-        telefono: '',
-        direccion: '',
-        idIps: '',
-        cupsServicioMedico: '',
-        id: null,
-      });
-    }
-  }, [initialData]);
-
-  // Efecto para cargar todos los servicios médicos para el selector
-  useEffect(() => {
-    const fetchTodosServicios = async () => {
+    // Cargar todos los servicios médicos (CUPS) para el selector
+    const fetchTodosCUPS = async () => {
       try {
         const data = await listaServiciosMedicos();
-        // Asumiendo que la respuesta es como en MedicoFormulario: { servicio: [{ nombre, cups }] } o directamente un array
-        const serviciosArray = data.servicio || data || []; 
+        const serviciosArray = data.servicio || data || []; // Ajusta según la respuesta real
         const opciones = serviciosArray.map((s) => ({
           label: s.nombre,
           value: s.cups,
         }));
-        setTodosServicios(opciones);
+        setTodosServiciosCUPS(opciones);
       } catch (error) {
-        console.error('Error cargando todos los servicios médicos:', error);
+        console.error('Error cargando la lista de servicios CUPS:', error);
       }
     };
-    fetchTodosServicios();
+    fetchTodosCUPS();
   }, []);
+
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setIsEditing(true);
+      setFormData({
+
+        idIps: initialData.id?.ips?.id || initialData.idIps || '',
+        idConsultorioPropio: initialData.id?.idConsultorio || initialData.idConsultorio || '',
+        cupsServicioMedico: initialData.servicioMedico?.cupsSermed || initialData.cupsServicioMedico || '',
+      });
+    } else {
+      setIsEditing(false);
+      setFormData({
+        idIps: '',
+        idConsultorio: '',
+        cupsServicioMedico: '',
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitForm = async (e) => {
+  const handleSubmitForm = (e) => {
     e.preventDefault();
-    try {
-      if (onSubmit) {
-        // El objeto formData ya contiene el 'id' si es una edición
-        // y todos los campos necesarios para crear o actualizar.
-        await onSubmit(formData);
+    
+    // Construir el payload según la estructura esperada por el backend (con ID compuesto)
+    const payload = {
+      // Asumiendo que el backend espera el ID de IPS y el CUPS como números/strings directos
+      // en el DTO, o anidados si se mapea directamente a la entidad.
+      // Para el ID compuesto y la relación:
+      id: {
+        ips: { id: parseInt(formData.idIps, 10) }, // Ajusta si idIps no es numérico o la estructura es distinta
+        idConsultorio: parseInt(formData.idConsultorioPropio, 10) // Ajusta si idConsultorioPropio no es numérico
+      },
+      servicioMedico: {
+        cupsSermed: formData.cupsServicioMedico
       }
-    } catch (error) {
-      console.error('Error al guardar el consultorio:', error);
-      // Aquí podrías añadir feedback al usuario
-    }
-  };
+    };
 
-  const isEditing = Boolean(formData.id);
+    // Si no se está editando, puede que el backend no espere el objeto 'id' completo,
+    // sino los componentes del ID para que él los ensamble, o puede que sí lo espere.
+    // Esto depende de tu DTO de creación.
+    // Si al crear, el backend espera idIps y idConsultorioPropio como campos separados,
+    // y no dentro de un objeto 'id', deberás ajustar el payload de creación.
+    // Lo mismo para servicioMedico, podría esperar solo el cupsSermed.
+
+    // Para simplificar, este payload asume que el DTO de backend es flexible
+    // o que tienes un DTO de envío que se parece a esto.
+    // Es CRUCIAL que este payload coincida con lo que tu API Spring Boot espera.
+
+    onSubmit(payload);
+  };
 
   return (
     <Box
       component="form"
       onSubmit={handleSubmitForm}
       sx={{
-        mb: 4,
-        p: 3, // Aumentado padding
-        border: '1px solid #e0e0e0', // Borde más suave
+        p: 3,
+        backgroundColor: 'background.paper', // Usa colores del tema
         borderRadius: 2,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)', // Sombra sutil
-        backgroundColor: 'background.paper', // Usar color de fondo del tema
+        boxShadow: 1, // Sombra sutil
       }}
     >
-      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}> {/* Título más prominente */}
+      <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
         {isEditing ? 'Editar Consultorio' : 'Crear Nuevo Consultorio'}
       </Typography>
       
-      <Grid container spacing={3}> {/* Aumentado spacing */}
-        {/* No he añadido la imagen como en MedicoFormulario, ya que no parece ser un campo del consultorio */}
-        {/* Si necesitas una imagen, puedes añadirla aquí de forma similar */}
-
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={2}>
+        {/* Campos para el ID Compuesto */}
+        <Grid item xs={12} sm={6}>
           <TextField
-            label="Nombre del Consultorio"
+            label="ID de la IPS *"
+            name="idIps"
+            value={formData.idIps}
+            onChange={handleChange}
+            fullWidth
+            required
+            disabled={isEditing} // Generalmente el ID de la IPS no se cambia en edición
+            helperText={isEditing ? "ID de la IPS (no editable)" : "Ingrese el ID numérico de la IPS"}
+            type="number"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Nº Identificador del Consultorio *"
+            name="idConsultorioPropio"
+            value={formData.idConsultorioPropio}
+            onChange={handleChange}
+            fullWidth
+            required
+            disabled={isEditing} // Generalmente el ID propio del consultorio no se cambia
+            helperText={isEditing ? "Nº Identificador (no editable)" : "Nº único del consultorio en esta IPS"}
+            type="number"
+          />
+        </Grid>
+
+        {/* Otros campos del Consultorio (basados en DTO/Mockup) */}
+        <Grid item xs={12}>
+          <TextField
+            label="Nombre del Consultorio *"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
             fullWidth
             required
-            variant="outlined" // Estilo estándar
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} sm={6}>
           <TextField
             label="Teléfono"
             name="telefono"
             value={formData.telefono}
             onChange={handleChange}
             fullWidth
-            variant="outlined"
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} sm={6}>
           <TextField
             label="Dirección"
             name="direccion"
             value={formData.direccion}
             onChange={handleChange}
             fullWidth
-            variant="outlined"
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+
+        {/* Campo para Servicio Médico */}
+        <Grid item xs={12}>
           <TextField
-            label="ID de la IPS"
-            name="idIps"
-            // type="number" // Descomenta si es estrictamente numérico y quieres validación del navegador
-            value={formData.idIps}
-            onChange={handleChange}
-            fullWidth
-            required
-            variant="outlined"
-            helperText="ID numérico de la Institución Prestadora de Salud"
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            select // Esto lo convierte en un selector
-            label="Servicio Médico Principal (CUPS)"
+            select
+            label="CUPS del Servicio Médico *"
             name="cupsServicioMedico"
             value={formData.cupsServicioMedico}
             onChange={handleChange}
             fullWidth
-            variant="outlined"
-            helperText="Seleccione el código CUPS principal del consultorio"
+            required
+            helperText="Seleccione el servicio médico principal del consultorio"
           >
             <MenuItem value="">
-              <em>Ninguno</em>
+              <em>Seleccionar Servicio...</em>
             </MenuItem>
-            {todosServicios.map((servicio) => (
+            {todosServiciosCUPS.map((servicio) => (
               <MenuItem key={servicio.value} value={servicio.value}>
                 {servicio.label} ({servicio.value})
               </MenuItem>
@@ -178,12 +196,12 @@ const ConsultorioFormulario = ({
         </Grid>
       </Grid>
       
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}> {/* Separación y gap */}
-        <Button onClick={onCancel} variant="outlined" color="secondary"> {/* Estilo más estándar */}
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button onClick={onCancel} variant="outlined">
           Cancelar
         </Button>
         <Button type="submit" variant="contained" color="primary">
-          {isEditing ? 'Actualizar Consultorio' : 'Crear Consultorio'}
+          {isEditing ? 'Actualizar' : 'Crear'}
         </Button>
       </Box>
     </Box>
