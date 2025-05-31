@@ -58,14 +58,20 @@ const IPSLista = () => {
   const handleSubmitIPS = async (ips) => {
     try {
       const datosEnviar = {
-        nombre: ips.nombre,
-        direccion: ips.direccion,
-        telefono: ips.telefono,
-        activo: true,
-        imagen: ips.imagen,
-        admEps: {
-          email: subEmail,
-        },
+        email: ips.emailAdministrador,
+        nombre: ips.nombreAdministrador,
+        telefono: ips.telefonoAdministrador,
+        password: ips.passwordAdministrador,
+        ips: {
+          nombre: ips.nombre,
+          direccion: ips.direccion,
+          telefono: ips.telefono,
+          activo: true,
+          imagen: ips.imagen,
+          admEps: {
+            email: subEmail,
+          }
+        }
       };
 
       if (editandoIPS && editandoIPS.id)
@@ -169,6 +175,7 @@ const IPSLista = () => {
 
       {mostrarFormulario && !editandoIPS && (
         <IPSFormulario
+          isNew
           onSubmit={handleSubmitIPS}
           onCancel={handleOcultarFormulario}
         />

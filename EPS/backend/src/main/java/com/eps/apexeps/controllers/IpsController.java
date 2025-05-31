@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.users.AdmIps;
 import com.eps.apexeps.models.DTOs.response.IpsEntradaLista;
 import com.eps.apexeps.models.DTOs.response.IpsConServicios;
 import com.eps.apexeps.models.DTOs.response.IpsLista;
@@ -89,14 +90,13 @@ public class IpsController {
     }
 
     @PostMapping
-    public ResponseEntity<Ips> save(@RequestBody Ips ips) throws IOException {
+    public ResponseEntity<?> save(@RequestBody AdmIps admIps) throws IOException {
         try {
-            return ResponseEntity.ok(ipsService.save(ips));
+            return ResponseEntity.ok(ipsService.create(admIps));
         } catch (IOException e) {
+            RuntimeException re = new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-            // TODO: throw new RuntimeException("Error al guardar la IPS: " +
-            // e.getMessage(), e);
+                    .body(re);
         }
     }
 

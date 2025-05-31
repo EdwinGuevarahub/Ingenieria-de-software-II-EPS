@@ -32,9 +32,6 @@ public class MedicoService {
     /** Repositorio de consultorios para acceder a la base de datos. */
     private final ConsultorioRepository consultorioRepository;
 
-    /** Repositorio de Trabaja para acceder a la base de datos. */
-    private final TrabajaRepository trabajaRepository;
-
     /** Repositorio de ServicioMedico para acceder a la base de datos. */
     private final ServicioMedicoRepository servicioMedicoRepository;
 
