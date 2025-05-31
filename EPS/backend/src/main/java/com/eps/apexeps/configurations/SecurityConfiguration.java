@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.web.cors.CorsConfigurationSource;
 import com.eps.apexeps.models.auth.ERol;
 
 import lombok.RequiredArgsConstructor;
@@ -31,10 +31,13 @@ public class SecurityConfiguration {
     /** Proveedor de autenticación */
     private final AuthenticationProvider authProvider;
 
+    /** Fuente de configuración CORS */
+    private final CorsConfigurationSource corsConfigurationSource;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .cors().and()
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     // Rutas de prueba de rol.
