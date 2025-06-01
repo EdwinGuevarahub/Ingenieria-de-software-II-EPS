@@ -1,10 +1,13 @@
 package com.eps.apexeps.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.eps.apexeps.models.relations.Trabaja;
 import java.util.List;
+import java.util.Optional;
+
 import com.eps.apexeps.models.users.Medico;
 
 
@@ -22,5 +25,24 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
      * @return Una lista de relaciones de trabajo asociadas a los médicos proporcionados.
      */
     List<Trabaja> findByMedicoIn(List<Medico> medicos);
-    
+
+    /*  Todos los consultorios donde labora un médico (por su DNI) */
+    List<Trabaja> findByMedico_Dni(Long dniMedico);
+
+    Optional<Trabaja> findByMedico_DniAndConsultorio_Id(Long dniMedico,
+                                                        Integer idConsultorio);
+
+    Optional<Trabaja> findByMedico_DniAndConsultorio_Id_IdConsultorio(
+            Long dniMedico,
+            Integer idConsultorio);
+
+
+    @Query("""
+       SELECT t
+         FROM Trabaja t
+        WHERE t.medico.dni = :dni
+          AND t.consultorio.id.idConsultorio = :idCons
+       """)
+    Optional<Trabaja> buscarPorMedicoYConsultorio(Long dniMedico, Integer idConsultorio);
+
 }

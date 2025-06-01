@@ -1,10 +1,14 @@
-import { Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Select, MenuItem, FormControl } from '@mui/material';
 
-const SelectFilter = ({ label, value, options, onChange }) => (
-  <FormControl fullWidth>
-    <InputLabel>{label}</InputLabel>
-    <Select value={value} label={label} onChange={(e) => onChange(e.target.value)}>
-      <MenuItem value="">Todos</MenuItem>
+const SelectFilter = ({ placeholder, value, options, onChange }) => (
+  <FormControl fullWidth variant="outlined">
+    <Select
+      displayEmpty
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      renderValue={(selected) => (selected ? selected : placeholder)}
+    >
+      <MenuItem value="">{placeholder || 'Todos'}</MenuItem>
       {options.map((opt, i) => (
         <MenuItem key={i} value={opt}>
           {opt}
@@ -15,3 +19,4 @@ const SelectFilter = ({ label, value, options, onChange }) => (
 );
 
 export default SelectFilter;
+

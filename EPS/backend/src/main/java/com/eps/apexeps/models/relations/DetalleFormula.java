@@ -22,7 +22,6 @@ import lombok.Setter;
 //   medicamento_detallef varchar(20) [not null, ref: > medicamento.id_medicamento]
 //   cantidad_detallef integer [not null]
 //   dosis_detallef varchar(100) [not null]
-//   duracion_detallef varchar(100) [not null]
 // }
 // ref: detalle_formula.(agenda_detallef, diagnostico_detallef) > formula.(agenda_formula, diagnostico_formula)
 
@@ -66,12 +65,5 @@ public class DetalleFormula {
         nullable = false
     )
     private String dosis;
-
-    @Column(
-        name = "duracion_detallef",
-        length = 100,
-        nullable = false
-    )
-    private String duracion;
 
 }

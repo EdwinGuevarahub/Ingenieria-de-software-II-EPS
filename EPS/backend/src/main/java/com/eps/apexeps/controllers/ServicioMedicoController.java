@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +44,9 @@ public class ServicioMedicoController {
         @RequestParam(defaultValue = "0") Integer qPage
     ) { 
         return servicioMedicoService.getServiciosMedicos(
-                    cupsNombreLike, qSize, qPage
+                    cupsNombreLike,
+                    qSize,
+                    qPage
                 )
                 .stream()
                 .map(ServicioMedicoEntradaLista::of)
@@ -62,27 +65,14 @@ public class ServicioMedicoController {
 
     /**
      * Endpoint para crear un nuevo servicio médico.
-     * @param cupsServicioMedico El código CUPS del servicio médico.
-     * @param nombreServicioMedico El nombre del servicio médico.
-     * @param descripcionServicioMedico La descripción del servicio médico (opcional).
-     * @param tarifaServicioMedico La tarifa del servicio médico.
+     * @param servicioMedico El objeto ServicioMedico que contiene los datos del nuevo servicio médico.
      * @return El servicio médico creado.
      * @throws RuntimeException Si no se puede crear el servicio médico.
      */
     @PostMapping
-    public ServicioMedico createServicioMedico(
-        String cupsServicioMedico,
-        String nombreServicioMedico,
-        @RequestParam(required = false) String descripcionServicioMedico,
-        Double tarifaServicioMedico
-    ) {
+    public ServicioMedico createServicioMedico(@RequestBody ServicioMedico servicioMedico) {
         try {
-            return servicioMedicoService.createServicioMedico(
-                        cupsServicioMedico,
-                        nombreServicioMedico,
-                        descripcionServicioMedico,
-                        tarifaServicioMedico
-                    );
+            return servicioMedicoService.createServicioMedico(servicioMedico);
         }
         catch (Exception e) {
             throw new RuntimeException("Error al crear el servicio médico: " + e.getMessage());
@@ -91,27 +81,13 @@ public class ServicioMedicoController {
 
     /**
      * Endpoint para actualizar un servicio médico existente.
-     * @param cupsServicioMedico El código CUPS del servicio médico.
-     * @param nombreServicioMedico El nuevo nombre del servicio médico.
-     * @param descripcionServicioMedico La nueva descripción del servicio médico (opcional).
-     * @Param tarifaServicioMedico La nueva tarifa del servicio médico.
-     * @return El servicio médico actualizado.
+     * @param servicioMedico El objeto ServicioMedico que contiene los datos actualizados del servicio médico.
      * @throws RuntimeException Si no se puede actualizar el servicio médico.
      */
     @PutMapping
-    public ServicioMedico updateServicioMedico(
-        String cupsServicioMedico,
-        String nombreServicioMedico,
-        @RequestParam(required = false) String descripcionServicioMedico,
-        Double tarifaServicioMedico
-    ) {
+    public ServicioMedico updateServicioMedico(@RequestBody ServicioMedico servicioMedico) {
         try {
-            return servicioMedicoService.updateServicioMedico(
-                        cupsServicioMedico,
-                        nombreServicioMedico,
-                        descripcionServicioMedico,
-                        tarifaServicioMedico
-                    );
+            return servicioMedicoService.updateServicioMedico(servicioMedico);
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el servicio médico: " + e.getMessage());
