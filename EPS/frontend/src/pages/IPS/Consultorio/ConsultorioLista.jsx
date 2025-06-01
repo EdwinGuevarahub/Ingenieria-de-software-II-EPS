@@ -22,14 +22,12 @@ import {
   actualizarConsultorio,
 } from "@/../../src/services/consultorioService.js";
 import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";
-import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
-import { useAuthContext } from '@/../../src/contexts/AuthContext';
+import { useIpsContext } from "../../../contexts/UserIPSContext.js";
 
 const ConsultorioLista = () => {
 
   // Contexto de autenticación para obtener el email del médico y su IPS
-  const { subEmail } = useAuthContext();
-  const [ips, setIps] = useState({});
+  const { ips } = useIpsContext();
 
   // Estados
   const [editData, setEditData] = useState(null);
@@ -145,19 +143,6 @@ const ConsultorioLista = () => {
   useEffect(() => {
     fetchConsultorios(pagina);
   }, [pagina, fetchConsultorios]);
-
-  useEffect(() => {
-    const fetchIps = async () => {
-      try {
-        const result = await getIpsByAdmIpsEmail(subEmail);
-        setIps(result);
-      } catch (error) {
-        console.error('Error al cargar la ips del administrador: ', error);
-      }
-    };
-
-    fetchIps();
-  }, [subEmail]);
 
   return (
     <Box sx={{ width: "100%" }}>

@@ -1,81 +1,29 @@
-import {useEffect, useState} from 'react';
 import {
   Typography, Box, Container, Grid, Card, CardContent, CardMedia
 } from '@mui/material';
 import SpaIcon from '@mui/icons-material/Spa';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { getIpsByAdmIpsEmail } from '../../services/ipsService';
+import { useIpsContext } from '../../contexts/UserIPSContext';
 
 const services = [
   {
     title: 'Citas médicas',
-    image: '/images/Banner.png',
+    image: '/images/citas-medicas.jpg',
     description: 'Agenda y gestiona tus consultas con médicos generales y especialistas de forma rápida y segura.',
   },
   {
     title: 'Exámenes',
-    image: '/images/Banner.png',
+    image: '/images/examenes.jpg',
     description: 'Solicita y consulta tus exámenes diagnósticos con cobertura en nuestra red de prestadores.',
   },
   {
     title: 'Laboratorios',
-    image: '/images/Banner.png',
+    image: '/images/laboratorios.jpg',
     description: 'Accede a servicios de laboratorio clínico para apoyar el diagnóstico y seguimiento de tu salud.',
   },
 ];
 
 const Home = () => {
-  const { isLogged, subEmail, role } = useAuthContext();
-  const logged = isLogged();
-
-  const [ isAuthLoading, setIsAuthLoading ] = useState(true);
-  const [ willRedirect, setWillRedirect ] = useState(true);
-  const [ ips, setIps ] = useState({});
-
-  // Redirigir si el usuario no está logueado o no es un administrador de IPS.
-  useEffect(() => {
-    if (logged === false || role)
-      setIsAuthLoading(false);
-    else
-      return;
-
-    if (logged && role === 'ADM_IPS')
-      setWillRedirect(false);
-    else
-      window.location.href = '/';
-
-  }, [logged, role]);
-
-  useEffect(() => {
-    if (willRedirect)
-      return;
-
-    const fetchIps = async () => {
-      try {
-        const result = await getIpsByAdmIpsEmail(subEmail);
-        setIps(result);
-      } catch(error) {
-        console.error('Error al cargar la ips del médico: ', error);
-      }
-    };
-
-    fetchIps();
-  }, [willRedirect, subEmail]);
-
-  if (isAuthLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography variant="h6">Cargando...</Typography>
-      </Box>
-    );
-  }
-
-  if (willRedirect)
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Typography variant="h6">Redirigiendo...</Typography>
-      </Box>
-    )
+  const { ips } = useIpsContext();
 
   return (
     <Box>
