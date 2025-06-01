@@ -5,17 +5,26 @@ import {
   TextField,
   Chip,
   Button,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import { listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const IPSFormulario = ({
   initialData = {},
   onSubmit,
   onCancel,
+  isNew = false,
 }) => {
   const [formData, setFormData] = useState(initialData || {});
   const [serviciosMedicos, setServiciosMedicos] = useState([]);
   const fileInputRef = useRef();
+
+  // Para mostrar y oculatar el contenido de la contraseña.
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
   useEffect(() => {
     const fetchServiciosDeLaIPS = async () => {
@@ -76,7 +85,7 @@ const IPSFormulario = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
           <Box
             component="img"
-            src={`data:image/png;base64,${formData.imagen}`}
+            src={formData && formData.imagen ? `data:image/png;base64,${formData.imagen}` : null}
             alt="Foto"
             sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
           />
@@ -98,6 +107,48 @@ const IPSFormulario = ({
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
           <TextField label="Dirección" value={formData.direccion || ''} onChange={handleChange('direccion')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
+
+          {/* Campos para creación */}
+          {isNew && (
+            <>
+              <TextField
+                label="Nombre Administrador"
+                value={formData.nombreAdministrador || ''}
+                onChange={handleChange('nombreAdministrador')}
+              />
+              <TextField
+                label="Teléfono Administrador"
+                value={formData.telefonoAdministrador || ''}
+                onChange={handleChange('telefonoAdministrador')}
+              />
+              <TextField
+                label="Correo Administrador"
+                value={formData.emailAdministrador || ''}
+                onChange={handleChange('emailAdministrador')}
+              />
+              <TextField
+                label='Password Administrador'
+                type={showPassword ? "text" : "password"}
+                value={formData.passwordAdministrador || ''}
+                onChange={handleChange('passwordAdministrador')}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                        >
+                          {showPassword ? <Visibility /> : <VisibilityOff />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }
+                }}
+              />
+            </>
+          )}
         </Box>
 
         {/* Botones */}
