@@ -8,7 +8,6 @@ const Navbar = () => {
   const { isLogged, logOut, role } = useAuthContext();
   const logged = isLogged();
 
-
   return (
     <>
       <AppBar position="static" elevation={0}>
@@ -21,13 +20,13 @@ const Navbar = () => {
           />
 
           <Box display="flex" alignItems="center" gap={2}>
-            {logged && role === 'adminEPS' && (
+            {logged && role === 'ADM_EPS' && (
               <>
                 <Button color="inherit" component={Link} to="/HomeEPS">Inicio</Button>
               </>
             )}
 
-            {logged && role === 'adminIPS' && (
+            {logged && role === 'ADM_IPS' && (
               <>
                 <Button color="inherit" component={Link} to="/HomeIPS">Inicio</Button>
               </>
@@ -43,7 +42,7 @@ const Navbar = () => {
           </Box>
         </Toolbar>
 
-        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText', height: '10px'}}>
+        <Toolbar sx={{ height: 4, bgcolor: 'secondary.main', color: 'secondary.contrastText'}}>
           <Box sx={{ display: 'flex', gap: 2, mx: 'auto' }}>
             
             {/* Sin loguear */}
@@ -56,7 +55,7 @@ const Navbar = () => {
             )}
 
             {/* Con roles */}
-            {logged && role === 'adminEPS' && (
+            {logged && role === 'ADM_EPS' && (
               <>
                 <Button color="inherit" component={Link} to="/IPS">Gestionar IPS</Button>
                 <Button color="inherit" component={Link} to="/">Registrar Afiliado</Button>
@@ -65,10 +64,11 @@ const Navbar = () => {
               </>
             )}
 
-            {logged && role === 'adminIPS' && (
+            {logged && role === 'ADM_IPS' && (
               <>
-                <Button color="inherit" component={Link} to="/">Gestionar Médicos</Button>
-                <Button color="inherit" component={Link} to="/">Gestionar Consultorios</Button>
+                <Button color="inherit" component={Link} to="/registrar-resultados">Registrar Resultados</Button>
+                <Button color="inherit" component={Link} to="/medicos">Gestionar Médicos</Button>
+                <Button color="inherit" component={Link} to="/consultorios">Gestionar Consultorios</Button>
               </>
             )}
           </Box>

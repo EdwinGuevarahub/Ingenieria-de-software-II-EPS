@@ -4,10 +4,19 @@ import java.util.List;
 
 import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.response.AgendaEntradaLista;
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaLista;
+import com.eps.apexeps.models.auth.ERol;
 import com.eps.apexeps.services.AgendaService;
+import com.eps.apexeps.services.MedicoService;
+import com.eps.apexeps.services.PacienteService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +33,15 @@ public class AgendaController {
     /** Servicio de agenda para manejar la lógica de negocio. */
     private final AgendaService agendaService;
 
+    /** Servicio de paciente para manejar la lógica relacionada con los pacientes. */
+    private final PacienteService pacienteService;
+
+    /** Servicio de médico para manejar la lógica relacionada con los médicos. */
+    private final MedicoService medicoService;
+
     /**
      * Endpoint para obtener todas las agendas de la base de datos asociadas a un paciente.
-     * @param dniPaciente El DNI del paciente.
+     * @param dniPaciente El DNI del paciente (ilegal si el usuario es un paciente, ya que se obtiene de la sesión).
      * @param dniNombreMedicoLike Cadena que se usará para filtrar los médicos por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda (opcional).
      * @param fecha (dd-MM-yyyy) La fecha de la cita (opcional).
@@ -36,9 +51,9 @@ public class AgendaController {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de agendas.
      */
-    @GetMapping("/paciente/{dniPaciente}")
-    public List<AgendaEntradaLista> getAllAgendasPaciente(
-        @PathVariable Long dniPaciente,
+    @GetMapping("/paciente")
+    public ResponseEntity<AgendaLista> getAllAgendasPaciente(
+        @RequestParam(required = false) Long dniPaciente,
         @RequestParam(required = false) String dniNombreMedicoLike,
         @RequestParam(required = false) String cupsServicioMedico,
         @RequestParam(required = false) String fecha,
@@ -47,27 +62,45 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    dniPaciente,
-                    null,
-                    null,
-                    dniNombreMedicoLike,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication
+                .getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals(ERol.PACIENTE.name()))
+           ) {
+            // El paciente no debe proporcionar un DNI, ya que se obtiene de la sesión y no está autorizado a modificarlo.
+            if (dniPaciente != null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
+            dniPaciente = pacienteService.findDniByEmail(authentication.getName());
+        }
+
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    dniPaciente,
+                                    null,
+                                    null,
+                                    dniNombreMedicoLike,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return ResponseEntity.ok(
+                        new AgendaLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(AgendaEntradaLista::of)
+                                    .toList()
+                        )
+                    );
     }
 
     /**
      * Endpoint para obtener todas las agendas de la base de datos asociadas a un médico.
-     * @param dniMedico El DNI del médico.
+     * @param dniMedico El DNI del médico (ilegal si el usuario es un médico, ya que se obtiene de la sesión).
      * @param dniNombrePacienteLike Cadena que se usará para filtrar los pacientes por su DNI o nombre (opcional).
      * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda (opcional).
      * @param fecha (dd-MM-yyyy) La fecha de la cita (opcional).
@@ -77,9 +110,9 @@ public class AgendaController {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de agendas.
      */
-    @GetMapping("/medico/{dniMedico}")
-    public List<AgendaEntradaLista> getAllAgendasMedico(
-        @PathVariable Long dniMedico,
+    @GetMapping("/medico")
+    public ResponseEntity<AgendaLista> getAllAgendasMedico(
+        @RequestParam(required = false) Long dniMedico,
         @RequestParam(required = false) String dniNombrePacienteLike,
         @RequestParam(required = false) String cupsServicioMedico,
         @RequestParam(required = false) String fecha,
@@ -88,22 +121,40 @@ public class AgendaController {
         @RequestParam(defaultValue = "10") Integer qSize,
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        return agendaService
-                .getAgendas(
-                    null,
-                    dniMedico,
-                    dniNombrePacienteLike,
-                    null,
-                    cupsServicioMedico,
-                    fecha,
-                    horaDeInicio,
-                    horaDeFin,
-                    qSize,
-                    qPage
-                )
-                .stream()
-                .map(AgendaEntradaLista::of)
-                .toList();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication
+                .getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals(ERol.MEDICO.name()))
+           ) {
+            // El paciente no debe proporcionar un DNI, ya que se obtiene de la sesión y no está autorizado a modificarlo.
+            if (dniMedico != null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
+            dniMedico = medicoService.findDniByEmail(authentication.getName());
+        }
+
+        Page<Agenda> entradas = agendaService
+                                .getAgendas(
+                                    null,
+                                    dniMedico,
+                                    dniNombrePacienteLike,
+                                    null,
+                                    cupsServicioMedico,
+                                    fecha,
+                                    horaDeInicio,
+                                    horaDeFin,
+                                    qSize,
+                                    qPage
+                                );
+
+        return ResponseEntity.ok(
+                    new AgendaLista(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(AgendaEntradaLista::of)
+                                .toList()
+                    )
+                );
     }
 
     /**
@@ -112,8 +163,8 @@ public class AgendaController {
      * @return La agenda correspondiente al ID proporcionado o null si no se encuentra.
      */
     @GetMapping("/{id}")
-    public Agenda getAgendaById(@PathVariable Integer id) {
-        return agendaService.getAgendaById(id);
+    public ResponseEntity<Agenda> getAgendaById(@PathVariable Integer id) {
+        return ResponseEntity.ok(agendaService.getAgendaById(id));
     }
 
     /**
@@ -123,9 +174,9 @@ public class AgendaController {
      * @throws RuntimeException Si ocurre un error al actualizar la agenda.
      */
     @PutMapping("/update/trabajaFecha")
-    public Agenda updateTrabajaFechaAgenda(@RequestParam Agenda agenda) {
+    public ResponseEntity<Agenda> updateTrabajaFechaAgenda(@RequestParam Agenda agenda) {
         try {
-            return agendaService.updateTrabajaFechaAgenda(agenda);
+            return ResponseEntity.ok(agendaService.updateTrabajaFechaAgenda(agenda));
         } catch (Exception e) {
             throw new RuntimeException("Error al actualizar la relación trabaja o la fecha de la agenda: " + e.getMessage(), e);
         }

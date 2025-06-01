@@ -10,7 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.users.AdmIps;
+import com.eps.apexeps.models.entity.users.AdmIps;
 import com.eps.apexeps.repositories.AdmIpsRespository;
 
 /**
@@ -62,6 +62,24 @@ public class AdmIpsService {
      */
     public boolean existsByEmail(String email) {
         return admIpsRespository.existsByEmail(email);
+    }
+
+    /**
+     * Busca un administrador IPS por su correo electrónico y retorna el ID de la IPS asociada.
+     * @param email El correo electrónico del administrador.
+     * @return El ID de la IPS asociada, o null si no se encuentra el administrador.
+     * @throws IllegalArgumentException Si el email es nulo.
+     */
+    public Integer findIdIpsByEmail(String email) {
+        if (email == null)
+            throw new IllegalArgumentException("El email no puede ser nulo");
+
+        AdmIps admIps = admIpsRespository.findByEmail(email).orElse(null);
+
+        if (admIps == null)
+            return null;
+
+        return admIps.getIps().getId();
     }
 
 }
