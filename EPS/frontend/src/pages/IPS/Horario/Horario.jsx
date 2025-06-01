@@ -7,9 +7,9 @@ import {
 import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';  
 import { obtenerHorario, crearHorario, actualizarHorario } from '@/../../src/services/trabajaService';  
 import { listarConsultorios } from "@/../../src/services/consultorioService.js";  
-import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";  
+import { listaServiciosMedicosPorIPS } from "@/../../src/services/serviciosMedicosService.js";  
+import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 
-// 1. Unificar la configuración de los días
 const DIAS_SEMANA_CONFIG = [
     { display: 'Lunes', backendValue: 'MONDAY', corto: 'L' },
     { display: 'Martes', backendValue: 'TUESDAY', corto: 'M' },
@@ -23,7 +23,6 @@ const DIAS_SEMANA_CONFIG = [
 const horasDia = Array.from({ length: 17 }, (_, i) => `${String(i + 6).padStart(2, '0')}:00`);  
 const coloresBase = ['#ffccbc', '#dcedc8', '#b2dfdb', '#bbdefb', '#f8bbd0', '#e1bee7', '#c5cae9', '#fff9c4', '#ffecb3'];  
 
-// 2. Modificar funciones helper para aceptar opciones como parámetros
 const getServicioNameFromIdConsultorio = (ConsultorioId, consultoriosOptions) => {
     const consultorio = consultoriosOptions.find(c => c.value === ConsultorioId);
     return consultorio ? consultorio.nombreServicio : `Servicio CUPS ${consultorio ? consultorio.cupsServicio : 'Desconocido'}`;
@@ -98,7 +97,7 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
                 setFormHorario(prev => ({ ...prev, consultorio: '' }));
             }
         }
-    }, [formHorario.servicio, consultoriosOpts, serviciosOpts, open]);
+    }, [formHorario.servicio, formHorario.consultorio, consultoriosOpts, serviciosOpts, open]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -216,6 +215,11 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
 }
 
 export default function HorarioModal({ open, onClose, dniMedico }) {
+
+    // Autentificación de ips
+    const { ips } = useIpsContext();
+
+    // Estados del componente
     const [horariosGuardados, setHorariosGuardados] = useState([]);  
     const [editingHorario, setEditingHorario] = useState(null);  
     const [formOpen, setFormOpen] = useState(false);  
@@ -229,7 +233,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         if (open) {
             const doFetchServicios = async () => {
                 try {
-                    const { servicio } = await listaServiciosMedicos();  
+                    const servicio = await listaServiciosMedicosPorIPS(ips.id);
                     setServiciosOpts(servicio.map((s) => ({ label: s.nombre, value: s.cups })));  
                 } catch (e) {
                     console.error("Error cargando servicios:", e);  
@@ -238,7 +242,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             };
             doFetchServicios();
         }
-    }, [open]);
+    }, [open, ips]);
 
     useEffect(() => {
         if (open && dniMedico) {
@@ -325,7 +329,6 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
     };
 
     const handleOpenFormForEdit = (horario) => {
-        console.log('Editing horario:', horario);  
         setEditingHorario({  
             ...horario,  
             dias: [horario.dia] 
@@ -364,7 +367,6 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                         fin: formData.horaFin + ":00",  
                     }]
                 };
-                console.log("Actualizando:", editingHorario.id, dataToUpdate);  
                 await actualizarHorario(dniMedico, editingHorario.id, dataToUpdate);  
             } else {
                 for (const diaFrontend of formData.dias) {  
@@ -381,8 +383,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                             inicio: formData.horaInicio + ":00",  
                             fin: formData.horaFin + ":00",  
                         }]
-                    };
-                    console.log("Creando:", dataToCreate);  
+                    }; 
                     await crearHorario(dniMedico, dataToCreate);  
                 }
             }
@@ -430,7 +431,6 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                 };
             }
         });
-        console.log("Schedule Matrix:", matrix);
         return matrix;  
     }, [horariosGuardados]);
 
@@ -601,13 +601,13 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                             backgroundColor: (theme) => theme.palette.grey[200],
                                             zIndex: 2
                                         }}>{hora}</TableCell>
-                                        {DIAS_SEMANA_CONFIG.map((diaConfig) => {
+                                        {DIAS_SEMANA_CONFIG.map((diaConfig, index) => {
                                             const cellData = obtenerDatosCelda(diaConfig.display, hora);
                                             return (
                                                 <Tooltip title={
                                                     cellData?.tooltip || `Añadir horario para ${diaConfig.display} a las ${hora}`}
                                                     placement="top"
-                                                    key={`<span class="math-inline">\{diaConfig\.backendValue\}\-</span>{hora}`}
+                                                    key={index}
                                                 >
                                                     <TableCell
                                                         onClick={() => !isLoading && handleCeldaClick(diaConfig.display, hora)}

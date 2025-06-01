@@ -11,10 +11,11 @@ import {
 } from '@mui/icons-material';
 import {
   listaServiciosMedicosPorMedico,
-  listaServiciosMedicos,
+  listaServiciosMedicosPorIPS,
   agregarServiciosMedicosPorMedico,
   eliminarServiciosMedicosPorMedico,
 } from '@/../../src/services/serviciosMedicosService';
+import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 import { listarConsultorios } from '@/../../src/services/consultorioService';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -49,6 +50,11 @@ const MedicoFormulario = ({
   onSubmit,
   onCancel,
 }) => {
+
+  // Autentificación de ips
+  const { ips } = useIpsContext();
+
+  // Estados para el formulario
   const [formData, setFormData] = useState(initialData || {});
   const [tempFormData, setTempFormData] = useState(null);
   const [serviciosMedicos, setServiciosMedicos] = useState([]);
@@ -98,7 +104,7 @@ const MedicoFormulario = ({
   useEffect(() => {
     const fetchTodosServicios = async () => {
       try {
-        const { servicio } = await listaServiciosMedicos(); // TODO: Cambiar a listaServicosMedicosPorIPS
+        const servicio = await listaServiciosMedicosPorIPS(ips.id); 
         const opciones = servicio.map((s) => ({
           label: s.nombre,
           value: s.cups,
@@ -109,7 +115,7 @@ const MedicoFormulario = ({
       }
     };
     fetchTodosServicios();
-  }, []);
+  }, [ips]);
 
   // useEffect para cargar servicios y consultorios para el modal de horario inicial
   useEffect(() => {
@@ -118,8 +124,8 @@ const MedicoFormulario = ({
         setIsLoadingFormOpts(true);
         setFormError(null);
         try {
-          const serviciosResponse = await listaServiciosMedicos(); // TODO: Cambiar a listaServicosMedicosPorIPS
-          const mappedServicios = serviciosResponse.servicio.map(s => ({ label: s.nombre, value: s.cups }));
+          const serviciosResponse = await listaServiciosMedicosPorIPS(ips.id); 
+          const mappedServicios = serviciosResponse.map(s => ({ label: s.nombre, value: s.cups }));
           setFormServiciosOpts(mappedServicios);
           _formServiciosOpts = mappedServicios;
 
@@ -146,7 +152,7 @@ const MedicoFormulario = ({
       };
       fetchOptions();
     }
-  }, [isInitialScheduleModalOpen]);
+  }, [isInitialScheduleModalOpen, initialSchedule.servicio, ips.id]);
 
   // Autoseleccionar consultorio cuando cambia el servicio en el modal de horario inicial
   useEffect(() => {
@@ -161,7 +167,7 @@ const MedicoFormulario = ({
         setInitialSchedule(prev => ({ ...prev, consultorio: '' }));
       }
     }
-  }, [initialSchedule.servicio, formConsultoriosOpts, isInitialScheduleModalOpen]);
+  }, [initialSchedule.servicio, initialSchedule.consultorio, formConsultoriosOpts, isInitialScheduleModalOpen]);
 
   const handleChange = (key) => (e) => {
     setFormData({ ...formData, [key]: e.target.value });
@@ -331,6 +337,7 @@ const MedicoFormulario = ({
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
           <TextField label="Correo" value={formData.email || ''} onChange={handleChange('email')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
+          {!initialData?.dni && ( 
           <TextField
             label='Password'
             type={showPassword ? "text" : "password"}
@@ -350,6 +357,7 @@ const MedicoFormulario = ({
               )
             }}
           />
+          )}
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

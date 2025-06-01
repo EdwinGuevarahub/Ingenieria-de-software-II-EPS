@@ -11,8 +11,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
 import { listaServiciosMedicosPorMedico, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
-import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
-import { useAuthContext } from '@/../../src/contexts/AuthContext';
+import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 import MedicoFormulario from './MedicoFormulario';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import ExpandableTable from '../../../components/list/ExpandableTable';
@@ -22,8 +21,7 @@ import SelectFilter from '../../../components/filters/SelectFilter';
 const MedicoLista = () => {
 
   // Autentificación de ips
-  const { subEmail } = useAuthContext();
-  const [ ips, setIps ] = useState({});
+  const { ips } = useIpsContext();
 
   // Estados
   const [editandoMedico, setEditandoMedico] = useState(null);
@@ -129,27 +127,13 @@ const MedicoLista = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchIps = async () => {
-      try {
-        const result = await getIpsByAdmIpsEmail(subEmail);
-        setIps(result);
-      } catch (error) {
-        console.error('Error al cargar la ips del médico: ', error);
-      }
-    };
-
-    fetchIps();
-  }, [subEmail]);
-
-
   const fetchMedicos = useCallback(
     async (paginaActual, filtrosExtras = {}) => {
       try {
         const filtros = {
           qPage: paginaActual - 1,
           qSize: 2,
-          idIps: ips,
+          idIps: ips.id,
           dniNombreLike: nombreFiltro || undefined,
           ...filtrosExtras,
           estaActivo: true,
@@ -164,27 +148,27 @@ const MedicoLista = () => {
     [nombreFiltro, ips]
   );
 
-  const fetchServiciosMedicos = async () => {
-    try {
-      console.log('Servicios médicos cargados de:', ips);
-      const { servicio } = await listaServiciosMedicosPorIPS(ips);
-      const opciones = servicio.map((s) => ({
-        label: s.nombre,
-        value: s.cups,
-      }));
-      setServiciosUnicos(opciones);
-    } catch (error) {
-      console.error('Error cargando los servicios médicos:', error);
-    }
-  };
+  useEffect(() => {
+    const fetchServiciosMedicos = async () => {
+      try {
+        const servicio = await listaServiciosMedicosPorIPS(ips.id);
+        const opciones = servicio.map((s) => ({
+          label: s.nombre,
+          value: s.cups,
+        }));
+        setServiciosUnicos(opciones);
+      } catch (error) {
+        console.error('Error cargando los servicios médicos:', error);
+      }
+    };
+
+    fetchServiciosMedicos();
+  }, [ips]);
+
 
   useEffect(() => {
     fetchMedicos(pagina, filtrosAplicados);
   }, [pagina, filtrosAplicados, fetchMedicos]);
-
-  useEffect(() => {
-    fetchServiciosMedicos();
-  }, [ips]);
 
   return (
     <Box sx={{ display: 'flex', gap: 4, }}>
@@ -399,7 +383,7 @@ const MedicoLista = () => {
           open={modalHorarioAbierto}
           onClose={() => setModalHorarioAbierto(false)}
           dniMedico={editandoMedico.dni}
-          ipsAdmin = {ips}
+          ipsAdmin={ips}
         />
       )}
     </Box >

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { IpsContextProvider } from '../contexts/UserIPSContext';
 import MainLayout from '../layouts/MainLayout';
 import LandingLayout from '../layouts/LandingLayout';
 import Home from '../pages/Home';
@@ -19,16 +20,28 @@ const AppRouter = () => (
     {/*Rutas varias*/}
     <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
     <Route path="/HomeEPS" element={<LandingLayout><HomeAdmEPS /></LandingLayout>} />
-    <Route path="/HomeIPS" element={<LandingLayout><HomeAdmIPS /></LandingLayout>} />
+    <Route path="/HomeIPS" element={
+      <IpsContextProvider>
+        <LandingLayout><HomeAdmIPS /></LandingLayout>
+      </IpsContextProvider>
+    } />
     <Route path="/signIn" element={<MainLayout><Login /></MainLayout>} />
 
     {/*Rutas para la parte de EPS*/}
     <Route path="/IPS" element={<MainLayout><IPSLista /></MainLayout>} />
 
     {/*Rutas para la parte de IPS*/}
-    <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout> } />
-    <Route path="/medicos" element={<MainLayout><MedicoLista /></MainLayout>} />
-    <Route path="/consultorios" element={<MainLayout><ConsultorioLista /></MainLayout>} />
+    <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout>} /> 
+    <Route path="/medicos" element={
+      <IpsContextProvider>
+        <MainLayout><MedicoLista /></MainLayout>
+      </IpsContextProvider>
+    } />
+    <Route path="/consultorios" element={
+      <IpsContextProvider>
+        <MainLayout><ConsultorioLista /></MainLayout>
+      </IpsContextProvider>
+    } />
 
     {/*Rutas para la parte de médico */}
     <Route path="/medico/agenda" element={<MainLayout><AgendaListaMedico /></MainLayout>} />
