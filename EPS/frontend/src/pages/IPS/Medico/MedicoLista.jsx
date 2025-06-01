@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
-import { listaServiciosMedicosPorMedico, listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
+import { listaServiciosMedicosPorMedico, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
 import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
 import { useAuthContext } from '@/../../src/contexts/AuthContext';
 import MedicoFormulario from './MedicoFormulario';
@@ -120,6 +120,7 @@ const MedicoLista = () => {
         };
 
         await crearMedico(datosEnviar);
+        // TODO: Aquí agregar lógica para manejar los servicios médicos.
       }
       await fetchMedicos(pagina, filtrosAplicados);
       handleOcultarFormulario();
@@ -160,12 +161,13 @@ const MedicoLista = () => {
         console.error('Error cargando los médicos:', error);
       }
     },
-    [nombreFiltro]
+    [nombreFiltro, ips]
   );
 
   const fetchServiciosMedicos = async () => {
     try {
-      const { servicio } = await listaServiciosMedicos();
+      console.log('Servicios médicos cargados de:', ips);
+      const { servicio } = await listaServiciosMedicosPorIPS(ips);
       const opciones = servicio.map((s) => ({
         label: s.nombre,
         value: s.cups,
@@ -182,7 +184,7 @@ const MedicoLista = () => {
 
   useEffect(() => {
     fetchServiciosMedicos();
-  }, []);
+  }, [ips]);
 
   return (
     <Box sx={{ display: 'flex', gap: 4, }}>
