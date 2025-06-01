@@ -1,14 +1,16 @@
 package com.eps.apexeps.models.entity.relations;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.Objects;
+import java.math.BigDecimal;
 
 // Table pago_afiliacion {
 //   paciente_pagoafiliacion bigint [pk, ref: > paciente.dni_paciente]
@@ -32,22 +34,9 @@ import lombok.Setter;
 @Table(name = "pago_afiliacion")
 public class PagoAfiliacion {
 
-    @Id
+    @EmbeddedId
     private PagoAfiliacionId id;
 
-    @Column(
-        name = "tarifa_pagoafiliacion",
-        nullable = false,
-        columnDefinition = "numeric(10, 2)"
-    )
-    private Double tarifa;
-
-    @Builder.Default
-    @Column(
-        name = "estado_pagoafiliacion",
-        nullable = false,
-        columnDefinition = "estado_pago_afiliacion"
-    )
-    private String estado = "pendiente";
-
+    @Column(name = "tarifa_pagoafiliacion", nullable = false)
+    private BigDecimal tarifa;
 }

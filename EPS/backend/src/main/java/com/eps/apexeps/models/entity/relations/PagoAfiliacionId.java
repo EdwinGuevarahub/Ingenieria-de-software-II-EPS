@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.Objects;
 import lombok.Setter;
 
 // Table pago_afiliacion {
@@ -21,9 +22,12 @@ import lombok.Setter;
 // }
 
 /**
- * Esta clase representa la clave primaria compuesta de la relación PagoAfiliacion en la base de datos.
- * Se utiliza para mapear la tabla 'pago_afiliacion' y sus columnas a un objeto Java.
+ * Esta clase representa la clave primaria compuesta de la relación
+ * PagoAfiliacion en la base de datos.
+ * Se utiliza para mapear la tabla 'pago_afiliacion' y sus columnas a un objeto
+ * Java.
  * Incluye anotaciones de JPA para la persistencia y validaciones de datos.
+ *
  * @author Nicolás Sabogal
  */
 @Embeddable
@@ -33,19 +37,24 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class PagoAfiliacionId {
-    
+
     @ManyToOne
-    @JoinColumn(
-        name = "paciente_pagoafiliacion",
-        referencedColumnName = "dni_paciente",
-        nullable = false
-    )
+    @JoinColumn(name = "paciente_pagoafiliacion", referencedColumnName = "dni_paciente", nullable = false)
     private Paciente paciente;
 
-    @Column(
-        name = "f_pagoafiliacion",
-        nullable = false
-    )
+    @Column(name = "f_pagoafiliacion", nullable = false)
     private Instant fechaPagoAfiliacion;
-    
+
+    // equals y hashCode obligatorios para IDs compuestos
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof PagoAfiliacionId))
+            return false;
+        PagoAfiliacionId that = (PagoAfiliacionId) o;
+        return Objects.equals(paciente, that.paciente) &&
+                Objects.equals(fechaPagoAfiliacion, that.fechaPagoAfiliacion);
+    }
+
 }

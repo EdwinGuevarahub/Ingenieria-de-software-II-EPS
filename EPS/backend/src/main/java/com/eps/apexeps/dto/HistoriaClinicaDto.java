@@ -1,13 +1,13 @@
 package com.eps.apexeps.dto;
 
 import lombok.Data;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Data
 public class HistoriaClinicaDto {
     private Integer agendaId;
-    private LocalDateTime fecha;
+    private Instant fecha;
     private String estado;
     private String resultado;
     private List<DiagnosticoDto> diagnosticos;

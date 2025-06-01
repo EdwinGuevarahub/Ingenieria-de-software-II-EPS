@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +48,7 @@ public class HistoriaClinicaService {
         return agendas.stream().map(agenda -> {
             HistoriaClinicaDto dto = new HistoriaClinicaDto();
             dto.setAgendaId(agenda.getId());
-            dto.setFecha(agenda.getFecha().atZone(ZoneId.systemDefault()).toLocalDateTime());
+            dto.setFecha(agenda.getFecha());
             dto.setEstado(agenda.getEstado());
             dto.setResultado(agenda.getResultado());
 
