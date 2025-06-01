@@ -222,7 +222,7 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
 }
 
 
-export default function HorarioModal({ open, onClose, dniMedico }) {
+export default function HorarioModal({ open, onClose, dniMedico, ipsAdmin }) {
     const [horariosGuardados, setHorariosGuardados] = useState([]);
     const [editingHorario, setEditingHorario] = useState(null);
     const [formOpen, setFormOpen] = useState(false);

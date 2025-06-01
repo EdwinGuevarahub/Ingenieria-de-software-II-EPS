@@ -11,6 +11,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
 import { listaServiciosMedicosPorMedico, listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
+import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
+import { useAuthContext } from '@/../../src/contexts/AuthContext';
 import MedicoFormulario from './MedicoFormulario';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import ExpandableTable from '../../../components/list/ExpandableTable';
@@ -18,6 +20,10 @@ import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 
 const MedicoLista = () => {
+
+  // Autentificación de ips
+  const { subEmail } = useAuthContext();
+  const [ ips, setIps ] = useState({});
 
   // Estados
   const [editandoMedico, setEditandoMedico] = useState(null);
@@ -71,38 +77,48 @@ const MedicoLista = () => {
       handleOcultarFormulario();
   }
 
-  const handleSubmitMedico = async (medico) => {
+  const handleSubmitMedico = async (dataMedico) => {
     try {
-      medico.imagen = medico.imagen.substring(medico.imagen.indexOf(",") + 1);
-      const datosEnviar = {
-        "medico": {
-          "dni": medico.dni,
-          "nombre": medico.nombre,
-          "email": medico.email,
-          "password": medico.password,
-          "telefono": medico.telefono,
-          "imagen": medico.imagen,
-          "activo": true
-        },
-        "consultorio": {
-          "id": {
-            "ips": {
-              "id": 1
-            },
-            "idConsultorio": 101
-          }
-        },
-        "horario": [
-          {
-            "dia": "MONDAY",
-            "inicio": "12:00:00",
-            "fin": "14:00:00"
-          }
-        ]
+
+      const medicoPayload = {
+        dni: dataMedico.dni,
+        nombre: dataMedico.nombre,
+        email: dataMedico.email,
+        password: dataMedico.password,
+        telefono: dataMedico.telefono,
+        imagen: dataMedico.imagen,
+        activo: true
       };
-      if (editandoMedico && editandoMedico.dni) {
-        await actualizarMedico(medico);
-      } else {
+
+      if (editandoMedico && editandoMedico.dni) { // Modo edición
+        await actualizarMedico(medicoPayload);
+      } else { // Modo creación
+        if (!dataMedico.initialSchedule) {
+          console.error('Error: Falta información del horario inicial para crear el médico.');
+          return;
+        }
+
+        const { dias, horaInicio, horaFin, idConsultorio, idIpsConsultorio } = dataMedico.initialSchedule;
+
+        const horarioParaBackend = dias.map(dia => ({
+          dia: dia,
+          inicio: horaInicio,
+          fin: horaFin,
+        }));
+
+        const datosEnviar = {
+          medico: medicoPayload,
+          consultorio: {
+            id: {
+              ips: {
+                id: idIpsConsultorio,
+              },
+              idConsultorio: idConsultorio,
+            }
+          },
+          horario: horarioParaBackend,
+        };
+
         await crearMedico(datosEnviar);
       }
       await fetchMedicos(pagina, filtrosAplicados);
@@ -112,12 +128,27 @@ const MedicoLista = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchIps = async () => {
+      try {
+        const result = await getIpsByAdmIpsEmail(subEmail);
+        setIps(result);
+      } catch (error) {
+        console.error('Error al cargar la ips del médico: ', error);
+      }
+    };
+
+    fetchIps();
+  }, [subEmail]);
+
+
   const fetchMedicos = useCallback(
     async (paginaActual, filtrosExtras = {}) => {
       try {
         const filtros = {
           qPage: paginaActual - 1,
           qSize: 2,
+          idIps: ips,
           dniNombreLike: nombreFiltro || undefined,
           ...filtrosExtras,
           estaActivo: true,
@@ -222,7 +253,7 @@ const MedicoLista = () => {
               horaDeFin: horaFinalFiltro || undefined,
             };
             setFiltrosAplicados(nuevosFiltros);
-            setPagina(pagina = 1);
+            setPagina(pagina);
           }}
         >
           Buscar
@@ -247,9 +278,9 @@ const MedicoLista = () => {
           />
         </Box>
 
-        {mostrarFormulario && !editandoIPS && (
-          <IPSFormulario
-            onSubmit={handleSubmitIPS}
+        {mostrarFormulario && !editandoMedico && (
+          <MedicoFormulario
+            onSubmit={handleSubmitMedico}
             onCancel={handleOcultarFormulario}
           />
         )}
@@ -258,6 +289,7 @@ const MedicoLista = () => {
           columns={[{ key: 'dni' }, { key: 'nombre' }]}
           data={listaMedicos}
           rowKey="dni"
+          onExpandedChange={handleExpandedChange}
           fetchDetails={[
             (dni) => detalleMedico(dni),
             (dni) => listaServiciosMedicosPorMedico(dni)
@@ -305,10 +337,7 @@ const MedicoLista = () => {
                     <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
                     <Button
                       variant="outlined"
-                      onClick={() => {
-                        setEditandoMedico(detalle[0]);
-                        setMostrarFormulario(true);
-                      }}
+                      onClick={() => handleMostrarFormulario(detalle[0])}
                     >
                       Editar
                     </Button>
@@ -334,7 +363,7 @@ const MedicoLista = () => {
                   </Box>
                 </Box>
               )
-            }}
+          }}
         />
 
         <Pagination
@@ -368,6 +397,7 @@ const MedicoLista = () => {
           open={modalHorarioAbierto}
           onClose={() => setModalHorarioAbierto(false)}
           dniMedico={editandoMedico.dni}
+          ipsAdmin = {ips}
         />
       )}
     </Box >
