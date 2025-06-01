@@ -65,7 +65,6 @@ const Navbar = () => {
 
             {logged && role === 'ADM_IPS' && (
               <>
-                <Button color="inherit" component={Link} to="/registrar-resultados">Registrar Resultados</Button>
                 <Button color="inherit" component={Link} to="/medicos">Gestionar Médicos</Button>
                 <Button color="inherit" component={Link} to="/consultorios">Gestionar Consultorios</Button>
               </>
@@ -73,6 +72,7 @@ const Navbar = () => {
 
             {logged && role === 'MEDICO' && (
               <>
+              	<Button color="inherit" component={Link} to="/registrar-resultados">Registrar Resultados</Button>
                 <Button color="inherit" component={Link} to="/medico/agenda">Consultar Agenda</Button>
               </>
             )}
