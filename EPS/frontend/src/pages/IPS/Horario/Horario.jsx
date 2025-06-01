@@ -1,15 +1,18 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Table, TableContainer,
-    TableBody, TableCell, TableHead, TableRow, TextField, MenuItem, Select, InputLabel, FormControl,
+    TableBody, TableCell, TableHead, TableRow, Stack, MenuItem, Select, InputLabel, FormControl,
     Paper, IconButton, Tooltip, Checkbox, CircularProgress, Alert
-} from '@mui/material';  
-import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';  
-import { obtenerHorario, crearHorario, actualizarHorario } from '@/../../src/services/trabajaService';  
-import { listarConsultorios } from "@/../../src/services/consultorioService.js";  
-import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";  
+} from '@mui/material';
+import { AddCircleOutline, Edit, Delete, Close, Save, CleaningServices } from '@mui/icons-material';
+import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import { obtenerHorario, crearHorario, actualizarHorario } from '@/../../src/services/trabajaService';
+import { listarConsultorios } from "@/../../src/services/consultorioService.js";
+import { listaServiciosMedicosPorIPS } from "@/../../src/services/serviciosMedicosService.js";
+import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 
-// 1. Unificar la configuración de los días
 const DIAS_SEMANA_CONFIG = [
     { display: 'Lunes', backendValue: 'MONDAY', corto: 'L' },
     { display: 'Martes', backendValue: 'TUESDAY', corto: 'M' },
@@ -20,10 +23,9 @@ const DIAS_SEMANA_CONFIG = [
     { display: 'Domingo', backendValue: 'SUNDAY', corto: 'D' }
 ];
 
-const horasDia = Array.from({ length: 17 }, (_, i) => `${String(i + 6).padStart(2, '0')}:00`);  
-const coloresBase = ['#ffccbc', '#dcedc8', '#b2dfdb', '#bbdefb', '#f8bbd0', '#e1bee7', '#c5cae9', '#fff9c4', '#ffecb3'];  
+const horasDia = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+const coloresBase = ['#ffccbc', '#dcedc8', '#b2dfdb', '#bbdefb', '#f8bbd0', '#e1bee7', '#c5cae9', '#fff9c4', '#ffecb3'];
 
-// 2. Modificar funciones helper para aceptar opciones como parámetros
 const getServicioNameFromIdConsultorio = (ConsultorioId, consultoriosOptions) => {
     const consultorio = consultoriosOptions.find(c => c.value === ConsultorioId);
     return consultorio ? consultorio.nombreServicio : `Servicio CUPS ${consultorio ? consultorio.cupsServicio : 'Desconocido'}`;
@@ -65,7 +67,7 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
                     diasToSet = [initialData.dia];
                 }
                 setFormHorario({
-                    dias: diasToSet,  
+                    dias: diasToSet,
                     horaInicio: initialData.horaInicio || '',
                     horaFin: initialData.horaFin || '',
                     servicio: initialData.servicio || '',
@@ -75,8 +77,8 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
             } else {
                 setFormHorario({
                     dias: [],
-                    horaInicio: '09:00',
-                    horaFin: '17:00',
+                    horaInicio: '00:00',
+                    horaFin: '00:00',
                     servicio: serviciosOpts.length > 0 ? serviciosOpts[0].label : '',
                     consultorio: ''
                 });
@@ -98,7 +100,7 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
                 setFormHorario(prev => ({ ...prev, consultorio: '' }));
             }
         }
-    }, [formHorario.servicio, consultoriosOpts, serviciosOpts, open]);
+    }, [formHorario.servicio, formHorario.consultorio, consultoriosOpts, serviciosOpts, open]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -139,8 +141,8 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
     const handleClear = () => {
         setFormHorario({
             dias: [],
-            horaInicio: '09:00',
-            horaFin: '17:00',
+            horaInicio: '00:00',
+            horaFin: '00:00',
             servicio: serviciosOpts.length > 0 ? serviciosOpts[0].label : '',
             consultorio: ''
         });
@@ -148,63 +150,138 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
 
     const consultoriosForSelectedServicio = useMemo(() => {
         const servicioCups = getIdServiceFromName(formHorario.servicio, serviciosOpts);
-        if (!servicioCups) return [];  
+        if (!servicioCups) return [];
         return consultoriosOpts.filter(c => c.cupsServicio === servicioCups);
     }, [formHorario.servicio, consultoriosOpts, serviciosOpts]);
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth scroll="body">
             <DialogTitle sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
                 {isEditing ? 'Editar Horario' : 'Nuevo Horario'}
             </DialogTitle>
-            <DialogContent dividers>
-                <Grid container spacing={2} sx={{ pt: 2 }}>
-                    <Grid item xs={12}>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>Días de atención</Typography>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                            {DIAS_SEMANA_CONFIG.map((diaConfig) => (
-                                <Box key={diaConfig.backendValue} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
-                                    <Typography variant="caption">{diaConfig.display}</Typography>
-                                    <Checkbox
-                                        checked={formHorario.dias?.includes(diaConfig.display) || false}  
-                                        onChange={(e) => handleCheckboxChange(diaConfig.display, e.target.checked)}  
-                                    />
-                                </Box>
-                            ))}
-                        </Box>
-                    </Grid>
-                    {/* Resto de los campos del formulario (horaInicio, horaFin, servicio, consultorio) sin cambios en su JSX */}
-                    <Grid item xs={12} sm={6}>
-                        <TextField name="horaInicio" label="Hora de inicio" type="time" fullWidth value={formHorario.horaInicio} onChange={handleChange} InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <TextField name="horaFin" label="Hora de fin" type="time" fullWidth value={formHorario.horaFin} onChange={handleChange} InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                            <InputLabel id="servicio-label">Servicio Médico</InputLabel>
-                            <Select labelId="servicio-label" name="servicio" value={formHorario.servicio} label="Servicio Médico" onChange={handleChange}>
-                                {serviciosOpts.map((s) => <MenuItem key={s.value} value={s.label}>{s.label}</MenuItem>)}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    {formHorario.servicio && consultoriosForSelectedServicio.length > 0 && (
-                        <Grid item xs={12} sm={6}>
+            <DialogContent dividers sx={{ overflow: 'visible' }}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Grid container spacing={2} sx={{ pt: 2, flexDirection: 'column' }}>
+
+                        {/* DÍAS */}
+                        <Grid item xs={12}>
+                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Días de atención</Typography>
+                            <Box sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                justifyContent: 'space-between',
+                                gap: 2,
+                                minHeight: 80
+                            }}>
+                                {DIAS_SEMANA_CONFIG.map((diaConfig) => (
+                                    <Box
+                                        key={diaConfig.backendValue}
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            width: '80px'
+                                        }}
+                                    >
+                                        <Typography variant="caption">{diaConfig.display}</Typography>
+                                        <Checkbox
+                                            checked={formHorario.dias?.includes(diaConfig.display) || false}
+                                            onChange={(e) => handleCheckboxChange(diaConfig.display, e.target.checked)}
+                                        />
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Grid>
+
+                        {/* HORAS */}
+                        <Grid item xs={12}>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                <TimePicker
+                                    label="Hora de inicio"
+                                    value={dayjs(`2023-01-01T${formHorario.horaInicio}`)}
+                                    onChange={(newValue) =>
+                                        setFormHorario((prev) => ({
+                                            ...prev,
+                                            horaInicio: newValue.format('HH:mm')
+                                        }))
+                                    }
+                                    slotProps={{
+                                        textField: {
+                                            fullWidth: true,
+                                            variant: 'outlined'
+                                        }
+                                    }}
+                                />
+                                <TimePicker
+                                    label="Hora de fin"
+                                    value={dayjs(`2023-01-01T${formHorario.horaFin}`)}
+                                    onChange={(newValue) =>
+                                        setFormHorario((prev) => ({
+                                            ...prev,
+                                            horaFin: newValue.format('HH:mm')
+                                        }))
+                                    }
+                                    slotProps={{
+                                        textField: {
+                                            fullWidth: true,
+                                            variant: 'outlined'
+                                        }
+                                    }}
+                                />
+                            </Stack>
+                        </Grid>
+
+                        {/* SERVICIO */}
+                        <Grid item xs={12}>
                             <FormControl fullWidth>
-                                <InputLabel id="consultorio-label">Consultorio</InputLabel>
-                                <Select labelId="consultorio-label" name="consultorio" value={formHorario.consultorio} label="Consultorio" onChange={handleChange}>
-                                    {consultoriosForSelectedServicio.map((c) => <MenuItem key={c.value} value={c.label}>{c.label}</MenuItem>)}
+                                <InputLabel id="servicio-label">Servicio Médico</InputLabel>
+                                <Select
+                                    labelId="servicio-label"
+                                    name="servicio"
+                                    value={formHorario.servicio}
+                                    label="Servicio Médico"
+                                    onChange={handleChange}
+                                >
+                                    {serviciosOpts.map((s) => (
+                                        <MenuItem key={s.value} value={s.label}>
+                                            {s.label}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
-                    )}
-                    {formHorario.servicio && consultoriosForSelectedServicio.length === 0 && (
-                        <Grid item xs={12} sm={6}>
-                            <Alert severity="warning">No hay consultorios disponibles para este servicio.</Alert>
-                        </Grid>
-                    )}
-                </Grid>
+
+                        {/* CONSULTORIO */}
+                        {formHorario.servicio && consultoriosForSelectedServicio.length > 0 && (
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="consultorio-label">Consultorio</InputLabel>
+                                    <Select
+                                        labelId="consultorio-label"
+                                        name="consultorio"
+                                        value={formHorario.consultorio}
+                                        label="Consultorio"
+                                        onChange={handleChange}
+                                    >
+                                        {consultoriosForSelectedServicio.map((c) => (
+                                            <MenuItem key={c.value} value={c.label}>
+                                                {c.label}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        )}
+
+                        {formHorario.servicio && consultoriosForSelectedServicio.length === 0 && (
+                            <Grid item xs={12}>
+                                <Alert severity="warning">No hay consultorios disponibles para este servicio.</Alert>
+                            </Grid>
+                        )}
+                    </Grid>
+                </LocalizationProvider>
             </DialogContent>
+
             <DialogActions sx={{ p: 2 }}>
                 <Button onClick={handleClear} color="warning" startIcon={<CleaningServices />}>Limpiar</Button>
                 <Box sx={{ flexGrow: 1 }} />
@@ -216,55 +293,61 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
 }
 
 export default function HorarioModal({ open, onClose, dniMedico }) {
-    const [horariosGuardados, setHorariosGuardados] = useState([]);  
-    const [editingHorario, setEditingHorario] = useState(null);  
-    const [formOpen, setFormOpen] = useState(false);  
-    const [isLoading, setIsLoading] = useState(false);  
-    const [error, setError] = useState(null);  
 
-    const [serviciosOpts, setServiciosOpts] = useState([]);  
-    const [consultoriosOpts, setConsultoriosOpts] = useState([]);  
+    // Autentificación de ips
+    const { ips } = useIpsContext();
+
+    // Estados del componente
+    const [horariosGuardados, setHorariosGuardados] = useState([]);
+    const [editingHorario, setEditingHorario] = useState(null);
+    const [formOpen, setFormOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const [serviciosOpts, setServiciosOpts] = useState([]);
+    const [consultoriosOpts, setConsultoriosOpts] = useState([]);
 
     useEffect(() => {
         if (open) {
             const doFetchServicios = async () => {
                 try {
-                    const { servicio } = await listaServiciosMedicos();  
-                    setServiciosOpts(servicio.map((s) => ({ label: s.nombre, value: s.cups })));  
+                    const servicio = await listaServiciosMedicosPorIPS(ips.id);
+                    setServiciosOpts(servicio.map((s) => ({ label: s.nombre, value: s.cups })));
                 } catch (e) {
-                    console.error("Error cargando servicios:", e);  
-                    setError("Error cargando lista de servicios médicos.");  
+                    console.error("Error cargando servicios:", e);
+                    setError("Error cargando lista de servicios médicos.");
                 }
             };
             doFetchServicios();
         }
-    }, [open]);
+    }, [open, ips]);
 
     useEffect(() => {
         if (open && dniMedico) {
             const doFetchConsultorios = async () => {
-                setIsLoading(true);  
-                setError(null);  
+                setIsLoading(true);
+                setError(null);
                 try {
-                    const { consultorios } = await listarConsultorios();  
+                    const filtros = { idIps: ips.id || undefined };
+                    const { consultorios } = await listarConsultorios(filtros);
                     setConsultoriosOpts(consultorios.map((c) => ({
-                        nombreServicio: c.nombreServicioMedico,  
-                        cupsServicio: c.cupsServicioMedico,  
-                        idIps: c.idIps,  
-                        label: `Consultorio ${c.idConsultorio}`,  
-                        value: c.idConsultorio,  
+                        nombreServicio: c.nombreServicioMedico,
+                        cupsServicio: c.cupsServicioMedico,
+                        idIps: c.idIps,
+                        label: `Consultorio ${c.idConsultorio}`,
+                        value: c.idConsultorio,
                     })));
                 } catch (e) {
-                    console.error("Error cargando consultorios:", e);  
-                    setError("Error cargando lista de consultorios. " + (e.message || ""));  
-                    setConsultoriosOpts([]);  
+                    console.error("Error cargando consultorios:", e);
+                    setError("Error cargando lista de consultorios. " + (e.message || ""));
+                    setConsultoriosOpts([]);
                 } finally {
-                    setIsLoading(false);  
+                    setIsLoading(false);
                 }
             };
             doFetchConsultorios();
         }
-    }, [open, dniMedico]);
+    }, [open, dniMedico, ips]);
 
     const fetchTrabaja = useCallback(async () => {
         if (!dniMedico) {
@@ -272,47 +355,47 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             setIsLoading(false);
             return;
         }
-        setIsLoading(true);  
-        setError(null);  
+        setIsLoading(true);
+        setError(null);
         try {
-            const dataFromService = await obtenerHorario(dniMedico);  
+            const dataFromService = await obtenerHorario(dniMedico);
             if (dataFromService && Array.isArray(dataFromService)) {
-                const transformedHorarios = dataFromService.flatMap((trabaja, index) => {  
+                const transformedHorarios = dataFromService.flatMap((trabaja, index) => {
                     if (!trabaja.horario || !Array.isArray(trabaja.horario)) return [];
 
                     return trabaja.horario.map(h => {
                         const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.backendValue === h.dia?.toUpperCase());
                         return {
-                            id: trabaja.id,  
-                            dniMedico: trabaja.dniMedico,  
-                            idIps: trabaja.idIps,  
-                            idConsultorio: trabaja.idConsultorio,  
+                            id: trabaja.id,
+                            dniMedico: trabaja.dniMedico,
+                            idIps: trabaja.idIps,
+                            idConsultorio: trabaja.idConsultorio,
                             dia: diaConfig ? diaConfig.display : h.dia,
-                            _backendDia: h.dia?.toUpperCase(),  
-                            horaInicio: h.inicio?.substring(0, 5),  
-                            horaFin: h.fin?.substring(0, 5),  
-                            servicio: getServicioNameFromIdConsultorio(trabaja.idConsultorio, consultoriosOpts), 
-                            consultorio: getConsultorioNameFromId(trabaja.idConsultorio, consultoriosOpts), 
-                            color: coloresBase[index % coloresBase.length]  
+                            _backendDia: h.dia?.toUpperCase(),
+                            horaInicio: h.inicio?.substring(0, 5),
+                            horaFin: h.fin?.substring(0, 5),
+                            servicio: getServicioNameFromIdConsultorio(trabaja.idConsultorio, consultoriosOpts),
+                            consultorio: getConsultorioNameFromId(trabaja.idConsultorio, consultoriosOpts),
+                            color: coloresBase[index % coloresBase.length]
                         };
                     });
                 });
-                setHorariosGuardados(transformedHorarios);  
+                setHorariosGuardados(transformedHorarios);
             } else {
-                setHorariosGuardados([]);  
+                setHorariosGuardados([]);
             }
         } catch (err) {
-            console.error('Error cargando los horarios:', err);  
-            setError('No se pudieron cargar los horarios. Intente más tarde.');  
-            setHorariosGuardados([]);  
+            console.error('Error cargando los horarios:', err);
+            setError('No se pudieron cargar los horarios. Intente más tarde.');
+            setHorariosGuardados([]);
         } finally {
-            setIsLoading(false);  
+            setIsLoading(false);
         }
     }, [dniMedico, consultoriosOpts]);
 
     useEffect(() => {
         if (open && dniMedico) {
-            fetchTrabaja();  
+            fetchTrabaja();
         } else if (!dniMedico && open) {
             setError("DNI del médico no proporcionado.");
             setHorariosGuardados([]);
@@ -320,145 +403,141 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
     }, [open, dniMedico, fetchTrabaja]);
 
     const handleOpenFormForNew = () => {
-        setEditingHorario(null);  
-        setFormOpen(true);  
+        setEditingHorario(null);
+        setFormOpen(true);
     };
 
     const handleOpenFormForEdit = (horario) => {
-        console.log('Editing horario:', horario);  
-        setEditingHorario({  
-            ...horario,  
-            dias: [horario.dia] 
+        setEditingHorario({
+            ...horario,
+            dias: [horario.dia]
         });
-        setFormOpen(true);  
+        setFormOpen(true);
     };
 
     const handleCloseForm = () => {
-        setFormOpen(false);  
-        setEditingHorario(null);  
+        setFormOpen(false);
+        setEditingHorario(null);
     };
 
     const handleSaveHorario = async (formData, isEditing) => {
-        setIsLoading(true);  
-        setError(null);  
+        setIsLoading(true);
+        setError(null);
 
-        const idConsultorioLocal = getIdConsultorioFromName(formData.consultorio, consultoriosOpts); 
-        const idIpsLocal = getIdIPSFromConsultorio(idConsultorioLocal, consultoriosOpts); 
+        const idConsultorioLocal = getIdConsultorioFromName(formData.consultorio, consultoriosOpts);
+        const idIpsLocal = getIdIPSFromConsultorio(idConsultorioLocal, consultoriosOpts);
 
-        if (idIpsLocal === null) { return; }  
-        if (idConsultorioLocal === null) { return; }  
+        if (idIpsLocal === null) { return; }
+        if (idConsultorioLocal === null) { return; }
 
         try {
-            if (isEditing && editingHorario) {  
-                const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === formData.dias[0]); 
-                if (!diaConfig) {  
-                    throw new Error(`Día no válido: ${formData.dias[0]}`);  
+            if (isEditing && editingHorario) {
+                const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === formData.dias[0]);
+                if (!diaConfig) {
+                    throw new Error(`Día no válido: ${formData.dias[0]}`);
                 }
-                const backendDay = diaConfig.backendValue;  
-                const dataToUpdate = {  
-                    idConsultorio: idConsultorioLocal,  
-                    idIps: idIpsLocal,  
-                    horario: [{  
-                        dia: backendDay,  
-                        inicio: formData.horaInicio + ":00",  
-                        fin: formData.horaFin + ":00",  
+                const backendDay = diaConfig.backendValue;
+                const dataToUpdate = {
+                    idConsultorio: idConsultorioLocal,
+                    idIps: idIpsLocal,
+                    horario: [{
+                        dia: backendDay,
+                        inicio: formData.horaInicio + ":00",
+                        fin: formData.horaFin + ":00",
                     }]
                 };
-                console.log("Actualizando:", editingHorario.id, dataToUpdate);  
-                await actualizarHorario(dniMedico, editingHorario.id, dataToUpdate);  
+                await actualizarHorario(dniMedico, editingHorario.id, dataToUpdate);
             } else {
-                for (const diaFrontend of formData.dias) {  
+                for (const diaFrontend of formData.dias) {
                     const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === diaFrontend);
-                    if (!diaConfig) {  
-                        throw new Error(`Día no válido: ${diaFrontend}`);  
+                    if (!diaConfig) {
+                        throw new Error(`Día no válido: ${diaFrontend}`);
                     }
-                    const backendDay = diaConfig.backendValue;  
-                    const dataToCreate = {  
-                        idConsultorio: idConsultorioLocal,  
-                        idIps: idIpsLocal,  
-                        horario: [{  
-                            dia: backendDay,  
-                            inicio: formData.horaInicio + ":00",  
-                            fin: formData.horaFin + ":00",  
+                    const backendDay = diaConfig.backendValue;
+                    const dataToCreate = {
+                        idConsultorio: idConsultorioLocal,
+                        idIps: idIpsLocal,
+                        horario: [{
+                            dia: backendDay,
+                            inicio: formData.horaInicio + ":00",
+                            fin: formData.horaFin + ":00",
                         }]
                     };
-                    console.log("Creando:", dataToCreate);  
-                    await crearHorario(dniMedico, dataToCreate);  
+                    await crearHorario(dniMedico, dataToCreate);
                 }
             }
-            handleCloseForm();  
-            fetchTrabaja();  
+            handleCloseForm();
+            fetchTrabaja();
         } catch (err) {
-            console.error('Error guardando el horario:', err);  
-            setError(err.response?.data?.message || err.message || 'Error al guardar el horario.');  
+            console.error('Error guardando el horario:', err);
+            setError(err.response?.data?.message || err.message || 'Error al guardar el horario.');
         } finally {
-            setIsLoading(false);  
+            setIsLoading(false);
         }
     };
 
     const handleEliminarHorario = async (idToDelete) => {
-        if (window.confirm('¿Está seguro de que desea eliminar este horario?')) {  
-            console.warn(`Funcionalidad de eliminar horario (ID: ${idToDelete}) no implementada con API. Realizando solo actualización optimista.`);  
-            setHorariosGuardados(prev => prev.filter(h => h.id !== idToDelete));  
+        if (window.confirm('¿Está seguro de que desea eliminar este horario?')) {
+            console.warn(`Funcionalidad de eliminar horario (ID: ${idToDelete}) no implementada con API. Realizando solo actualización optimista.`);
+            setHorariosGuardados(prev => prev.filter(h => h.id !== idToDelete));
         }
     };
 
     const scheduleMatrix = useMemo(() => {
-        const matrix = {};  
-        horariosGuardados.forEach(h => { 
+        const matrix = {};
+        horariosGuardados.forEach(h => {
             const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === h.dia);
-            if (!diaConfig || !diaConfig.corto) {  
+            if (!diaConfig || !diaConfig.corto) {
                 console.warn("Matriz: Día o código corto no encontrado para:", h.dia);
-                return;  
+                return;
             }
             const diaCorto = diaConfig.corto;
 
-            const inicioNum = parseInt(h.horaInicio?.split(':')[0]);  
-            const finNum = parseInt(h.horaFin?.split(':')[0]);  
+            const inicioNum = parseInt(h.horaInicio?.split(':')[0]);
+            const finNum = parseInt(h.horaFin?.split(':')[0]);
 
             if (isNaN(inicioNum) || isNaN(finNum) || !h.horaInicio || !h.horaFin) {
                 console.warn("Matriz: Hora inicio/fin inválida para horario:", h)
                 return;
             }
 
-            for (let hora = inicioNum; hora < finNum; hora++) {  
-                const horaKey = `${String(hora).padStart(2, '0')}:00`;  
-                if (!matrix[horaKey]) matrix[horaKey] = {};  
-                matrix[horaKey][diaCorto] = {  
-                    color: h.color,  
-                    tooltip: `${h.servicio} (${h.consultorio})\n${h.horaInicio} - ${h.horaFin}`  
+            for (let hora = inicioNum; hora < finNum; hora++) {
+                const horaKey = `${String(hora).padStart(2, '0')}:00`;
+                if (!matrix[horaKey]) matrix[horaKey] = {};
+                matrix[horaKey][diaCorto] = {
+                    color: h.color,
+                    tooltip: `${h.servicio} (${h.consultorio})\n${h.horaInicio} - ${h.horaFin}`
                 };
             }
         });
-        console.log("Schedule Matrix:", matrix);
-        return matrix;  
+        return matrix;
     }, [horariosGuardados]);
 
-    const obtenerDatosCelda = (diaDisplay, horaCompleta) => { 
+    const obtenerDatosCelda = (diaDisplay, horaCompleta) => {
         const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === diaDisplay);
-        if (!diaConfig || !diaConfig.corto) { return undefined; }  
-        const diaCorto = diaConfig.corto;  
-        return scheduleMatrix[horaCompleta]?.[diaCorto];  
+        if (!diaConfig || !diaConfig.corto) { return undefined; }
+        const diaCorto = diaConfig.corto;
+        return scheduleMatrix[horaCompleta]?.[diaCorto];
     };
 
-    const handleCeldaClick = (dia, hora) => { 
-        const horarioExistente = horariosGuardados.find(h => {  
-            const diaH = h.dia; 
-            const horaInicioNum = parseInt(h.horaInicio?.split(':')[0]);  
-            const horaFinNum = parseInt(h.horaFin?.split(':')[0]);  
-            const horaCeldaNum = parseInt(hora.split(':')[0]);  
+    const handleCeldaClick = (dia, hora) => {
+        const horarioExistente = horariosGuardados.find(h => {
+            const diaH = h.dia;
+            const horaInicioNum = parseInt(h.horaInicio?.split(':')[0]);
+            const horaFinNum = parseInt(h.horaFin?.split(':')[0]);
+            const horaCeldaNum = parseInt(hora.split(':')[0]);
 
             if (isNaN(horaInicioNum) || isNaN(horaFinNum) || isNaN(horaCeldaNum)) {
                 return false;
             }
-            return diaH === dia && horaCeldaNum >= horaInicioNum && horaCeldaNum < horaFinNum;  
+            return diaH === dia && horaCeldaNum >= horaInicioNum && horaCeldaNum < horaFinNum;
         });
 
-        if (horarioExistente) {  
-            handleOpenFormForEdit(horarioExistente);  
+        if (horarioExistente) {
+            handleOpenFormForEdit(horarioExistente);
         } else {
-            setEditingHorario({ dia: dia, horaInicio: hora, dias: [dia] });  
-            setFormOpen(true);  
+            setEditingHorario({ dia: dia, horaInicio: hora, dias: [dia] });
+            setFormOpen(true);
         }
     };
 
@@ -601,19 +680,19 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                             backgroundColor: (theme) => theme.palette.grey[200],
                                             zIndex: 2
                                         }}>{hora}</TableCell>
-                                        {DIAS_SEMANA_CONFIG.map((diaConfig) => {
+                                        {DIAS_SEMANA_CONFIG.map((diaConfig, index) => {
                                             const cellData = obtenerDatosCelda(diaConfig.display, hora);
                                             return (
                                                 <Tooltip title={
                                                     cellData?.tooltip || `Añadir horario para ${diaConfig.display} a las ${hora}`}
                                                     placement="top"
-                                                    key={`<span class="math-inline">\{diaConfig\.backendValue\}\-</span>{hora}`}
+                                                    key={index}
                                                 >
                                                     <TableCell
                                                         onClick={() => !isLoading && handleCeldaClick(diaConfig.display, hora)}
                                                         sx={{
                                                             cursor: isLoading ? 'default' : 'pointer',
-                                                            bgcolor: cellData?.color || '#f9f9f9',
+                                                            bgcolor: cellData?.color || '#ff9f9',
                                                             border: '1px solid #ddd',
                                                             height: 40,
                                                             minWidth: 80,
@@ -643,12 +722,12 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             </DialogActions>
 
             <HorarioFormDialog
-                open={formOpen}  
-                onClose={handleCloseForm}  
-                onSave={handleSaveHorario}  
-                initialData={editingHorario}  
-                serviciosOpts={serviciosOpts}  
-                consultoriosOpts={consultoriosOpts}  
+                open={formOpen}
+                onClose={handleCloseForm}
+                onSave={handleSaveHorario}
+                initialData={editingHorario}
+                serviciosOpts={serviciosOpts}
+                consultoriosOpts={consultoriosOpts}
             />
         </Dialog>
     );
