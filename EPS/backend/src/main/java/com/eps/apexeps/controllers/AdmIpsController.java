@@ -18,7 +18,7 @@ import com.eps.apexeps.services.AdmIpsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.eps.apexeps.models.users.AdmIps;
+import com.eps.apexeps.models.entity.users.AdmIps;
 
 
 /**

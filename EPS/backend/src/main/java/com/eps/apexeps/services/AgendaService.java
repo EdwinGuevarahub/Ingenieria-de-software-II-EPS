@@ -18,8 +18,15 @@ import com.eps.apexeps.repositories.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.relations.Agenda;
-import com.eps.apexeps.models.relations.Trabaja;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.eps.apexeps.models.entity.relations.Agenda;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.repositories.AgendaRepository;
+import com.eps.apexeps.repositories.TrabajaRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +77,7 @@ public class AgendaService {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una colección de entradas de agenda.
      */
-    public List<Agenda> getAgendas(
+    public Page<Agenda> getAgendas(
         Long dniPaciente,
         Long dniMedico,
         String dniNombrePacienteLike,
@@ -161,6 +168,8 @@ public class AgendaService {
              && agenda.getTrabaja().getMedico().getDni() != trabaja.getMedico().getDni()
            )
             throw new IllegalArgumentException("El médico de la relación trabaja no coincide con el de la agenda");
+
+        // TODO: Validar que no exista otra agenda con la misma fecha, hora y trabaja.
 
         Agenda agendaActualizada = agendaRepository.findById(agenda.getId()).orElse(null);
         agendaActualizada.setFecha(agenda.getFecha());

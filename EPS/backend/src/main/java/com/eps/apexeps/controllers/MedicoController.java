@@ -2,6 +2,11 @@ package com.eps.apexeps.controllers;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,11 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eps.apexeps.models.relations.Trabaja;
-import com.eps.apexeps.models.users.Medico;
-import com.eps.apexeps.response.MedicoEntradaLista;
-import com.eps.apexeps.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.models.entity.relations.Trabaja;
+import com.eps.apexeps.models.entity.users.Medico;
+import com.eps.apexeps.models.DTOs.response.MedicoEntradaLista;
+import com.eps.apexeps.models.DTOs.response.MedicoLista;
+import com.eps.apexeps.models.DTOs.response.ServicioMedicoEntradaLista;
+import com.eps.apexeps.services.AdmIpsService;
 import com.eps.apexeps.services.MedicoService;
+import com.eps.apexeps.services.TrabajaService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +40,12 @@ public class MedicoController {
 
     /** Servicio de médicos para manejar la lógica de negocio. */
     private final MedicoService medicoService;
+
+    /** Servicio de administradores de IPS para verificar permisos. */
+    private final AdmIpsService admIpsService;
+
+    /** Servicio de relaciones de trabajo para manejar las relaciones entre médicos y consultorios. */
+    private final TrabajaService trabajaService;
 
     /**
      * Endpoint para obtener todos los médicos de la base de datos.
@@ -49,7 +63,7 @@ public class MedicoController {
      * @see {@link java.time.DayOfWeek} Enumerador para los días de la semana usado.
      */
     @GetMapping
-    public List<MedicoEntradaLista> getAllMedicos(
+    public ResponseEntity<MedicoLista> getAllMedicos(
         @RequestParam(required = false) Integer idIps,
         @RequestParam(required = false) String dniNombreLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -61,21 +75,27 @@ public class MedicoController {
         @RequestParam(defaultValue = "0") Integer qPage
     ) {
         try{
-            return medicoService
-                    .getMedicos(
-                        idIps,
-                        dniNombreLike,
-                        cupsServicioMedico,
-                        diaSemanaIngles,
-                        horaDeInicio,
-                        horaDeFin,
-                        estaActivo,
-                        qSize,
-                        qPage
-                    )
-                    .stream()
-                    .map(MedicoEntradaLista::of)
-                    .toList();
+            Page<Medico> entradas = medicoService
+                                        .getMedicos(
+                                            idIps,
+                                            dniNombreLike,
+                                            cupsServicioMedico,
+                                            diaSemanaIngles,
+                                            horaDeInicio,
+                                            horaDeFin,
+                                            estaActivo,
+                                            qSize,
+                                            qPage
+                                        );
+
+            return ResponseEntity.ok(
+                        new MedicoLista(
+                                entradas.getTotalPages(),
+                                entradas.stream()
+                                        .map(MedicoEntradaLista::of)
+                                        .toList()
+                            )
+                    );
         }
         catch (Exception e) {
             throw new RuntimeException("Error al obtener los médicos: " + e.getMessage(), e);
@@ -89,8 +109,8 @@ public class MedicoController {
      * @return El médico correspondiente al DNI o null si no existe.
      */
     @GetMapping("/{dniMedico}")
-    public Medico getMedico(@PathVariable Long dniMedico) {
-        return medicoService.getMedico(Long.valueOf(dniMedico));
+    public ResponseEntity<Medico> getMedico(@PathVariable Long dniMedico) {
+        return ResponseEntity.ok(medicoService.getMedico(Long.valueOf(dniMedico)));
     }
 
     /**
@@ -100,9 +120,14 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al crear el médico.
      */
     @PostMapping
-    public Trabaja createMedico(@RequestBody Trabaja trabaja) {
+    public ResponseEntity<Trabaja> createMedico(@RequestBody Trabaja trabaja) {
+        Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentification.getName());
+        if (trabaja.getConsultorio().getId().getIps().getId() != idIpsAdm)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
-            return medicoService.createMedico(trabaja);
+            return ResponseEntity.ok(medicoService.createMedico(trabaja));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al obtener el médico: " + e.getMessage(), e);
@@ -116,9 +141,12 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al actualizar el médico.
      */
     @PutMapping
-    public Medico updateMedico(@RequestBody Medico medico) {
+    public ResponseEntity<Medico> updateMedico(@RequestBody Medico medico) {
+        if (!isAdmIpsOfDniMedico(medico.getDni()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
-            return medicoService.updateMedico(medico);
+            return ResponseEntity.ok(medicoService.updateMedico(medico));
         }
         catch (Exception e) {
             throw new RuntimeException("Error al actualizar el médico: " + e.getMessage(), e);
@@ -132,12 +160,14 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al obtener los servicios médicos del médico.
      */
     @GetMapping("/{dniMedico}/dominio")
-    public List<ServicioMedicoEntradaLista> getAllDominiosMedico(@PathVariable Long dniMedico) {
+    public ResponseEntity<List<ServicioMedicoEntradaLista>> getAllDominiosMedico(@PathVariable Long dniMedico) {
         try {
-            return medicoService.getAllDominiosMedico(Long.valueOf(dniMedico))
-                    .stream()
-                    .map(ServicioMedicoEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        medicoService.getAllDominiosMedico(Long.valueOf(dniMedico))
+                            .stream()
+                            .map(ServicioMedicoEntradaLista::of)
+                            .toList()
+                    );
         }
         catch (Exception e) {
             throw new RuntimeException("Error al obtener los dominios: " + e.getMessage(), e);
@@ -152,15 +182,20 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al agregar el servicio médico al médico.
      */
     @PostMapping("/{dniMedico}/dominio")
-    public List<ServicioMedicoEntradaLista> addDominioMedico(
+    public ResponseEntity<List<ServicioMedicoEntradaLista>> addDominioMedico(
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
+        if (!isAdmIpsOfDniMedico(dniMedico))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
-            return medicoService.addDominioMedico(dniMedico, cupsServicioMedico)
-                    .stream()
-                    .map(ServicioMedicoEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        medicoService.addDominioMedico(dniMedico, cupsServicioMedico)
+                            .stream()
+                            .map(ServicioMedicoEntradaLista::of)
+                            .toList()
+                    );
         }
         catch (Exception e) {
             throw new RuntimeException("Error al agregar el dominio: " + e.getMessage(), e);
@@ -175,19 +210,37 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al eliminar el servicio médico del médico.
      */
     @DeleteMapping("/{dniMedico}/dominio")
-    public List<ServicioMedicoEntradaLista> deleteDominioMedico(
+    public ResponseEntity<List<ServicioMedicoEntradaLista>> deleteDominioMedico(
         @PathVariable Long dniMedico,
         @RequestParam String cupsServicioMedico
     ) {
+        if (!isAdmIpsOfDniMedico(dniMedico))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
         try {
-            return medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico)
-                    .stream()
-                    .map(ServicioMedicoEntradaLista::of)
-                    .toList();
+            return ResponseEntity.ok(
+                        medicoService.deleteDominioMedico(dniMedico, cupsServicioMedico)
+                            .stream()
+                            .map(ServicioMedicoEntradaLista::of)
+                            .toList()
+                    );
         }
         catch (Exception e) {
             throw new RuntimeException("Error al eliminar el dominio: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Endpoint para determinar si el médico pertenece a la IPS del administrador actual.
+     * @param dniMedico El DNI del médico a verificar.
+     * @return true si el médico pertenece a la IPS del administrador, false en caso contrario.
+     * @throws RuntimeException Si ocurre un error al verificar la pertenencia del médico a la IPS.
+     */
+    private boolean isAdmIpsOfDniMedico(Long dniMedico) {
+        Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
+        Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentification.getName());
+        List<Integer> idIpsList = trabajaService.findAllIdIpsByDniMedico(dniMedico);
+        return idIpsList.contains(idIpsAdm);
     }
 
 }

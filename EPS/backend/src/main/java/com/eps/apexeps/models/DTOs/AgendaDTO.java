@@ -2,7 +2,7 @@ package com.eps.apexeps.models.DTOs;
 
 import java.time.Instant;
 
-import com.eps.apexeps.models.relations.Agenda;
+import com.eps.apexeps.models.entity.relations.Agenda;
 
 public class AgendaDTO {
     private Integer id;

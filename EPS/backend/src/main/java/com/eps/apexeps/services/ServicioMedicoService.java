@@ -1,11 +1,10 @@
 package com.eps.apexeps.services;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.entity.ServicioMedico;
 import com.eps.apexeps.repositories.ServicioMedicoRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,7 @@ public class ServicioMedicoService {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una lista de servicios médicos.
      */
-    public List<ServicioMedico> getServiciosMedicos(String cupsNombreLike, Integer qSize, Integer qPage) {
+    public Page<ServicioMedico> getServiciosMedicos(String cupsNombreLike, Integer qSize, Integer qPage) {
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
         return servicioMedicoRepository.findAllFiltered(cupsNombreLike, pageable);
     }

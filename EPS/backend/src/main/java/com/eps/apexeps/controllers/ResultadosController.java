@@ -5,13 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.eps.apexeps.models.Diagnostico;
-import com.eps.apexeps.models.Medicamento;
-import com.eps.apexeps.models.ServicioMedico;
-import com.eps.apexeps.response.ApiResponse;
-import com.eps.apexeps.models.DTOs.OrdenaDTO;
+import com.eps.apexeps.models.DTOs.response.ApiResponse;
 import com.eps.apexeps.models.DTOs.PacienteCitasDTO;
-import com.eps.apexeps.models.DTOs.ResultadoDiagnostico;
+import com.eps.apexeps.models.DTOs.ResultadoDiagnosticoDTO;
+import com.eps.apexeps.models.entity.Diagnostico;
+import com.eps.apexeps.models.entity.Medicamento;
+import com.eps.apexeps.models.entity.ServicioMedico;
+import com.eps.apexeps.models.entity.relations.Agenda;
 
 import com.eps.apexeps.services.ResultadosService;
 
@@ -71,14 +71,14 @@ public class ResultadosController {
                 }
         }
 
-        // Registrar resultados de una cita (agenda)
+        // Registrar resultado de una cita (agenda)
         // Actualizando el resultado general de una cita y
-        // Registrando diagnosticos con sus respectivos medicamentos
-        @PostMapping("/actualizar-resultados")
-        public ResponseEntity<ApiResponse> actualizarResultados(@RequestBody ResultadoDiagnostico resultados) {
+        // Registrando el diagnostico con sus respectivos medicamentos
+        // O Registrando el diagnostico con su respectiva remisión
+        @PostMapping()
+        public ResponseEntity<ApiResponse> registrarResultado(@RequestBody ResultadoDiagnosticoDTO resultados) {
                 try {
-                        resultadosService.actualizarResultados(resultados);
-
+                        resultadosService.registrarResultado(resultados);
                         return ResponseEntity.ok(new ApiResponse(
                                         HttpStatus.OK.value(),
                                         true,
@@ -99,16 +99,16 @@ public class ResultadosController {
                 }
         }
 
-        // Crear las ordenes (Resmisión o Examen) asociadas a una cita (agenda)
-        @PostMapping("/ordenes")
-        public ResponseEntity<ApiResponse> crearOrdenes(@RequestBody List<OrdenaDTO> ordenes) {
+        // Actualizar unicamente el resultado de una agenda
+        @PutMapping("/{id}")
+        public ResponseEntity<ApiResponse> actualizarResultadoAgenda(@PathVariable Integer id,
+                        @RequestBody Agenda agenda) {
                 try {
-                        resultadosService.crearOrdenes(ordenes);
-
+                        resultadosService.actualizarResultadoAgenda(id, agenda);
                         return ResponseEntity.ok(new ApiResponse(
                                         HttpStatus.OK.value(),
                                         true,
-                                        "Órdenes creadas exitosamente",
+                                        "Resultado de la agenda registrado exitosamente",
                                         null));
                 } catch (RuntimeException ex) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(
@@ -120,7 +120,7 @@ public class ResultadosController {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(
                                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                         false,
-                                        "Error inesperado al crear las órdenes",
+                                        "Error inesperado al registrar el resultado de la agenda",
                                         null));
                 }
         }

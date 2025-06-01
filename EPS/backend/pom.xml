@@ -62,7 +62,12 @@
 		 <dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -75,6 +80,23 @@
 			<artifactId>therapi-runtime-javadoc</artifactId>
 			<version>0.15.0</version>
 		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -83,26 +105,34 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-				<annotationProcessorPaths>
-					<path>
-					<groupId>org.projectlombok</groupId>
-					<artifactId>lombok</artifactId>
-					</path>
-				</annotationProcessorPaths>
+					<source>17</source>
+					<target>17</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.30</version>
+						</path>
+						<path>
+							<groupId>com.github.therapi</groupId>
+							<artifactId>therapi-runtime-javadoc-scribe</artifactId>
+							<version>0.15.0</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-				<excludes>
-					<exclude>
-						<groupId>org.projectlombok</groupId>
-						<artifactId>lombok</artifactId>
-					</exclude>
-				</excludes>
-				</configuration>
-			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.springframework.boot</groupId>-->
+<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--				<configuration>-->
+<!--				<excludes>-->
+<!--					<exclude>-->
+<!--						<groupId>org.projectlombok</groupId>-->
+<!--						<artifactId>lombok</artifactId>-->
+<!--					</exclude>-->
+<!--				</excludes>-->
+<!--				</configuration>-->
+<!--			</plugin>-->
 			<!-- Swagger/OpenAPI plugin-->
 			<plugin>
 				<groupId>org.springdoc</groupId>
@@ -113,20 +143,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!--To Use code comments as Swagger description Plugin-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-				<annotationProcessorPaths>
-				<path>
-				<groupId>com.github.therapi</groupId>
-				<artifactId>therapi-runtime-javadoc-scribe</artifactId>
-				<version>0.15.0</version>
-				</path>
-				</annotationProcessorPaths>
-				</configuration>
-			</plugin>
+
 		</plugins>
 	</build>
 
