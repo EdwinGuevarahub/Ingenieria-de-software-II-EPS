@@ -9,7 +9,8 @@ export async function listarMedicos({
     diaSemanaIngles,
     horaDeInicio,
     horaDeFin,
-    estaActivo
+    estaActivo,
+    idIps
 } = {}) {
     try {
         const response = await AxiosInstance.get('medico', {
@@ -21,7 +22,8 @@ export async function listarMedicos({
                 diaSemanaIngles,
                 horaDeInicio,
                 horaDeFin,
-                estaActivo
+                estaActivo,
+                idIps
             }
         });
 
@@ -85,5 +87,3 @@ export async function actualizarMedico(data) {
         }
     }
 }
-
-
