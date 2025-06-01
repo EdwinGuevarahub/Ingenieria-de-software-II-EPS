@@ -337,7 +337,7 @@ const MedicoFormulario = ({
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 250, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField label="DNI" value={formData.dni || ''} onChange={handleChange('dni')} />
+          <TextField disabled={initialData.dni ? true : false} label="DNI" value={formData.dni || ''} onChange={handleChange('dni')} />
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
           <TextField label="Correo" value={formData.email || ''} onChange={handleChange('email')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
