@@ -10,7 +10,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { obtenerHorario, crearHorario, actualizarHorario } from '@/../../src/services/trabajaService';
 import { listarConsultorios } from "@/../../src/services/consultorioService.js";
-import { listaServiciosMedicosPorIPS } from "@/../../src/services/serviciosMedicosService.js";
+import { listaServiciosMedicosPorMedico } from "@/../../src/services/serviciosMedicosService.js";
 import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 
 const DIAS_SEMANA_CONFIG = [
@@ -311,8 +311,8 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         if (open) {
             const doFetchServicios = async () => {
                 try {
-                    const servicio = await listaServiciosMedicosPorIPS(ips.id);
-                    setServiciosOpts(servicio.map((s) => ({ label: s.nombre, value: s.cups })));
+                    const servicios = await listaServiciosMedicosPorMedico(dniMedico);
+                    setServiciosOpts(servicios.map((s) => ({ label: s.nombre, value: s.cups })));
                 } catch (e) {
                     console.error("Error cargando servicios:", e);
                     setError("Error cargando lista de servicios médicos.");
