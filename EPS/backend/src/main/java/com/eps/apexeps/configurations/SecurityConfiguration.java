@@ -65,6 +65,19 @@ public class SecurityConfiguration {
                     .requestMatchers("api/agenda/update/**").hasAnyAuthority(ERol.PACIENTE.name())
                     .requestMatchers("api/agenda/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name(), ERol.PACIENTE.name())
 
+                    // Rutas de Gestión de Historia Clinica.
+                    .requestMatchers(HttpMethod.GET, "api/ips/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/historia-clinica").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name())
+
+                    // Rutas de Gestión de estado de cuenta
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta/facturas/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+
+                    // Rutas de Gestión de Pago(agenda)
+                    .requestMatchers(HttpMethod.GET, "api/pagos").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/pagos").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+
                     // TODO: Cuando se haya adaptado el login en todas las rutas, quitar el permitAll.
                     .anyRequest().permitAll()
                 )

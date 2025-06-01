@@ -5,8 +5,10 @@ import com.eps.apexeps.models.entity.relations.PagoAfiliacionId;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface PagoAfiliacionRepository extends JpaRepository<PagoAfiliacion, PagoAfiliacionId> {
-    List<PagoAfiliacion> findByIdPacienteDni(Long pacienteId);
+    List<PagoAfiliacion> findByIdPacienteDni(Long dni);
+    List<PagoAfiliacion> findByIdPacienteDniAndIdFechaPagoAfiliacionBetween(Long dni, Instant desde, Instant hasta);
 }
