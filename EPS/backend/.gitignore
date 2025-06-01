@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Archivos locales ###
+.vscode/settings.json
+/backend/src/main/resources/application.properties
+.env

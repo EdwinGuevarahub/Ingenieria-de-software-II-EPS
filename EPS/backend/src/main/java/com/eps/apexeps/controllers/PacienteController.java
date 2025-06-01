@@ -1,6 +1,6 @@
 package com.eps.apexeps.controllers;
 
-import com.eps.apexeps.models.users.Paciente;
+import com.eps.apexeps.models.entity.users.Paciente;
 import com.eps.apexeps.repositories.PacienteRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/users")
 public class PacienteController {
 
