@@ -9,7 +9,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
 import com.eps.apexeps.models.ServicioMedico;
+import com.eps.apexeps.models.relations.Ordena;
+import com.eps.apexeps.models.relations.OrdenaId;
 import com.eps.apexeps.models.users.Paciente;
 import com.eps.apexeps.repositories.*;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +45,17 @@ public class AgendaService {
 
     private final PacienteRepository pacienteRepository;
 
+    private final AgendaRepository agendaRepo;
+
+    private final OrdenaRepository ordenaRepo;
+
+    private final TrabajaRepository trabajaRepo;
+
+    private final AgendaRepository newAgendaRepo;
+
+    private final PagoAfiliacionRepository pagoRepo;
+
+    private final ServicioMedicoRepository servicioRepo;
     /**
      * Método para obtener todas las agendas de la base de datos asociadas a un paciente.
      * @param dniPaciente El DNI del paciente.
@@ -207,5 +221,75 @@ public class AgendaService {
 
         return agendaRepository.save(agenda);
     }
-    
+
+    @Transactional
+    public Agenda registrarExamen(SolicitudExamenDTO dto) {
+
+        /* 1. Valida afiliación (≤ 1 año) */
+        verificarAfiliacion(dto.getDniPaciente());
+
+        /* 2. Valida que la orden exista y corresponda al paciente */
+        Ordena orden = ordenaRepo.validar(
+                        dto.getAgendaOrden(),
+                        dto.getCupsServicio(),
+                        dto.getDniPaciente())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("La orden no existe o no pertenece al paciente"));
+
+        /* 3. Localiza médico-consultorio */
+        Trabaja trabaja = trabajaRepo
+                .findByMedico_DniAndConsultorio_Id_IdConsultorio(
+                        dto.getDniMedico(), dto.getIdConsultorio())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("El médico no trabaja en ese consultorio"));
+
+        /* 4. Comprueba disponibilidad */
+        Instant fechaHora = dto.getFecha()
+                .atTime(dto.getHora())
+                .atZone(ZoneId.systemDefault())
+                .toInstant();
+
+        if (agendaRepo.existsByTrabajaAndFecha(trabaja, fechaHora)) {
+            throw new IllegalStateException("Horario ocupado");
+        }
+
+        /* 5. Registra en agenda */
+        Agenda nueva = Agenda.builder()
+                .paciente(orden.getId().getAgenda().getPaciente())
+                .trabaja(trabaja)
+                .fecha(fechaHora)
+                .estado("PENDIENTE")
+                .build();
+
+        Agenda guardada = newAgendaRepo.save(nueva);
+
+        ServicioMedico servicio = servicioRepo.findByCups(dto.getCupsServicio())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El servicio " + dto.getCupsServicio() + " no existe"));
+
+        /* 6. Relaciona nuevo examen con servicio solicitado */
+        OrdenaId id = new OrdenaId(guardada , servicio);
+        OrdenaId ordenaId = OrdenaId.builder()
+                .agenda(guardada)
+                .servicio(servicio)
+                .build();
+
+        Ordena examen = Ordena.builder()
+                .id(ordenaId)
+                .build();
+
+        ordenaRepo.save(examen);
+
+        return guardada;
+    }
+
+    /* -------- utilidades ---------- */
+
+    private void verificarAfiliacion(Long dni) {
+        Instant ultimoPago = pagoRepo.findUltimoPago(dni);
+        if (ultimoPago == null ||
+                ultimoPago.isBefore(Instant.now().minus(365, ChronoUnit.DAYS))) {
+            throw new IllegalStateException("Afiliación vencida");
+        }
+    }
 }
