@@ -1,11 +1,13 @@
 import { AxiosInstance } from "../services/axios";
 import { isAxiosError } from "axios";
 
+
 export async function listarConsultorios({
   qPage = 0,
   qSize = 10,
   cupsServicioMedico,
   idConsultorioLike,
+  idIps = null
 } = {}) {
   try {
     console.log(
@@ -13,9 +15,11 @@ export async function listarConsultorios({
       qPage,
       qSize,
       cupsServicioMedico,
-      idConsultorioLike
+      idConsultorioLike,
+      idIps
     );
-    const response = await AxiosInstance.get("consultorio", {
+    const ruta = idIps ? `consultorio/${idIps}` : "consultorio";
+    const response = await AxiosInstance.get(ruta, {
       params: {
         qPage,
         qSize,

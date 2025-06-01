@@ -26,6 +26,8 @@ import {
   actualizarConsultorio,
 } from "@/../../src/services/consultorioService.js";
 import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";
+import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
+import { useAuthContext } from '@/../../src/contexts/AuthContext';
 
 const ConsultorioLista = () => {
   const [consultorios, setConsultorios] = useState([]);
@@ -33,6 +35,9 @@ const ConsultorioLista = () => {
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [editData, setEditData] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  const { subEmail } = useAuthContext();
+  const [ips, setIps] = useState({});
 
   // Filtros
   const [numeroFiltro, setNumeroFiltro] = useState("");
@@ -58,14 +63,14 @@ const ConsultorioLista = () => {
       const cupsDesdeForm = consultorio.servicioMedico?.cupsSermed;
 
       const datosEnviar = {
-        id: {  
+        id: {
           ips: {
             id: idIpsDesdeForm,
           },
           idConsultorio: idConsultorioDesdeForm,
         },
         servicioMedico: {
-          cups: cupsDesdeForm
+          cups: cupsDesdeForm,
         },
       };
       console.log("Datos a enviar:", datosEnviar);
@@ -87,16 +92,21 @@ const ConsultorioLista = () => {
       console.log(
         `Fetching consultorios. Página: ${paginaActual}, NumeroFiltro: '${numeroFiltro}', ServicioFiltro: '${servicioFiltro}'`
       );
+      
       try {
         const filtros = {
           qPage: paginaActual - 1,
           qSize: 5,
           cupsServicioMedico: servicioFiltro || undefined,
           idConsultorioLike: numeroFiltro || undefined,
+          idIps: ips.id || undefined, // Asegúrate de que 'ips' tenga la estructura correcta
         };
         console.log("Filtros aplicados:", filtros);
         const { consultorios: data, totalPaginas: tp } =
-          await listarConsultorios(filtros);
+          ips && ips.id
+            ? await listarConsultorios(filtros):([])
+              
+          
         console.log(`Total de páginas: ${tp}`);
         console.log("Datos consultorios recibidos:", data);
 
@@ -113,7 +123,7 @@ const ConsultorioLista = () => {
         console.error("Error cargando consultorios:", error);
       }
     },
-    [numeroFiltro, servicioFiltro] // fetchConsultorios se recrea si estos filtros cambian
+    [numeroFiltro, servicioFiltro, ips] // fetchConsultorios se recrea si estos filtros cambian
   );
 
   // Efecto para cargar los servicios médicos (opciones del select)
@@ -135,9 +145,6 @@ const ConsultorioLista = () => {
 
   // Efecto para resetear la página a 1 cuando los filtros cambian
   useEffect(() => {
-    // No es necesario llamar a fetchConsultorios aquí directamente.
-    // El cambio en 'pagina' (a 1) o en la referencia de 'fetchConsultorios'
-    // activará el siguiente useEffect.
     if (numeroFiltro !== "" || servicioFiltro !== "") {
       // Opcional: solo resetear si hay algún filtro activo o cambió
       console.log("Filtro cambiado, reseteando página a 1.");
@@ -156,6 +163,19 @@ const ConsultorioLista = () => {
   useEffect(() => {
     fetchConsultorios(pagina);
   }, [pagina, fetchConsultorios]);
+
+  useEffect(() => {
+    const fetchIps = async () => {
+      try {
+        const result = await getIpsByAdmIpsEmail(subEmail);
+        setIps(result);
+      } catch (error) {
+        console.error('Error al cargar la ips del médico: ', error);
+      }
+    };
+
+    fetchIps();
+  }, [subEmail]);
 
   return (
     <Box sx={{ width: "100%" }}>
