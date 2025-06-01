@@ -271,7 +271,10 @@ const AgendaListaPaciente = () => {
                             
                             <CanceladoCita
                                 open={modalCanceladoCitaAbierto}
-                                onClose={() => setModalCanceladoCitaAbierto(false)}
+                                onClose={() => {
+                                    setModalCanceladoCitaAbierto(false);
+                                    fetchAgendas(pagina, filtrosAplicados);
+                                }}
                                 idAgenda={detalle[0].id}
                             />
                         </Box>
