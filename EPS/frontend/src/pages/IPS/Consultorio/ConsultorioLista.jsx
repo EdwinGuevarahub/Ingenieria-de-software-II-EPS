@@ -6,11 +6,7 @@ import {
   Pagination,
   Fab,
   Button,
-  Grid,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
+  Grid
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -30,22 +26,31 @@ import { getIpsByAdmIpsEmail } from '@/../../src/services/ipsService';
 import { useAuthContext } from '@/../../src/contexts/AuthContext';
 
 const ConsultorioLista = () => {
-  const [consultorios, setConsultorios] = useState([]);
-  const [pagina, setPagina] = useState(1);
-  const [totalPaginas, setTotalPaginas] = useState(1);
-  const [editData, setEditData] = useState(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
+  // Contexto de autenticación para obtener el email del médico y su IPS
   const { subEmail } = useAuthContext();
   const [ips, setIps] = useState({});
 
+  // Estados
+  const [editData, setEditData] = useState(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  // Sobre la tabla
+  const [consultorios, setConsultorios] = useState([]);
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+
   // Filtros
-  const [numeroFiltro, setNumeroFiltro] = useState("");
+  const [idConsultorioFiltro, setIdConsultorioFiltro] = useState("");
   const [servicioFiltro, setServicioFiltro] = useState("");
   const [serviciosOpts, setServiciosOpts] = useState([]);
 
   const handleMostrarFormulario = (consultorio = null) => {
-    setEditData(consultorio);
+    if (consultorio)
+      setEditData(consultorio);
+    else
+      setEditData(null);
+
     setMostrarFormulario(true);
   };
 
@@ -54,9 +59,13 @@ const ConsultorioLista = () => {
     setMostrarFormulario(false);
   };
 
+  const handleExpandedChange = (id, expanded) => {
+    if (!expanded && editData)
+      handleOcultarFormulario();
+  };
+
   const handleSubmitConsultorio = async (consultorio) => {
     try {
-      console.log("Datos del consultorio a enviar:", consultorio);
       // Acceder a los campos de la estructura anidada
       const idConsultorioDesdeForm = consultorio.id?.idConsultorio;
       const idIpsDesdeForm = consultorio.id?.ips?.id;
@@ -73,14 +82,13 @@ const ConsultorioLista = () => {
           cups: cupsDesdeForm,
         },
       };
-      console.log("Datos a enviar:", datosEnviar);
-      if (editData?.idConsultorio) {
+      
+      if (editData?.idConsultorio)
         await actualizarConsultorio(datosEnviar);
-      } else {
+      else
         await crearConsultorio(datosEnviar);
-      }
 
-      await fetchConsultorios(pagina); // Podrías considerar llamar a fetchConsultorios(1) si la creación/actualización debe llevar a la pág 1.
+      await fetchConsultorios(pagina);
       handleOcultarFormulario();
     } catch (e) {
       console.error("Error guardando consultorio:", e);
@@ -89,27 +97,19 @@ const ConsultorioLista = () => {
 
   const fetchConsultorios = useCallback(
     async (paginaActual = 1) => {
-      console.log(
-        `Fetching consultorios. Página: ${paginaActual}, NumeroFiltro: '${numeroFiltro}', ServicioFiltro: '${servicioFiltro}'`
-      );
-      
       try {
         const filtros = {
           qPage: paginaActual - 1,
           qSize: 5,
           cupsServicioMedico: servicioFiltro || undefined,
-          idConsultorioLike: numeroFiltro || undefined,
-          idIps: ips.id || undefined, // Asegúrate de que 'ips' tenga la estructura correcta
+          idConsultorioLike: idConsultorioFiltro || undefined,
+          idIps: ips.id || undefined
         };
-        console.log("Filtros aplicados:", filtros);
         const { consultorios: data, totalPaginas: tp } =
           ips && ips.id
-            ? await listarConsultorios(filtros):([])
+            ? await listarConsultorios(filtros)
+            : ([])
               
-          
-        console.log(`Total de páginas: ${tp}`);
-        console.log("Datos consultorios recibidos:", data);
-
         const flattened = data.map((item) => ({
           idConsultorio: item.idConsultorio,
           idIps: item.idIps,
@@ -123,7 +123,7 @@ const ConsultorioLista = () => {
         console.error("Error cargando consultorios:", error);
       }
     },
-    [numeroFiltro, servicioFiltro, ips] // fetchConsultorios se recrea si estos filtros cambian
+    [idConsultorioFiltro, servicioFiltro, ips] // fetchConsultorios se recrea si estos filtros cambian
   );
 
   // Efecto para cargar los servicios médicos (opciones del select)
@@ -140,26 +140,23 @@ const ConsultorioLista = () => {
         console.error("Error cargando servicios médicos:", e);
       }
     };
+
     fetchServicios();
   }, []); // Se ejecuta solo una vez al montar el componente
 
   // Efecto para resetear la página a 1 cuando los filtros cambian
   useEffect(() => {
-    if (numeroFiltro !== "" || servicioFiltro !== "") {
+    if (idConsultorioFiltro !== "" || servicioFiltro !== "") {
       // Opcional: solo resetear si hay algún filtro activo o cambió
-      console.log("Filtro cambiado, reseteando página a 1.");
       setPagina(1);
-    } else if (numeroFiltro === "" && servicioFiltro === "") {
+    } else if (idConsultorioFiltro === "" && servicioFiltro === "") {
       // Si se limpian todos los filtros
-      console.log("Filtros limpiados, reseteando página a 1 y recargando.");
       setPagina(1); // Asegura que se recargue desde la página 1
     }
     // Para la primera carga, si quieres que se cargue en página 1,
     // el siguiente useEffect se encargará si pagina es 1 por defecto.
-  }, [numeroFiltro, servicioFiltro]);
+  }, [idConsultorioFiltro, servicioFiltro]);
 
-  // Efecto principal para cargar consultorios cuando 'pagina' o 'fetchConsultorios' (la función en sí) cambian.
-  // 'fetchConsultorios' cambia su referencia cuando 'numeroFiltro' o 'servicioFiltro' cambian.
   useEffect(() => {
     fetchConsultorios(pagina);
   }, [pagina, fetchConsultorios]);
@@ -170,7 +167,7 @@ const ConsultorioLista = () => {
         const result = await getIpsByAdmIpsEmail(subEmail);
         setIps(result);
       } catch (error) {
-        console.error('Error al cargar la ips del médico: ', error);
+        console.error('Error al cargar la ips del administrador: ', error);
       }
     };
 
@@ -200,8 +197,8 @@ const ConsultorioLista = () => {
           </Typography>
           <SearchFilter
             label="Buscar consultorio"
-            value={numeroFiltro}
-            onChange={(value) => setNumeroFiltro(value)} // Asegúrate que SearchFilter pase el valor directamente
+            value={idConsultorioFiltro}
+            onChange={(value) => setIdConsultorioFiltro(value)} // Asegúrate que SearchFilter pase el valor directamente
             fullWidth
           />
         </Grid>
@@ -228,6 +225,13 @@ const ConsultorioLista = () => {
         </Grid>
       </Grid>
 
+      {mostrarFormulario && !editData && (
+        <ConsultorioFormulario
+          onSubmit={handleSubmitConsultorio}
+          onCancel={handleOcultarFormulario} // Para el botón cancelar dentro del form
+        />
+      )}
+
       {/* Tabla con datos aplanados */}
       <ExpandableTable
         columns={[
@@ -236,17 +240,7 @@ const ConsultorioLista = () => {
         ]}
         data={consultorios}
         rowKey="idConsultorio" // Asegúrate que este valor sea único en 'consultorios'
-        onExpandedChange={(id, expanded) => {
-          // Si se cierra una fila que estaba mostrando el formulario de edición, ocultarlo.
-          // Esta lógica necesitaría saber si 'editData' corresponde a 'id'.
-          if (!expanded && editData && editData.idConsultorio === id) {
-            handleOcultarFormulario();
-          } else if (!expanded && mostrarFormulario && !editData) {
-            // Si se cierra una fila mientras el form de "nuevo" estaba abierto (aunque no debería estar en una fila)
-            // Quizás no es necesario aquí si el form de "nuevo" no está en ExpandableTable.
-            // La lógica previa de `handleOcultarFormulario()` sin condiciones es más simple si el form es modal.
-          }
-        }}
+        onExpandedChange={handleExpandedChange}
         fetchDetails={[
           (idConsultorioRow) => {
             // Renombrado para evitar confusión con idConsultorio del scope superior
@@ -261,6 +255,7 @@ const ConsultorioLista = () => {
               );
               return Promise.resolve([{ error: "Fila no encontrada." }]); // Devuelve un objeto de error para manejo en renderExpandedContent
             }
+
             return obtenerConsultorio(fila.idIps, idConsultorioRow);
           },
         ]}
@@ -286,15 +281,19 @@ const ConsultorioLista = () => {
             );
           }
 
-          console.log("Detalle consultorio para expandir:", detalle);
-
           const idConsultorioDetalle = detalle.idConsultorio;
           const idIpsDetalle = detalle.idIps;
           const servicioNombreDetalle = detalle.nombreServicioMedico;
           const cupsServicioMedicoDetalle = detalle.cupsServicioMedico;
 
-          // NO MUESTRA EL FORMULARIO AQUÍ, ya que se maneja con el Dialog global.
-          // Esta sección es solo para mostrar los detalles.
+          if (mostrarFormulario && editData)
+            return (
+              <ConsultorioFormulario
+                initialData={editData}
+                onSubmit={handleSubmitConsultorio}
+                onCancel={handleOcultarFormulario}
+              />
+            );
 
           return (
             <Box
@@ -361,28 +360,6 @@ const ConsultorioLista = () => {
         <AddIcon />
       </Fab>
 
-      {/* Modal de formulario (como lo tenías) */}
-      <Dialog
-        open={mostrarFormulario}
-        onClose={handleOcultarFormulario}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {editData ? "Editar Consultorio" : "Nuevo Consultorio"}
-        </DialogTitle>
-        <DialogContent>
-          <ConsultorioFormulario
-            initialData={editData} // Pasa null si es nuevo, o los datos del consultorio a editar
-            onSubmit={handleSubmitConsultorio}
-            onCancel={handleOcultarFormulario} // Para el botón cancelar dentro del form
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleOcultarFormulario}>Cancelar</Button>
-          {/* El botón de "Guardar" usualmente está dentro de ConsultorioFormulario */}
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
