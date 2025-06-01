@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import {
   Box, TextField, Typography, Chip, Button, Modal, Fade,
-  Backdrop, InputAdornment, IconButton, Grid,
+  Backdrop, InputAdornment, IconButton, Grid, Stack,
   Dialog, DialogActions, DialogContent, DialogTitle, Checkbox,
   MenuItem, Select, InputLabel, FormControl, Alert
 } from '@mui/material';
@@ -9,6 +9,9 @@ import {
   Save, Delete as DeleteIcon, Add as AddIcon,
   CleaningServices as ClearIcon, Close as CloseIcon
 } from '@mui/icons-material';
+import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import {
   listaServiciosMedicosPorMedico,
   listaServiciosMedicosPorIPS,
@@ -65,8 +68,8 @@ const MedicoFormulario = ({
   // Estados para el modal de horario inicial
   const [initialSchedule, setInitialSchedule] = useState({
     dias: [],
-    horaInicio: '09:00',
-    horaFin: '17:00',
+    horaInicio: '00:00',
+    horaFin: '00:00',
     servicio: '',
     consultorio: '',
   });
@@ -225,7 +228,7 @@ const MedicoFormulario = ({
     } else { // Modo Creación
       setTempFormData({ ...formData }); // Guardar datos básicos temporalmente
       setInitialSchedule({
-        dias: [], horaInicio: '09:00', horaFin: '17:00',
+        dias: [], horaInicio: '00:00', horaFin: '00:00',
         servicio: formServiciosOpts.length > 0 ? formServiciosOpts[0].label : '',
         consultorio: ''
       });
@@ -400,18 +403,24 @@ const MedicoFormulario = ({
         </Box>
       </Box>
 
-      <Dialog open={isInitialScheduleModalOpen} onClose={() => setIsInitialScheduleModalOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={isInitialScheduleModalOpen} onClose={() => setIsInitialScheduleModalOpen(false)} maxWidth="md" fullWidth scroll="body">
         <DialogTitle sx={{ bgcolor: 'secondary.main', color: 'secondary.contrastText' }}>
           Configurar Horario Inicial
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ overflow: 'visible' }}>
           {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
           {isLoadingFormOpts && <Typography>Cargando opciones...</Typography>}
           {!isLoadingFormOpts && !formError && (
-            <Grid container spacing={2} sx={{ pt: 2 }}>
-              <Grid item xs={12}>
+            <Stack spacing={2}>
+              <Box>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Días de atención</Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  minHeight: 80
+                }}>
                   {DIAS_SEMANA_CONFIG.map((diaConfig) => (
                     <Box key={diaConfig.backendValue} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
                       <Typography variant="caption">{diaConfig.display}</Typography>
@@ -422,64 +431,96 @@ const MedicoFormulario = ({
                     </Box>
                   ))}
                 </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField name="horaInicio" label="Hora de inicio" type="time" fullWidth
-                  value={initialSchedule.horaInicio} onChange={handleInitialScheduleChange}
-                  InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }} // 30 min steps
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField name="horaFin" label="Hora de fin" type="time" fullWidth
-                  value={initialSchedule.horaFin} onChange={handleInitialScheduleChange}
-                  InputLabelProps={{ shrink: true }} inputProps={{ step: 1800 }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Stack direction="row" spacing={2}>
+                  <TimePicker
+                    label="Hora de inicio"
+                    value={dayjs(`2024-01-01T${initialSchedule.horaInicio}`)}
+                    onChange={(newValue) =>
+                      handleInitialScheduleChange({ target: { name: 'horaInicio', value: newValue.format('HH:mm') } })
+                    }
+                    ampm={false}
+                    views={['hours', 'minutes']}
+                    format="HH:mm"
+                    sx={{ flex: 1 }}
+                  />
+                  <TimePicker
+                    label="Hora de fin"
+                    value={dayjs(`2024-01-01T${initialSchedule.horaFin}`)}
+                    onChange={(newValue) =>
+                      handleInitialScheduleChange({ target: { name: 'horaFin', value: newValue.format('HH:mm') } })
+                    }
+                    ampm={false}
+                    views={['hours', 'minutes']}
+                    format="HH:mm"
+                    sx={{ flex: 1 }}
+                  />
+                </Stack>
+              </LocalizationProvider>
+
+              <FormControl fullWidth>
+                <InputLabel id="initial-servicio-label">Servicio Médico</InputLabel>
+                <Select
+                  labelId="initial-servicio-label"
+                  name="servicio"
+                  value={initialSchedule.servicio}
+                  label="Servicio Médico"
+                  onChange={handleInitialScheduleChange}
+                >
+                  {formServiciosOpts.map((s) => (
+                    <MenuItem key={s.value} value={s.label}>{s.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {initialSchedule.servicio && consultoriosForSelectedServicioInForm.length > 0 && (
                 <FormControl fullWidth>
-                  <InputLabel id="initial-servicio-label">Servicio Médico</InputLabel>
-                  <Select labelId="initial-servicio-label" name="servicio"
-                    value={initialSchedule.servicio} label="Servicio Médico"
-                    onChange={handleInitialScheduleChange}>
-                    {formServiciosOpts.map((s) => <MenuItem key={s.value} value={s.label}>{s.label}</MenuItem>)}
+                  <InputLabel id="initial-consultorio-label">Consultorio</InputLabel>
+                  <Select
+                    labelId="initial-consultorio-label"
+                    name="consultorio"
+                    value={initialSchedule.consultorio}
+                    label="Consultorio"
+                    onChange={handleInitialScheduleChange}
+                  >
+                    {consultoriosForSelectedServicioInForm.map((c) => (
+                      <MenuItem key={c.value} value={c.label}>{c.label}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              {initialSchedule.servicio && consultoriosForSelectedServicioInForm.length > 0 && (
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="initial-consultorio-label">Consultorio</InputLabel>
-                    <Select labelId="initial-consultorio-label" name="consultorio"
-                      value={initialSchedule.consultorio} label="Consultorio"
-                      onChange={handleInitialScheduleChange}>
-                      {consultoriosForSelectedServicioInForm.map((c) => <MenuItem key={c.value} value={c.label}>{c.label}</MenuItem>)}
-                    </Select>
-                  </FormControl>
-                </Grid>
               )}
+
               {initialSchedule.servicio && consultoriosForSelectedServicioInForm.length === 0 && !isLoadingFormOpts && (
-                <Grid item xs={12} sm={6}>
-                  <Alert severity="warning">No hay consultorios disponibles para este servicio.</Alert>
-                </Grid>
+                <Alert severity="warning">No hay consultorios disponibles para este servicio.</Alert>
               )}
-            </Grid>
+            </Stack>
           )}
         </DialogContent>
+
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => {
-            setInitialSchedule({ // Limpiar formulario del modal
-              dias: [], horaInicio: '09:00', horaFin: '17:00',
+            setInitialSchedule({
+              dias: [],
+              horaInicio: '00:00',
+              horaFin: '00:00',
               servicio: formServiciosOpts.length > 0 ? formServiciosOpts[0].label : '',
               consultorio: ''
             });
-          }} color="warning" startIcon={<ClearIcon />}>Limpiar</Button>
+          }} color="warning" startIcon={<ClearIcon />}>
+            Limpiar
+          </Button>
           <Box sx={{ flexGrow: 1 }} />
-          <Button onClick={() => setIsInitialScheduleModalOpen(false)} color="inherit" startIcon={<CloseIcon />}>Cancelar</Button>
+          <Button onClick={() => setIsInitialScheduleModalOpen(false)} color="inherit" startIcon={<CloseIcon />}>
+            Cancelar
+          </Button>
           <Button onClick={handleSaveInitialSchedule} variant="contained" color="primary" startIcon={<Save />} disabled={isLoadingFormOpts}>
             Guardar Horario y Crear Médico
           </Button>
         </DialogActions>
       </Dialog>
+
 
       <Modal
         open={modalAbierto}
