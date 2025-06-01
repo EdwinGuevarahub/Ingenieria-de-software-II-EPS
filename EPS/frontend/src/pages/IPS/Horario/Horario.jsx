@@ -250,7 +250,8 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                 setIsLoading(true);  
                 setError(null);  
                 try {
-                    const { consultorios } = await listarConsultorios();  
+                    const filtros = { idIps: ips.id || undefined };
+                    const { consultorios } = await listarConsultorios(filtros);  
                     setConsultoriosOpts(consultorios.map((c) => ({
                         nombreServicio: c.nombreServicioMedico,  
                         cupsServicio: c.cupsServicioMedico,  
@@ -268,7 +269,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             };
             doFetchConsultorios();
         }
-    }, [open, dniMedico]);
+    }, [open, dniMedico, ips]);
 
     const fetchTrabaja = useCallback(async () => {
         if (!dniMedico) {

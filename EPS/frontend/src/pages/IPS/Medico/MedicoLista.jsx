@@ -11,6 +11,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
 import { listaServiciosMedicosPorMedico, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
+import { agregarServiciosMedicosPorMedico } from '@/../../src/services/serviciosMedicosService';
+import { obtenerConsultorio } from '@/../../src/services/consultorioService';
 import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 import MedicoFormulario from './MedicoFormulario';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
@@ -77,7 +79,6 @@ const MedicoLista = () => {
 
   const handleSubmitMedico = async (dataMedico) => {
     try {
-
       const medicoPayload = {
         dni: dataMedico.dni,
         nombre: dataMedico.nombre,
@@ -85,12 +86,14 @@ const MedicoLista = () => {
         password: dataMedico.password,
         telefono: dataMedico.telefono,
         imagen: dataMedico.imagen,
-        activo: true
+        activo: true,
       };
 
-      if (editandoMedico && editandoMedico.dni) { // Modo edición
+      if (editandoMedico && editandoMedico.dni) {
+        // 🛠️ Modo edición
         await actualizarMedico(medicoPayload);
-      } else { // Modo creación
+      } else {
+        // 🛠️ Modo creación
         if (!dataMedico.initialSchedule) {
           console.error('Error: Falta información del horario inicial para crear el médico.');
           return;
@@ -98,7 +101,7 @@ const MedicoLista = () => {
 
         const { dias, horaInicio, horaFin, idConsultorio, idIpsConsultorio } = dataMedico.initialSchedule;
 
-        const horarioParaBackend = dias.map(dia => ({
+        const horarioParaBackend = dias.map((dia) => ({
           dia: dia,
           inicio: horaInicio,
           fin: horaFin,
@@ -112,20 +115,50 @@ const MedicoLista = () => {
                 id: idIpsConsultorio,
               },
               idConsultorio: idConsultorio,
-            }
+            },
           },
           horario: horarioParaBackend,
         };
 
-        await crearMedico(datosEnviar);
-        // TODO: Aquí agregar lógica para manejar los servicios médicos.
+        const respuesta = await crearMedico(datosEnviar);
+
+        if (!respuesta || respuesta.error) {
+          console.error('Error creando el médico. Respuesta inválida:', respuesta);
+          return;
+        }
+
+        // Agregar servicios médicos al médico recién creado
+        try {
+          console.log('Agregando servicios médicos al médico:', dataMedico.dni, idConsultorio);
+          if (dataMedico.dni && idConsultorio) {
+            const consultorio = await obtenerConsultorio(ips.id, idConsultorio);
+
+            if (!consultorio) {
+              console.error('Consultorio no encontrado');
+              return;
+            }
+
+            if (!consultorio.cupsServicioMedico || consultorio.cupsServicioMedico.length === 0) {
+              console.error('El consultorio no tiene servicios médicos asociados.');
+              return;
+            }
+
+            await agregarServiciosMedicosPorMedico(dataMedico.dni, consultorio.cupsServicioMedico);
+          } else {
+            console.error('Faltan datos requeridos: DNI o ID del consultorio');
+          }
+        } catch (error) {
+          console.error('Error agregando servicio al médico:', error);
+        }
       }
+
       await fetchMedicos(pagina, filtrosAplicados);
       handleOcultarFormulario();
     } catch (e) {
-      console.error('Error guardando médico', e);
+      console.error('Error guardando médico:', e);
     }
   };
+
 
   const fetchMedicos = useCallback(
     async (paginaActual, filtrosExtras = {}) => {

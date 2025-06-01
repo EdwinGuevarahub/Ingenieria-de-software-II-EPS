@@ -104,7 +104,7 @@ const MedicoFormulario = ({
   useEffect(() => {
     const fetchTodosServicios = async () => {
       try {
-        const servicio = await listaServiciosMedicosPorIPS(ips.id); 
+        const servicio = await listaServiciosMedicosPorIPS(ips.id);
         const opciones = servicio.map((s) => ({
           label: s.nombre,
           value: s.cups,
@@ -124,12 +124,13 @@ const MedicoFormulario = ({
         setIsLoadingFormOpts(true);
         setFormError(null);
         try {
-          const serviciosResponse = await listaServiciosMedicosPorIPS(ips.id); 
+          const serviciosResponse = await listaServiciosMedicosPorIPS(ips.id);
           const mappedServicios = serviciosResponse.map(s => ({ label: s.nombre, value: s.cups }));
           setFormServiciosOpts(mappedServicios);
           _formServiciosOpts = mappedServicios;
 
-          const consultoriosResponse = await listarConsultorios();
+          const filtros = { idIps: ips.id || undefined };
+          const consultoriosResponse = await listarConsultorios(filtros);
           const mappedConsultorios = consultoriosResponse.consultorios.map(c => ({
             label: `Consultorio ${c.idConsultorio}`,
             value: c.idConsultorio,
@@ -337,28 +338,28 @@ const MedicoFormulario = ({
           <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
           <TextField label="Correo" value={formData.email || ''} onChange={handleChange('email')} />
           <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
-          {!initialData?.dni && ( 
-          <TextField
-            label='Password'
-            type={showPassword ? "text" : "password"}
-            value={formData.password || ''}
-            onChange={handleChange('password')}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
-            }}
-          />
+          {!initialData?.dni && (
+            <TextField
+              label='Password'
+              type={showPassword ? "text" : "password"}
+              value={formData.password || ''}
+              onChange={handleChange('password')}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
+              }}
+            />
           )}
         </Box>
 
@@ -386,14 +387,16 @@ const MedicoFormulario = ({
             <Chip label="Sin servicios" variant="outlined" />
           )}
 
-          <Chip
-            icon={<AddIcon />}
-            label="Agregar"
-            clickable
-            color="success"
-            onClick={() => setModalAbierto(true)}
-            variant="outlined"
-          />
+          {initialData?.dni && ( // Solo en modo creación
+            <Chip
+              icon={<AddIcon />}
+              label="Agregar"
+              clickable
+              color="success"
+              onClick={() => setModalAbierto(true)}
+              variant="outlined"
+            />
+          )}
         </Box>
       </Box>
 
@@ -522,6 +525,7 @@ const MedicoFormulario = ({
               ))}
             </TextField>
 
+
             <Button
               variant="contained"
               onClick={handleAgregarServicio}
@@ -530,6 +534,7 @@ const MedicoFormulario = ({
             >
               Agregar
             </Button>
+
           </Box>
         </Fade>
       </Modal>
