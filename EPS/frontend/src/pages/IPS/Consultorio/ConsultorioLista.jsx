@@ -67,26 +67,11 @@ const ConsultorioLista = () => {
   const handleSubmitConsultorio = async (consultorio) => {
     try {
       // Acceder a los campos de la estructura anidada
-      const idConsultorioDesdeForm = consultorio.id?.idConsultorio;
-      const idIpsDesdeForm = consultorio.id?.ips?.id;
-      const cupsDesdeForm = consultorio.servicioMedico?.cupsSermed;
-
-      const datosEnviar = {
-        id: {
-          ips: {
-            id: idIpsDesdeForm,
-          },
-          idConsultorio: idConsultorioDesdeForm,
-        },
-        servicioMedico: {
-          cups: cupsDesdeForm,
-        },
-      };
-      
+      consultorio.id.ips.id = ips.id; // Asegúrate que 'ips' tenga el ID correcto
       if (editData?.idConsultorio)
-        await actualizarConsultorio(datosEnviar);
+        await actualizarConsultorio(consultorio);
       else
-        await crearConsultorio(datosEnviar);
+        await crearConsultorio(consultorio);
 
       await fetchConsultorios(pagina);
       handleOcultarFormulario();
@@ -183,13 +168,12 @@ const ConsultorioLista = () => {
       {/* Filtros */}
       <Grid container spacing={3} alignItems="center" sx={{ mb: 4 }}>
         <Grid
-          item // Añadido para que sea un item de Grid
-          xs={12}
-          sm={6} // Ejemplo de responsividad
           sx={{
             flexGrow: 1,
             flexBasis: 0,
             minWidth: "250px",
+            xs: 12,
+            sm: 6
           }}
         >
           <Typography variant="subtitle1" gutterBottom>
@@ -203,13 +187,12 @@ const ConsultorioLista = () => {
           />
         </Grid>
         <Grid
-          item // Añadido para que sea un item de Grid
-          xs={12}
-          sm={6} // Ejemplo de responsividad
           sx={{
             flexGrow: 1,
             flexBasis: 0,
             minWidth: "250px",
+            xs: 12,
+            sm: 6
           }}
         >
           <Typography variant="subtitle1" gutterBottom>
@@ -227,6 +210,7 @@ const ConsultorioLista = () => {
 
       {mostrarFormulario && !editData && (
         <ConsultorioFormulario
+          serviciosMedicos={serviciosOpts}
           onSubmit={handleSubmitConsultorio}
           onCancel={handleOcultarFormulario} // Para el botón cancelar dentro del form
         />
@@ -290,6 +274,7 @@ const ConsultorioLista = () => {
             return (
               <ConsultorioFormulario
                 initialData={editData}
+                serviciosMedicos={serviciosOpts}
                 onSubmit={handleSubmitConsultorio}
                 onCancel={handleOcultarFormulario}
               />
