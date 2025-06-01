@@ -68,9 +68,9 @@ const ConsultorioFormulario = ({
       onSubmit={handleSubmitForm}
       sx={{
         p: 3,
-        backgroundColor: '#f9f9f9',
-        borderRadius: 2,
-        boxShadow: 1, // Sombra sutil
+        backgroundColor: isEditing ? undefined : '#f9f9f9',
+        borderRadius: isEditing ? undefined : 2, // Bordes redondeados
+        boxShadow: isEditing ? undefined : 1, // Sombra sutil
       }}
     >
       <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
