@@ -10,14 +10,6 @@ export async function listarConsultorios({
   idIps = null
 } = {}) {
   try {
-    console.log(
-      "Listando consultorios con parámetros:",
-      qPage,
-      qSize,
-      cupsServicioMedico,
-      idConsultorioLike,
-      idIps
-    );
     const ruta = idIps ? `consultorio/${idIps}` : "consultorio";
     const response = await AxiosInstance.get(ruta, {
       params: {
@@ -50,24 +42,16 @@ export async function listarConsultorios({
 
 export async function obtenerConsultorio(idIps, idConsultorio) {
   try {
-    console.log(
-      "Obteniendo consultorio con ID IPS:",
-      idIps,
-      "y ID Consultorio:",
-      idConsultorio
-    );
     const response = await AxiosInstance.get(
       `/consultorio/${idIps}?idConsultorioLike=${idConsultorio}`
     );
     const consultorioAPI = response.data;
-    console.log("API response data (wrapper):", consultorioAPI);
     if (
       consultorioAPI &&
       consultorioAPI.consultorios &&
       consultorioAPI.consultorios.length > 0
     ) {
       const consultorioActual = consultorioAPI.consultorios[0];
-      console.log("Consultorio actual extraído:", consultorioActual);
       return {
         idIps: consultorioActual.idIps,
         idConsultorio: consultorioActual.idConsultorio,
@@ -100,7 +84,6 @@ export async function obtenerConsultorio(idIps, idConsultorio) {
  */
 export async function crearConsultorio(consultorio) {
   try {
-    console.log("Creando consultorio con datos:", consultorio);
     const response = await AxiosInstance.post("/consultorio", consultorio);
     return response.data;
   } catch (err) {
@@ -124,7 +107,6 @@ export async function crearConsultorio(consultorio) {
  */
 export async function actualizarConsultorio(consultorio) {
   try {
-  console.log("Actualizando consultorio con datos:", consultorio);
     const response = await AxiosInstance.put("/consultorio", consultorio);
     return response.data;
   } catch (err) {
