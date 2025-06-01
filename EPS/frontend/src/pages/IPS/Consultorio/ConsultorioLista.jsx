@@ -64,7 +64,9 @@ const ConsultorioLista = () => {
           },
           idConsultorio: idConsultorioDesdeForm,
         },
-        cupsServicioMedico: cupsDesdeForm,
+        servicioMedico: {
+          cups: cupsDesdeForm
+        },
       };
       console.log("Datos a enviar:", datosEnviar);
       if (editData?.idConsultorio) {
