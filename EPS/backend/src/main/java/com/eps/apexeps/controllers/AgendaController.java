@@ -1,5 +1,8 @@
 package com.eps.apexeps.controllers;
 
+import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -201,4 +204,31 @@ public class AgendaController {
             throw new RuntimeException("Error al cancelar la cita de la agenda: " + e.getMessage(), e);
         }
     }
+
+    @PostMapping("/citas")
+    public Agenda solicitarCita(@RequestBody SolicitudCitaDTO dto) {
+        try{
+            return agendaService.registrarCita(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/examenes")
+    public Agenda solicitarExamen(@RequestBody SolicitudExamenDTO dto) {
+        try{
+            return agendaService.registrarExamen(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
+        }
+    }
+
 }

@@ -7,6 +7,11 @@ import Home from '../pages/Home';
 import HomeAdmEPS from '../pages/EPS/Home';
 import HomeAdmIPS from '../pages/IPS/Home';
 import Login from '../pages/Login';
+import IPS from '../pages/EPS/IPS';
+import AgendarCita from '../pages/EPS/AgendarCita';
+import AgendarCitaAdmin from '../pages/EPS/AgendarCitaAdmin';
+import SolicitarExamenMedico from '../pages/EPS/SolicitarExamenMedico';  // Importa el componente
+import SolicitarMedicamento from '../pages/EPS/SolicitarMedicamento';
 import IPSLista from '../pages/EPS/IPS/IPSLista';
 import MedicoLista from '../pages/IPS/Medico/MedicoLista';
 import ConsultorioLista from '../pages/IPS/Consultorio/ConsultorioLista';
@@ -62,6 +67,14 @@ const AppRouter = () => (
     <Route path="/estado-cuenta" element={<MainLayout><EstadoCuenta /></MainLayout>} />
     <Route path="/detalle-estado-cuenta/:userId" element={<MainLayout><DetalleEstadoCuenta /></MainLayout>} />
     <Route path="/editar-afiliado/:afiliadoId" element={<MainLayout><EdicionAfiliado /></MainLayout>} />
+
+
+     {/* Grupo 1 */}
+    <Route path="/agendar-cita" element={<MainLayout> <AgendarCita /></MainLayout>} />
+    <Route path="/agendar-cita-admin" element={<MainLayout><AgendarCitaAdmin /></MainLayout>} />
+    <Route path="/solicitar-examen-medico" element={<MainLayout><SolicitarExamenMedico /></MainLayout>} />  
+    <Route path="/solicitar-medicamento" element={<MainLayout><SolicitarMedicamento /></MainLayout>} />
+
 
   </Routes>
 );

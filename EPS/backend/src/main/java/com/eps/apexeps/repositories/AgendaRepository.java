@@ -1,7 +1,10 @@
 package com.eps.apexeps.repositories;
-import java.util.List;
-import java.time.Instant;
 
+
+import java.time.Instant;
+import java.util.List;
+
+import com.eps.apexeps.models.entity.relations.Trabaja;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -86,4 +89,15 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
         String horaDeFin,
         Pageable pageable
     );
+
+
+    public boolean existsByTrabajaAndFecha(Trabaja trabaja, Instant fecha);
+
+    public boolean existsByTrabaja_IdAndFecha(Integer id, Instant fecha);
+
+
+    public List<Agenda> findByTrabajaIdAndFechaBetween(Integer idTrabaja,
+                                                Instant inicio,
+                                                Instant fin);
+
 }
