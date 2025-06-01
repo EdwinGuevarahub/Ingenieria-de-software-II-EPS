@@ -1,15 +1,13 @@
 package com.eps.apexeps.models.entity.relations;
 
+import java.io.Serializable;
 import java.time.Instant;
 
-import com.eps.apexeps.models.entity.users.Paciente;
-
-import jakarta.persistence.Column;
+//import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,29 +29,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 @Builder
-public class DespachaId {
-    
-    @ManyToOne
-    @JoinColumn(
-        name = "paciente_despacha",
-        referencedColumnName = "dni_paciente",
-        nullable = false
-    )
-    private Paciente paciente;
-
-    @ManyToOne
-    @JoinColumn(
-        name = "inventaria_despacha",
-        referencedColumnName = "id_inventaria",
-        nullable = false
-    )
-    private Inventaria inventaria;
-
-    @Column(
-        name = "f_despacha",
-        nullable = false
-    )
+public class DespachaId implements Serializable {
+    private Long paciente;
+    private Integer inventaria;
     private Instant fecha;
-    
 }

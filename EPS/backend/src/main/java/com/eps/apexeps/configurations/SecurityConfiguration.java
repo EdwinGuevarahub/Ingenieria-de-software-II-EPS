@@ -50,16 +50,21 @@ public class SecurityConfiguration {
                     .requestMatchers("api/auth/**").permitAll()
 
                     // Rutas de Gestión de IPS.
+                    .requestMatchers(HttpMethod.GET, "api/ips").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/ips/**").permitAll()
+                    .requestMatchers("api/ips").hasAuthority(ERol.ADM_EPS.name())
                     .requestMatchers("api/ips/**").hasAuthority(ERol.ADM_EPS.name())
 
                     // Rutas de Gestión de Consultorios.
+                    .requestMatchers(HttpMethod.GET, "api/consultorio").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/consultorio/**").permitAll()
                     .requestMatchers("api/consultorio").hasAuthority(ERol.ADM_IPS.name())
                     .requestMatchers("api/consultorio/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Médicos.
+                    .requestMatchers(HttpMethod.GET, "api/medico").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/medico/**").permitAll()
+                    .requestMatchers("api/medico").hasAuthority(ERol.ADM_IPS.name())
                     .requestMatchers("api/medico/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Agendas.
@@ -70,6 +75,19 @@ public class SecurityConfiguration {
 
                     // Rutas de Registro de Resultados.
                     .requestMatchers("api/resultados/**").hasAuthority(ERol.MEDICO.name())
+
+                    // Rutas de Gestión de Historia Clinica.
+                    .requestMatchers(HttpMethod.GET, "api/historia-clinica/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/historia-clinica").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name())
+
+                    // Rutas de Gestión de estado de cuenta
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+                    .requestMatchers(HttpMethod.GET, "api/estado-cuenta/facturas/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
+
+                    // Rutas de Gestión de Pago(agenda)
+                    .requestMatchers(HttpMethod.GET, "api/pagos").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/pagos").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.PACIENTE.name())
 
                     // TODO: Cuando se haya adaptado el login en todas las rutas, quitar el permitAll.
                     .anyRequest().permitAll()

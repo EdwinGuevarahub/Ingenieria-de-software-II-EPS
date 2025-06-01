@@ -13,10 +13,16 @@ import ConsultorioLista from '../pages/IPS/Consultorio/ConsultorioLista';
 import AgendaListaMedico from '../pages/Medico/AgendaListaMedico';
 import AgendaListaPaciente from '../pages/Paciente/AgendaListaPaciente';
 import RegistrarResultado from "../pages/IPS/RegistrarResultado";
+import HistoriaClinica from '../pages/EPS/HistoriaClinica';
+import GestionAfiliado from '../pages/EPS/GestionAfiliado';
+import GestionPagos from '../pages/EPS/GestionPagos';
+import EstadoAfiliacion from '../pages/EPS/EstadoAfiliacion';
+import EstadoCuenta from '../pages/EPS/EstadoCuenta';
+import DetalleEstadoCuenta from '../pages/EPS/DetalleEstadoCuenta';
+import EdicionAfiliado from '../pages/EPS/EdicionAfiliado';
 
 const AppRouter = () => (
   <Routes>
-
     {/*Rutas varias*/}
     <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
     <Route path="/HomeEPS" element={<LandingLayout><HomeAdmEPS /></LandingLayout>} />
@@ -48,6 +54,14 @@ const AppRouter = () => (
 
     {/*Rutas para la parte de paciente*/}
     <Route path="/paciente/agenda" element={<MainLayout><AgendaListaPaciente /></MainLayout>} />
+
+    <Route path="/historia-clinica" element={<MainLayout><HistoriaClinica /></MainLayout>} />
+    <Route path="/registrar-afiliado" element={<MainLayout><GestionAfiliado /></MainLayout>} />
+    <Route path="/gestion-pagos" element={<MainLayout><GestionPagos /></MainLayout>} />
+    <Route path="/estado-afiliado" element={<MainLayout><EstadoAfiliacion /></MainLayout>} />
+    <Route path="/estado-cuenta" element={<MainLayout><EstadoCuenta /></MainLayout>} />
+    <Route path="/detalle-estado-cuenta/:userId" element={<MainLayout><DetalleEstadoCuenta /></MainLayout>} />
+    <Route path="/editar-afiliado/:afiliadoId" element={<MainLayout><EdicionAfiliado /></MainLayout>} />
 
   </Routes>
 );

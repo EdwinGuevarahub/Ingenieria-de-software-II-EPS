@@ -23,4 +23,3 @@ export const registrarResultado = async (resultado) =>
 // Actualizar unicamente el resultado de la agenda
 export const actualizarResultadoAgenda = async (idAgenda, resultado) =>
   await axios.put(`${API_URL}/${idAgenda}`, resultado);
-
