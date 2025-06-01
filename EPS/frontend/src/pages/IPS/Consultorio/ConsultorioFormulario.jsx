@@ -83,7 +83,7 @@ const ConsultorioFormulario = ({
         cupsSermed: formData.cupsServicioMedico
       }
     };
-
+    console.log('Payload que se enviará:', payload);
     // Si no se está editando, puede que el backend no espere el objeto 'id' completo,
     // sino los componentes del ID para que él los ensamble, o puede que sí lo espere.
     // Esto depende de tu DTO de creación.
@@ -141,37 +141,6 @@ const ConsultorioFormulario = ({
             type="number"
           />
         </Grid>
-
-        {/* Otros campos del Consultorio (basados en DTO/Mockup) */}
-        <Grid item xs={12}>
-          <TextField
-            label="Nombre del Consultorio *"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Teléfono"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Dirección"
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            fullWidth
-          />
-        </Grid>
-
         {/* Campo para Servicio Médico */}
         <Grid item xs={12}>
           <TextField

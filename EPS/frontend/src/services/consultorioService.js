@@ -1,14 +1,25 @@
 import { AxiosInstance } from "../services/axios";
 import { isAxiosError } from "axios";
 
+
 export async function listarConsultorios({
   qPage = 0,
   qSize = 10,
   cupsServicioMedico,
   idConsultorioLike,
+  idIps = null
 } = {}) {
   try {
-    const response = await AxiosInstance.get("consultorio", {
+    console.log(
+      "Listando consultorios con parámetros:",
+      qPage,
+      qSize,
+      cupsServicioMedico,
+      idConsultorioLike,
+      idIps
+    );
+    const ruta = idIps ? `consultorio/${idIps}` : "consultorio";
+    const response = await AxiosInstance.get(ruta, {
       params: {
         qPage,
         qSize,
@@ -16,7 +27,7 @@ export async function listarConsultorios({
         idConsultorioLike,
       },
     });
-
+    
     const { totalPages, consultorios } = response.data;
 
     return {
@@ -89,6 +100,7 @@ export async function obtenerConsultorio(idIps, idConsultorio) {
  */
 export async function crearConsultorio(consultorio) {
   try {
+    console.log("Creando consultorio con datos:", consultorio);
     const response = await AxiosInstance.post("/consultorio", consultorio);
     return response.data;
   } catch (err) {
@@ -112,6 +124,7 @@ export async function crearConsultorio(consultorio) {
  */
 export async function actualizarConsultorio(consultorio) {
   try {
+  console.log("Actualizando consultorio con datos:", consultorio);
     const response = await AxiosInstance.put("/consultorio", consultorio);
     return response.data;
   } catch (err) {

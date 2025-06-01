@@ -55,6 +55,7 @@ public class SecurityConfiguration {
 
                     // Rutas de Gestión de Consultorios.
                     .requestMatchers(HttpMethod.GET, "api/consultorio/**").permitAll()
+                    .requestMatchers("api/consultorio").hasAuthority(ERol.ADM_IPS.name())
                     .requestMatchers("api/consultorio/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Médicos.
