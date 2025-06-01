@@ -1,18 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import {
-  Box,
-  TextField,
-  Typography,
-  Chip,
-  Button,
-  Modal,
-  Fade,
-  Backdrop,
-  InputAdornment,
-  IconButton,
+  Box, TextField, Typography, Chip, Button, Modal, Fade,
+  Backdrop, InputAdornment, IconButton,
+  Dialog, DialogActions, DialogContent, DialogTitle, Checkbox,
+  MenuItem, Select, InputLabel, FormControl, Alert
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Cancel';
-import AddIcon from '@mui/icons-material/Add';
+import { Save, AddIcon, DeleteIcon, CleaningServices as ClearIcon, Close as CloseIcon } from '@mui/icons-material';
 import {
   listaServiciosMedicosPorMedico,
   listaServiciosMedicos,
@@ -22,6 +15,30 @@ import {
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 
+// Constantes para los días de la semana
+const DIAS_SEMANA_CONFIG = [
+    { display: 'Lunes', backendValue: 'MONDAY' },
+    { display: 'Martes', backendValue: 'TUESDAY' },
+    { display: 'Miércoles', backendValue: 'WEDNESDAY' },
+    { display: 'Jueves', backendValue: 'THURSDAY' },
+    { display: 'Viernes', backendValue: 'FRIDAY' },
+    { display: 'Sábado', backendValue: 'SATURDAY' },
+    { display: 'Domingo', backendValue: 'SUNDAY' }
+];
+
+// Opciones para los select de servicios y consultorios
+let _formServiciosOpts = [];
+let _formConsultoriosOpts = [];
+
+const getServiceIdByNameFromForm = (name) => {
+    const servicio = _formServiciosOpts.find(s => s.label === name);
+    return servicio ? servicio.value : null;
+};
+
+const getConsultorioDetailsByNameFromForm = (name, consultoriosList) => {
+    const consultorio = consultoriosList.find(c => c.label === name);
+    return consultorio ? { id: consultorio.value, idIps: consultorio.idIps } : null;
+}
 
 const MedicoFormulario = ({
   initialData = {},
