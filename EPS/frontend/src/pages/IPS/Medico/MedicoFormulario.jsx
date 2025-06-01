@@ -5,9 +5,9 @@ import {
   Dialog, DialogActions, DialogContent, DialogTitle, Checkbox,
   MenuItem, Select, InputLabel, FormControl, Alert
 } from '@mui/material';
-import { 
-  Save, Delete as DeleteIcon, Add as AddIcon, 
-  CleaningServices as ClearIcon, Close as CloseIcon 
+import {
+  Save, Delete as DeleteIcon, Add as AddIcon,
+  CleaningServices as ClearIcon, Close as CloseIcon
 } from '@mui/icons-material';
 import {
   listaServiciosMedicosPorMedico,
@@ -98,7 +98,7 @@ const MedicoFormulario = ({
   useEffect(() => {
     const fetchTodosServicios = async () => {
       try {
-        const { servicio } = await listaServiciosMedicos();
+        const { servicio } = await listaServiciosMedicos(); // TODO: Cambiar a listaServicosMedicosPorIPS
         const opciones = servicio.map((s) => ({
           label: s.nombre,
           value: s.cups,
@@ -118,7 +118,7 @@ const MedicoFormulario = ({
         setIsLoadingFormOpts(true);
         setFormError(null);
         try {
-          const serviciosResponse = await listaServiciosMedicos();
+          const serviciosResponse = await listaServiciosMedicos(); // TODO: Cambiar a listaServicosMedicosPorIPS
           const mappedServicios = serviciosResponse.servicio.map(s => ({ label: s.nombre, value: s.cups }));
           setFormServiciosOpts(mappedServicios);
           _formServiciosOpts = mappedServicios;
@@ -266,8 +266,8 @@ const MedicoFormulario = ({
     }
 
     const diasSeleccionadosParaBackend = initialSchedule.dias.map(displayDay => {
-        const config = DIAS_SEMANA_CONFIG.find(d => d.display === displayDay);
-        return config ? config.backendValue : null; // Debería siempre encontrarlo si la lógica es correcta
+      const config = DIAS_SEMANA_CONFIG.find(d => d.display === displayDay);
+      return config ? config.backendValue : null; // Debería siempre encontrarlo si la lógica es correcta
     }).filter(Boolean);
 
     const schedulePayload = {
@@ -476,39 +476,54 @@ const MedicoFormulario = ({
         slotProps={{ backdrop: { timeout: 500 } }}
       >
         <Fade in={modalAbierto}>
-          <Box sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            minWidth: 300,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}>
-            <Typography variant="h6">Agregar servicio médico</Typography>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: 'background.paper',
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 3,
+              minWidth: 360,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+              outline: 'none'
+            }}
+          >
+            <Typography variant="h6" component="h2" fontWeight="bold">
+              Agregar servicio médico
+            </Typography>
+
             <TextField
               select
+              fullWidth
               label="Seleccionar servicio"
               value={servicioSeleccionado}
               onChange={(e) => setServicioSeleccionado(e.target.value)}
+              variant="outlined"
             >
               {todosServicios.map((servicio) => (
-                <option key={servicio.value} value={servicio.value}>
+                <MenuItem key={servicio.value} value={servicio.value}>
                   {servicio.label}
-                </option>
+                </MenuItem>
               ))}
             </TextField>
-            <Button variant="contained" onClick={handleAgregarServicio} disabled={!servicioSeleccionado}>
+
+            <Button
+              variant="contained"
+              onClick={handleAgregarServicio}
+              disabled={!servicioSeleccionado}
+              sx={{ alignSelf: 'flex-end' }}
+            >
               Agregar
             </Button>
           </Box>
         </Fade>
       </Modal>
+
 
       {initialData?.dni && (
         <Horario
