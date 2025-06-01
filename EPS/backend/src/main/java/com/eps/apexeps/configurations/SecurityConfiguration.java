@@ -66,7 +66,7 @@ public class SecurityConfiguration {
                     .requestMatchers("api/agenda/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name(), ERol.PACIENTE.name())
 
                     // Rutas de Gestión de Historia Clinica.
-                    .requestMatchers(HttpMethod.GET, "api/ips/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/historia-clinica/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/historia-clinica").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name())
 
                     // Rutas de Gestión de estado de cuenta
