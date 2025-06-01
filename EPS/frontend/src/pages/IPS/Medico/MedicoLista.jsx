@@ -73,7 +73,7 @@ const MedicoLista = () => {
   }
 
   const handleExpandedChange = (id, expanded) => {
-    if (!expanded)
+    if (!expanded && editandoMedico)
       handleOcultarFormulario();
   }
 

@@ -51,7 +51,7 @@ const IPSLista = () => {
   }
 
   const handleExpandedChange = (id, expanded) => {
-    if (!expanded)
+    if (!expanded && editandoIPS)
       handleOcultarFormulario();
   }
 
