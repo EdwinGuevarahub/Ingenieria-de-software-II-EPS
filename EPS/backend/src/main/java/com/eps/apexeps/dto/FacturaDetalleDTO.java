@@ -15,6 +15,8 @@ public class FacturaDetalleDTO {
     private String fecha;
     private BigDecimal monto;
     private String estado;
+    private String tipo;        // Nuevo campo
+    private String descripcion; // Nuevo campo
     private List<ServicioDTO> detalles;
 
     // Constructor vacío (requerido para frameworks como Jackson)
@@ -22,11 +24,13 @@ public class FacturaDetalleDTO {
     }
 
     // Constructor completo
-    public FacturaDetalleDTO(Long id, String fecha, BigDecimal monto, String estado, List<ServicioDTO> detalles) {
+    public FacturaDetalleDTO(Long id, String fecha, BigDecimal monto, String estado, String tipo, String descripcion, List<ServicioDTO> detalles) {
         this.id = id;
         this.fecha = fecha;
         this.monto = monto;
         this.estado = estado;
+        this.tipo = tipo;
+        this.descripcion = descripcion;
         this.detalles = detalles;
     }
 
@@ -61,6 +65,22 @@ public class FacturaDetalleDTO {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     public List<ServicioDTO> getDetalles() {

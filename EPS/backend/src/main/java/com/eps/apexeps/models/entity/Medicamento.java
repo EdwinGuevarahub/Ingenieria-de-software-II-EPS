@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 // Table medicamento {
 //   id_medicamento varchar(20) [pk]
@@ -53,6 +54,6 @@ public class Medicamento {
         nullable = false,
         columnDefinition = "numeric(10,2)"
     )
-    private Double valor;
-    
+    private BigDecimal valorMedicamento;
+
 }

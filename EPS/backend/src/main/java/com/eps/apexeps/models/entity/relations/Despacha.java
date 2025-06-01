@@ -1,19 +1,10 @@
 package com.eps.apexeps.models.entity.relations;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-// Table despacha {
-//   paciente_despacha bigint [pk, ref: > paciente.dni_paciente]
-//   inventaria_despacha integer [pk, ref: > inventaria.id_inventaria]
-//   f_despacha timestamp [pk]
-// }
+import com.eps.apexeps.models.entity.users.Paciente;
+import jakarta.persistence.*;
+import lombok.*;
+//import java.math.BigDecimal;
+import java.time.Instant;
 
 /**
  * Esta clase representa la relación Despacha en la base de datos.
@@ -28,9 +19,24 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Table(name = "despacha")
+@IdClass(DespachaId.class)
 public class Despacha {
 
     @Id
-    private DespachaId id;
-    
+    @ManyToOne
+    @JoinColumn(name = "paciente_despacha", referencedColumnName = "dni_paciente", nullable = false)
+    private Paciente paciente;
+
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "inventaria_despacha", referencedColumnName = "id_inventaria", nullable = false)
+    private Inventaria inventaria;
+
+    @Id
+    @Column(name = "f_despacha", nullable = false)
+    private Instant fecha;
+
+    // Si tienes valor, puedes mapearlo así:
+    // @Column(name = "valor_despacha")
+    // private BigDecimal valor;
 }
