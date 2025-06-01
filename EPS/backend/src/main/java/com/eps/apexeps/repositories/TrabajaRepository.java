@@ -7,15 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.relations.Trabaja;
+import com.eps.apexeps.models.entity.relations.Trabaja;
 import java.util.Optional;
 
-import com.eps.apexeps.models.users.Medico;
-import com.eps.apexeps.models.entity.Consultorio;
-import com.eps.apexeps.models.entity.relations.Trabaja;
 import com.eps.apexeps.models.entity.users.Medico;
-
-
+import com.eps.apexeps.models.entity.Consultorio;
 
 /**
  * Repositorio para la entidad Trabaja, que representa la relación entre un médico y un consultorio.

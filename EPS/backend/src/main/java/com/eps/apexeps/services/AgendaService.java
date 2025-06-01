@@ -295,7 +295,6 @@ public class AgendaService {
                         "El servicio " + dto.getCupsServicio() + " no existe"));
 
         /* 6. Relaciona nuevo examen con servicio solicitado */
-        OrdenaId id = new OrdenaId(guardada , servicio);
         OrdenaId ordenaId = OrdenaId.builder()
                 .agenda(guardada)
                 .servicio(servicio)
