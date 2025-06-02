@@ -476,7 +476,7 @@ const DetalleEstadoCuenta = () => {
             <ConfirmacionPago
                 open={modalPagoAbierto}
                 onClose={cerrarModalPago}
-                usuario={usuario}
+                idPaciente={userId}
                 idAgenda={detalleIdPago}
                 montoPago={montoPago}
                 setUsuario={setUsuario}
