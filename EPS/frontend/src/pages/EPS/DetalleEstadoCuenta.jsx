@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listarPacientes } from '../../services/pacientesService';
+import ConfirmacionPago from './ConfirmacionPago';
 
 const DetalleEstadoCuenta = () => {
     const { userId } = useParams();
@@ -153,25 +154,6 @@ const DetalleEstadoCuenta = () => {
         setMontoPago(0);
         setTipoPago('');
         setDetalleIdPago(null);
-    };
-
-    const confirmarPago = () => {
-        console.log(`Procesando pago de $${montoPago.toLocaleString()} - Tipo: ${tipoPago} - Detalle ID: ${detalleIdPago}`);
-
-        // Actualizar el estado del detalle específico a "Pagado"
-        if (detalleIdPago && usuario) {
-            setUsuario(prevUsuario => ({
-                ...prevUsuario,
-                detallesFacturacion: prevUsuario.detallesFacturacion.map(detalle =>
-                    detalle.id === detalleIdPago
-                        ? { ...detalle, estado: 'Pagado', accion: null }
-                        : detalle
-                )
-            }));
-        }
-
-        cerrarModalPago();
-        // Aquí podrías hacer una llamada a la API para actualizar el backend
     };
 
     // Función para manejar el pago individual
@@ -491,95 +473,18 @@ const DetalleEstadoCuenta = () => {
             </Box>
 
             {/* Modal de Confirmación de Pago */}
-            <Modal
+            <ConfirmacionPago
                 open={modalPagoAbierto}
                 onClose={cerrarModalPago}
-                closeAfterTransition
-                BackdropComponent={Backdrop}
-                BackdropProps={{
-                    timeout: 500,
-                    sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' }
+                idPaciente={userId}
+                idAgenda={detalleIdPago}
+                montoPago={montoPago}
+                setUsuario={setUsuario}
+                onSuccess={() => {
+                    // Aquí puedes manejar la lógica de confirmación del pago
+                    console.log(`Pago confirmado: ${montoPago} (${tipoPago}) para detalle ID: ${detalleIdPago}`);
                 }}
-            >
-                <Fade in={modalPagoAbierto}>
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: 'background.paper',
-                        borderRadius: 2,
-                        boxShadow: 24,
-                        p: 4,
-                        outline: 'none',
-                        textAlign: 'center'
-                    }}>
-                        <Typography variant="h5" sx={{
-                            fontWeight: 'bold',
-                            mb: 3,
-                            color: '#333'
-                        }}>
-                            Pago realizado
-                        </Typography>
-
-                        {/* Icono de check */}
-                        <Box sx={{
-                            width: 80,
-                            height: 80,
-                            borderRadius: '50%',
-                            border: '3px solid #ff9800',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 24px auto',
-                            backgroundColor: 'transparent'
-                        }}>
-                            <Typography sx={{
-                                fontSize: '40px',
-                                color: '#ff9800',
-                                fontWeight: 'bold'
-                            }}>
-                                ✓
-                            </Typography>
-                        </Box>
-
-                        <Typography variant="h6" sx={{
-                            mb: 1,
-                            color: '#333',
-                            fontWeight: 'bold'
-                        }}>
-                            Se ha pagado
-                        </Typography>
-
-                        <Typography variant="h4" sx={{
-                            mb: 4,
-                            color: '#333',
-                            fontWeight: 'bold'
-                        }}>
-                            ${montoPago.toLocaleString()}
-                        </Typography>
-
-                        <Button
-                            variant="contained"
-                            onClick={confirmarPago}
-                            sx={{
-                                backgroundColor: '#d32f2f',
-                                color: 'white',
-                                px: 4,
-                                py: 1.5,
-                                fontSize: '1rem',
-                                fontWeight: 'bold',
-                                '&:hover': {
-                                    backgroundColor: '#b71c1c'
-                                }
-                            }}
-                        >
-                            Aceptar
-                        </Button>
-                    </Box>
-                </Fade>
-            </Modal>
+            />
         </Box>
     );
 };
