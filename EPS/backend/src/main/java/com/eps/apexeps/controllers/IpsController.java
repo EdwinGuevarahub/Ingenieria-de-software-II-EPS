@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -122,6 +123,17 @@ public class IpsController {
         }
 
         return ResponseEntity.ok(nuevaIps);
+    }
+
+    @PutMapping("/{idIps}/activo")
+    public ResponseEntity<Ips> cambiarEstadoIps(
+            @PathVariable Integer idIps) {
+        try {
+            Ips ipsActualizada = ipsService.actualizarActivo(idIps);
+            return ResponseEntity.ok(ipsActualizada);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cambiar el estado de la IPS: " + e.getMessage(), e);
+        }
     }
 
     @DeleteMapping

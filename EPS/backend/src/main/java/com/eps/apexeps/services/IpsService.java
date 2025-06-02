@@ -151,4 +151,24 @@ public class IpsService {
 
         return Optional.empty();
     }
+
+    /**
+     * Actualiza el estado de una IPS (activa/desactivada).
+     *
+     * @param idIps ID de la IPS a actualizar
+     * @return La IPS actualizada
+     * @throws RuntimeException Si ocurre un error al actualizar la IPS
+     */
+    @Transactional
+    public Ips actualizarActivo (Integer idIps) {
+        Ips ips = ipsRepository.findById(idIps)
+                .orElseThrow(() -> new RuntimeException("IPS no encontrada con ID: " + idIps));
+
+        ips.setActivo(!Boolean.TRUE.equals(ips.getActivo()));
+        try {
+            return ipsRepository.save(ips);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el estado de la IPS: " + e.getMessage(), e);
+        }
+    }
 }
