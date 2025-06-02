@@ -4,23 +4,24 @@ import {
   Button, Paper, Snackbar, Alert
 } from '@mui/material';
 
-// Importamos GlobalStyles para aplicar estilos globales personalizados
 import { GlobalStyles } from '@mui/styled-engine';
-
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
+// 👇 Importa el contexto de autenticación
+import { useAuthContext } from '../../contexts/AuthContext';
+
 const AgendarCita = () => {
-  // Estados para controlar los valores del formulario
+  const { role } = useAuthContext(); //  Obtiene el rol del usuario
+
   const [servicio, setServicio] = useState('');
   const [ips, setIps] = useState('');
   const [fecha, setFecha] = useState(null);
   const [horario, setHorario] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Opciones para los selects
   const servicios = ['Medicina General', 'Odontología', 'Pediatría'];
   const ipsDisponibles = ['Famisanar', 'Colsanitas', 'Compensar'];
   const horarios = [
@@ -29,17 +30,12 @@ const AgendarCita = () => {
     '9:00 - 09:20 Dr. Haessler Ortiz'
   ];
 
-  // Estilos para los menús desplegables Select
   const menuProps = {
     PaperProps: {
-      sx: {
-        bgcolor: 'white',  // Fondo blanco del menú desplegable
-        color: 'black',    // Texto negro para legibilidad
-      },
+      sx: { bgcolor: 'white', color: 'black' },
     },
   };
 
-  // Acción para mostrar snackbar cuando el formulario está completo
   const handleAgendar = () => {
     if (servicio && ips && fecha && horario) {
       setOpenSnackbar(true);
@@ -47,25 +43,28 @@ const AgendarCita = () => {
   };
 
   return (
-    // Contenedor principal con fondo beige claro y relleno vertical
     <Box sx={{ bgcolor: '#fefaf4', minHeight: '100vh', py: 8 }}>
-      {/* GlobalStyles para forzar fondo blanco en el calendario emergente */}
       <GlobalStyles styles={{
         '.MuiCalendarOrClockPicker-root, .MuiCalendarPicker-root, .MuiPaper-root': {
           backgroundColor: 'white !important',
         }
       }} />
 
-      {/* Contenedor centrado */}
       <Container maxWidth="sm">
-        {/* Cuadro blanco con sombra para el formulario */}
+        {/*  Contenido exclusivo para el rol PACIENTE */}
+        {role === 'PACIENTE' && (
+          <Box sx={{ mb: 3, textAlign: 'center' }}>
+            <Typography variant="subtitle1" color="primary">
+              Bienvenido paciente, aquí puedes agendar tu cita médica.
+            </Typography>
+          </Box>
+        )}
+
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff' }}>
-          {/* Título del formulario */}
           <Typography variant="h5" align="center" gutterBottom>
             Solicitar Cita Medica
           </Typography>
 
-          {/* Select para elegir servicio médico */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Servicio médico</InputLabel>
             <Select
@@ -80,7 +79,6 @@ const AgendarCita = () => {
             </Select>
           </FormControl>
 
-          {/* Select para elegir IPS */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Seleccione IPS</InputLabel>
             <Select
@@ -95,7 +93,6 @@ const AgendarCita = () => {
             </Select>
           </FormControl>
 
-          {/* Selector de fecha con fondo blanco asegurado */}
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Seleccione la fecha"
@@ -103,26 +100,18 @@ const AgendarCita = () => {
               onChange={(newValue) => setFecha(newValue)}
               format="DD-MM-YYYY"
               sx={{ mt: 2, width: '100%' }}
-              // Aquí forzamos fondo blanco en el popup calendario a varios niveles
               componentsProps={{
                 popper: {
                   sx: {
-                    '& .MuiPaper-root': {
-                      bgcolor: 'white',
-                    },
-                    '& .MuiCalendarOrClockPicker-root': {
-                      bgcolor: 'white',
-                    },
-                    '& .MuiCalendarPicker-root': {
-                      bgcolor: 'white',
-                    },
+                    '& .MuiPaper-root': { bgcolor: 'white' },
+                    '& .MuiCalendarOrClockPicker-root': { bgcolor: 'white' },
+                    '& .MuiCalendarPicker-root': { bgcolor: 'white' },
                   },
                 },
               }}
             />
           </LocalizationProvider>
 
-          {/* Select para elegir horario y especialista */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Hora y especialista</InputLabel>
             <Select
@@ -137,7 +126,6 @@ const AgendarCita = () => {
             </Select>
           </FormControl>
 
-          {/* Botón para agendar cita */}
           <Button
             fullWidth
             variant="contained"
@@ -150,7 +138,6 @@ const AgendarCita = () => {
         </Paper>
       </Container>
 
-      {/* Snackbar de confirmación */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={4000}

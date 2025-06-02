@@ -6,7 +6,6 @@ import Home from '../pages/Home';
 import HomeAdmEPS from '../pages/EPS/Home';
 import HomeAdmIPS from '../pages/IPS/Home';
 import Login from '../pages/Login';
-import IPS from '../pages/EPS/IPS';
 import AgendarCita from '../pages/EPS/AgendarCita';
 import AgendarCitaAdmin from '../pages/EPS/AgendarCitaAdmin';
 import SolicitarExamenMedico from '../pages/EPS/SolicitarExamenMedico';  // Importa el componente
@@ -23,7 +22,6 @@ const AppRouter = () => (
     <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
     <Route path="/HomeIPS" element={<LandingLayout><HomeAdmIPS /></LandingLayout>} />
     <Route path="/HomeEPS" element={<LandingLayout><HomeAdmEPS /></LandingLayout>} />
-    <Route path="/IPS" element={<MainLayout><IPS /></MainLayout>} />
     <Route path="/signIn" element={<MainLayout><Login /></MainLayout>} />
 
     {/*Rutas para la parte de EPS*/}
