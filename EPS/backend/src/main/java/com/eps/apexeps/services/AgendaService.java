@@ -1,28 +1,27 @@
 package com.eps.apexeps.services;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
 import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
+import com.eps.apexeps.models.DTOs.response.slotDisp;
 import com.eps.apexeps.models.entity.ServicioMedico;
-import com.eps.apexeps.models.entity.relations.Ordena;
-import com.eps.apexeps.models.entity.relations.OrdenaId;
+import com.eps.apexeps.models.entity.relations.*;
 import com.eps.apexeps.models.entity.users.Paciente;
 import com.eps.apexeps.repositories.*;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
 import org.springframework.data.domain.Page;
 
-import com.eps.apexeps.models.entity.relations.Agenda;
-import com.eps.apexeps.models.entity.relations.Trabaja;
 import com.eps.apexeps.repositories.AgendaRepository;
 import com.eps.apexeps.repositories.TrabajaRepository;
 
@@ -132,15 +131,25 @@ public class AgendaService {
      * @param qPage Número de la página (por defecto, 0).
      * @return Una colección de entradas de agenda.
      */
-    public Page<Agenda> getAgendasbyservicio_ips(
+    public Page<slotDisp> getAgendasbyservicio_ips(
             String cupsServicioMedico,
-            String idIPS,
+            String idIps,
             String fecha,
             String horaDeInicio,
             String horaDeFin,
             Integer qSize,
             Integer qPage
     ) {
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        LocalDate dia = (fecha != null) ? LocalDate.parse(fecha, dateFormatter) : LocalDate.now();
+        LocalTime horaIni = (horaDeInicio != null) ? LocalTime.parse(horaDeInicio, timeFormatter) : LocalTime.of(6, 0);
+        LocalTime horaFin = (horaDeFin != null) ? LocalTime.parse(horaDeFin, timeFormatter) : LocalTime.of(20, 0);
+
+        int duracion = 30;
+
         if (fecha != null)
             try {
                 LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
@@ -163,14 +172,64 @@ public class AgendaService {
             }
 
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
-        return agendaRepository.findAllFiltered(
-                cupsServicioMedico,
-                idIPS,
-                fecha,
-                horaDeInicio,
-                horaDeFin,
-                pageable
-        );
+
+        // puestos que ofrecen ese servicio en esa IPS
+        List<Trabaja> puestos = trabajaRepo
+                .findByConsultorio_Id_Ips_IdIpsAndConsultorio_Servicio_CupsSermed(
+                        Integer.valueOf(idIps), cupsServicioMedico);
+        if (puestos.isEmpty()) return Page.empty();
+
+        // agendas ya ocupadas para todos esos puestos en rango
+        List<Integer> trabajaIds = puestos.stream()
+                .map(Trabaja::getId)
+                .toList();
+
+        Instant desde = dia.atTime(horaIni).atZone(ZoneId.systemDefault()).toInstant();
+        Instant hasta = dia.atTime(horaFin).atZone(ZoneId.systemDefault()).toInstant();
+
+        List<Agenda> ocupadas = agendaRepo
+                .findByTrabajaIdInAndFechaAgendaBetween(trabajaIds, desde, hasta);
+
+        // Índice rápido: (trabajaId, Instant) →
+        Set<String> ocupadasIndex = ocupadas.stream()
+                .map(a -> a.getTrabaja().getId() + "|" + a.getFecha())
+                .collect(Collectors.toSet());
+
+        // Genera slots libres
+        List<slotDisp> libres = new ArrayList<>();
+        DayOfWeek diaActual = dia.getDayOfWeek();
+
+        for (Trabaja t : puestos) {
+            for (EntradaHorario entrada : t.getHorario()) {
+                if (!entrada.getDia().equals(diaActual)) continue;
+
+                LocalTime inicio = entrada.getInicio();
+                LocalTime fin = entrada.getFin();
+
+                for (LocalTime hora = inicio; hora.isBefore(fin); hora = hora.plusMinutes(duracion)) {
+                    if (hora.isBefore(horaIni) || hora.isAfter(horaFin)) continue;
+
+                    Instant slot = dia.atTime(hora).atZone(ZoneId.systemDefault()).toInstant();
+                    String key = t.getId() + "|" + slot;
+
+                    if (!ocupadasIndex.contains(key)) {
+                        libres.add(new slotDisp(
+                                t.getMedico().getDni(),
+                                t.getMedico().getNombre(),
+                                t.getConsultorio().getId().getIdConsultorio(),
+                                dia,
+                                hora
+                        ));
+                    }
+                }
+            }
+        }
+
+        int start = qPage * qSize;
+        int end = Math.min(start + qSize, libres.size());
+
+        List<slotDisp> pagina = libres.subList(start, end);
+        return new PageImpl<>(pagina, pageable, libres.size());
     }
 
 

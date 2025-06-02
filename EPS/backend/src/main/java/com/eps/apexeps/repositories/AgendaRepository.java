@@ -105,8 +105,8 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
                    t.medico_trabaja,
                    t.consultorio_trabaja,
                    t.horario_trabaja
-            FROM trabaja t
-            JOIN consultorio c
+            FROM Trabaja t
+            JOIN t.consultorio c
               ON c.id_consultorio = t.consultorio_trabaja
         ),
         dias AS (
@@ -181,6 +181,10 @@ public interface AgendaRepository extends JpaRepository<Agenda, Integer> {
             Pageable pageable
     );
 
+    List<Agenda> findByTrabajaIdInAndFechaAgendaBetween(
+            List<Integer> trabajaIds,
+            Instant inicio,
+            Instant fin);
 
     public boolean existsByTrabajaAndFecha(Trabaja trabaja, Instant fecha);
 

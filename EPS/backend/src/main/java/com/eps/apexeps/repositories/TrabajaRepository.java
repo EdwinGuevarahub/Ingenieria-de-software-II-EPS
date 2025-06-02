@@ -60,5 +60,8 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
     Collection<Trabaja> findAllByMedico_Dni(Long dni);
 
     List<Trabaja> findByMedico_DniAndConsultorio_Id_Ips_Id(long dniMedico, Integer idIps);
-    
+
+    List<Trabaja> findByConsultorio_Id_Ips_IdIpsAndConsultorio_Servicio_CupsSermed(
+            Integer idIps,
+            String  cups);
 }

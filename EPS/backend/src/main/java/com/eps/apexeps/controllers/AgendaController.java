@@ -1,7 +1,9 @@
 package com.eps.apexeps.controllers;
 
+import com.eps.apexeps.models.DTOs.SlotPageDTO;
 import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
 import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
+import com.eps.apexeps.models.DTOs.response.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -17,10 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.entity.relations.Agenda;
-import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaMedico;
-import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaPaciente;
-import com.eps.apexeps.models.DTOs.response.AgendaListaMedico;
-import com.eps.apexeps.models.DTOs.response.AgendaListaPaciente;
 import com.eps.apexeps.models.auth.ERol;
 import com.eps.apexeps.services.AgendaService;
 import com.eps.apexeps.services.MedicoService;
@@ -177,7 +175,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/servicios_ips")
-    public ResponseEntity<AgendaListaMedico> getAllAgendasMedico(
+    public ResponseEntity<SlotPageDTO> getAllAgendasMedico(
             @RequestParam(required = true) String cupsServicioMedico,
             @RequestParam(required = true) String idIPS,
             @RequestParam(required = false) String fecha,
@@ -186,21 +184,10 @@ public class AgendaController {
             @RequestParam(defaultValue = "10") Integer qSize,
             @RequestParam(defaultValue = "0") Integer qPage
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication
-//                .getAuthorities().stream()
-//                .anyMatch(auth -> auth.getAuthority().equals(ERol.MEDICO.name()))
-//        ) {
-//            // El paciente no debe proporcionar un DNI, ya que se obtiene de la sesión y no está autorizado a modificarlo.
-//            if (dniMedico != null)
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-//
-//            dniMedico = medicoService.findDniByEmail(authentication.getName());
-//        }
-
-        Page<Agenda> entradas = agendaService
-                .getAgendas(
+        Page<slotDisp> entradas = agendaService
+                .getAgendasbyservicio_ips(
                         cupsServicioMedico,
+                        idIPS,
                         fecha,
                         horaDeInicio,
                         horaDeFin,
@@ -209,11 +196,9 @@ public class AgendaController {
                 );
 
         return ResponseEntity.ok(
-                new AgendaListaMedico(
+                new SlotPageDTO(
                         entradas.getTotalPages(),
-                        entradas.stream()
-                                .map(AgendaEntradaListaMedico::of)
-                                .toList()
+                        entradas.getContent()
                 )
         );
     }
