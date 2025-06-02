@@ -52,7 +52,6 @@ export default function ConfirmacionPagoModal ({
   const confirmarPago = async () => {
 
     // Actualizar el estado del detalle específico a "Pagado"
-    console.log('Confirmar pago con payload:', payload());
     if (!idAgenda || !idPaciente) { 
       setErrorMessage('Información incompleta para procesar el pago.');
       setConfirmacionOpen(true);
