@@ -123,6 +123,58 @@ public class AgendaService {
     }
 
     /**
+     * Método para obtener todas las agendas de la base de datos asociadas a un paciente.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda (opcional).
+     * @param fecha La fecha de la cita (opcional).
+     * @param horaDeInicio Inicio del filtro por hora (opcional).
+     * @param horaDeFin Fin del filtro por hora (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
+     * @return Una colección de entradas de agenda.
+     */
+    public Page<Agenda> getAgendasbyservicio_ips(
+            String cupsServicioMedico,
+            String idIPS,
+            String fecha,
+            String horaDeInicio,
+            String horaDeFin,
+            Integer qSize,
+            Integer qPage
+    ) {
+        if (fecha != null)
+            try {
+                LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Fecha inválida. Formato esperado: dd-MM-yyyy");
+            }
+
+        if (horaDeInicio != null)
+            try {
+                LocalTime.parse(horaDeInicio, DateTimeFormatter.ofPattern("HH:mm"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Hora de inicio inválida. Formato esperado: HH:mm");
+            }
+
+        if (horaDeFin != null)
+            try {
+                LocalTime.parse(horaDeFin, DateTimeFormatter.ofPattern("HH:mm"));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Hora de fin inválida. Formato esperado: HH:mm");
+            }
+
+        Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
+        return agendaRepository.findAllFiltered(
+                cupsServicioMedico,
+                idIPS,
+                fecha,
+                horaDeInicio,
+                horaDeFin,
+                pageable
+        );
+    }
+
+
+    /**
      * Método para obtener una agenda por su ID.
      * La etiqueta @Transactional asegura que la operación se realice dentro de una transacción.
      * @param id El ID de la agenda.

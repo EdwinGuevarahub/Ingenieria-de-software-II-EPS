@@ -166,6 +166,59 @@ public class AgendaController {
     }
 
     /**
+     * Endpoint para obtener todas las agendas de la base de datos asociadas a un servicio médico y una IPS.
+     * @param cupsServicioMedico El CUPS del servicio médico asociado a la agenda.
+     * @param idIPS Cadena fara filtrar por IPS
+     * @param fecha (dd-MM-yyyy) La fecha de la cita (opcional).
+     * @param horaDeInicio (HH:mm) Inicio del filtro por hora (opcional).
+     * @param horaDeFin (HH:mm) Fin del filtro por hora (opcional).
+     * @param qSize Tamaño de la página (por defecto, 10).
+     * @param qPage Número de la página (por defecto, 0).
+     * @return Una lista de agendas.
+     */
+    @GetMapping("/servicios_ips")
+    public ResponseEntity<AgendaListaMedico> getAllAgendasMedico(
+            @RequestParam(required = true) String cupsServicioMedico,
+            @RequestParam(required = true) String idIPS,
+            @RequestParam(required = false) String fecha,
+            @RequestParam(required = false) String horaDeInicio,
+            @RequestParam(required = false) String horaDeFin,
+            @RequestParam(defaultValue = "10") Integer qSize,
+            @RequestParam(defaultValue = "0") Integer qPage
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication
+//                .getAuthorities().stream()
+//                .anyMatch(auth -> auth.getAuthority().equals(ERol.MEDICO.name()))
+//        ) {
+//            // El paciente no debe proporcionar un DNI, ya que se obtiene de la sesión y no está autorizado a modificarlo.
+//            if (dniMedico != null)
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+//
+//            dniMedico = medicoService.findDniByEmail(authentication.getName());
+//        }
+
+        Page<Agenda> entradas = agendaService
+                .getAgendas(
+                        cupsServicioMedico,
+                        fecha,
+                        horaDeInicio,
+                        horaDeFin,
+                        qSize,
+                        qPage
+                );
+
+        return ResponseEntity.ok(
+                new AgendaListaMedico(
+                        entradas.getTotalPages(),
+                        entradas.stream()
+                                .map(AgendaEntradaListaMedico::of)
+                                .toList()
+                )
+        );
+    }
+
+    /**
      * Endpoint para obtener una agenda por su ID.
      * @param id El ID de la agenda.
      * @return La agenda correspondiente al ID proporcionado o null si no se encuentra.
