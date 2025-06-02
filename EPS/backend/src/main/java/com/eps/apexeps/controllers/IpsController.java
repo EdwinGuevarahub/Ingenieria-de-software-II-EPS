@@ -125,6 +125,12 @@ public class IpsController {
         return ResponseEntity.ok(nuevaIps);
     }
 
+    /**
+     * Cambia el estado de una IPS a activo o inactivo.
+     * 
+     * @param idIps ID de la IPS
+     * @return ResponseEntity con la IPS actualizada o 404 si no se encuentra
+     */
     @PutMapping("/{idIps}/activo")
     public ResponseEntity<Ips> cambiarEstadoIps(
             @PathVariable Integer idIps) {
@@ -135,7 +141,6 @@ public class IpsController {
             throw new RuntimeException("Error al cambiar el estado de la IPS: " + e.getMessage(), e);
         }
     }
-    
 
     @DeleteMapping
     public void deleteById(@RequestParam(required = true) Integer id) {

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eps.apexeps.models.entity.Ips;
 import com.eps.apexeps.models.entity.relations.Trabaja;
 import com.eps.apexeps.models.entity.users.Medico;
 import com.eps.apexeps.models.DTOs.response.MedicoEntradaLista;
@@ -199,6 +200,23 @@ public class MedicoController {
         }
         catch (Exception e) {
             throw new RuntimeException("Error al agregar el dominio: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Endpoint para cambiar el estado de un médico (activo/inactivo).
+     * @param dniMedico El DNI del médico. 
+     * @return El médico actualizado.
+     * @throws RuntimeException Si ocurre un error al cambiar el estado del médico.
+     */
+    @PutMapping("/{dniMedico}/activo")
+    public ResponseEntity<?> cambiarEstadoIps(
+            @PathVariable Long dniMedico) {
+        try {
+            Medico medicoActualizado = medicoService.actualizarActivo(dniMedico);
+            return ResponseEntity.ok(medicoActualizado);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cambiar el estado de la IPS: " + e.getMessage(), e);
         }
     }
 
