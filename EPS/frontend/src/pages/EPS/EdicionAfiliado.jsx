@@ -19,10 +19,10 @@ import {
   Fade,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { listarPacientes, actualizarPaciente } from '../../services/pacientesService'; // Importar servicios
+import { listarPacientes, actualizarPaciente } from '../../services/pacientesService';
 
 const EdicionAfiliado = () => {
-  const { afiliadoId } = useParams(); // ID del afiliado a editar
+  const { afiliadoId } = useParams();
   const navigate = useNavigate();
 
   // Estados para el formulario
@@ -36,12 +36,6 @@ const EdicionAfiliado = () => {
     telefonoCotizante: '',
     sexoCotizante: '',
     direccionCotizante: '',
-
-    // Datos administrador registrador
-    emailAdmRegistrador: '',
-    nombreAdmRegistrador: '',
-    passwordAdmRegistrador: '',
-    telefonoAdmRegistrador: '',
 
     // Beneficiarios (array de beneficiarios)
     beneficiarios: []
@@ -87,25 +81,19 @@ const EdicionAfiliado = () => {
           const afiliadoEncontrado = resultado.data.find(p => p.dni.toString() === afiliadoId);
 
           if (afiliadoEncontrado) {
-            // Poblar datos del formulario con datos reales + mock data
+            // Poblar datos del formulario solo con datos reales
             setDatosAfiliado({
               dniCotizante: afiliadoEncontrado.dni.toString(),
-              nombreCotizante: afiliadoEncontrado.nombre,
-              fechaNacimientoCotizante: afiliadoEncontrado.fechaNacimiento || '1985-06-15',
-              emailCotizante: afiliadoEncontrado.email,
+              nombreCotizante: afiliadoEncontrado.nombre || '',
+              fechaNacimientoCotizante: afiliadoEncontrado.fechaNacimiento || '',
+              emailCotizante: afiliadoEncontrado.email || '',
               passwordCotizante: '********', // Password oculto
-              telefonoCotizante: afiliadoEncontrado.telefono || '3001234567',
-              sexoCotizante: afiliadoEncontrado.sexo || 'M',
-              direccionCotizante: afiliadoEncontrado.direccion || 'Calle 123 #45-67',
+              telefonoCotizante: afiliadoEncontrado.telefono || '',
+              sexoCotizante: afiliadoEncontrado.sexo || '',
+              direccionCotizante: afiliadoEncontrado.direccion || '',
 
-              // Datos administrador (mock)
-              emailAdmRegistrador: 'admin@eps.com',
-              nombreAdmRegistrador: 'Administrador EPS',
-              passwordAdmRegistrador: 'admin123',
-              telefonoAdmRegistrador: '3009876543',
-
-              // Beneficiarios mock basados en el afiliado
-              beneficiarios: generarBeneficiariosMock(afiliadoEncontrado.nombre)
+              // Solo beneficiarios reales si existen
+              beneficiarios: afiliadoEncontrado.beneficiarios || []
             });
           } else {
             setMensajeError(`Afiliado con ID ${afiliadoId} no encontrado`);
@@ -128,36 +116,6 @@ const EdicionAfiliado = () => {
       cargarDatosAfiliado();
     }
   }, [afiliadoId]);
-
-  // Función para generar beneficiarios mock
-  const generarBeneficiariosMock = (nombreTitular) => {
-    const apellido = nombreTitular.split(' ').pop();
-
-    return [
-      {
-        dni: '1122334455',
-        nombre: `María ${apellido}`,
-        fechaNacimiento: '1990-03-22',
-        email: `maria.${apellido.toLowerCase()}@email.com`,
-        password: '********',
-        telefono: '3002345678',
-        sexo: 'F',
-        parentesco: 'Conyuge',
-        direccion: 'Calle 123 #45-67'
-      },
-      {
-        dni: '1133445566',
-        nombre: `Carlos ${apellido}`,
-        fechaNacimiento: '2010-11-07',
-        email: `carlos.${apellido.toLowerCase()}@email.com`,
-        password: '********',
-        telefono: '3003456789',
-        sexo: 'M',
-        parentesco: 'Hijo',
-        direccion: 'Calle 123 #45-67'
-      }
-    ];
-  };
 
   // Función para verificar si un campo es obligatorio y está vacío (solo para validación)
   const esCampoObligatorioVacio = (valor) => {
@@ -331,7 +289,7 @@ const EdicionAfiliado = () => {
 
   const cerrarModalExito = () => {
     setModalExitoAbierto(false);
-    navigate(-1); // Volver a la página anterior
+    navigate(-1);
   };
 
   const cerrarModalError = () => {
@@ -341,9 +299,6 @@ const EdicionAfiliado = () => {
 
   const validarFormulario = () => {
     setMostrarValidacion(true);
-
-    // Solo validar campos editables (no obligatorios)
-    // Los campos obligatorios ya están poblados y no se pueden editar
 
     // Validar beneficiarios nuevos si existen
     for (let i = 0; i < datosAfiliado.beneficiarios.length; i++) {
@@ -376,7 +331,7 @@ const EdicionAfiliado = () => {
     try {
       // Construir datos para actualización (solo campos editables)
       const datosActualizacion = {
-        dni: parseInt(datosAfiliado.dniCotizante), // No cambia, solo para identificar
+        dni: parseInt(datosAfiliado.dniCotizante),
         telefono: datosAfiliado.telefonoCotizante,
         direccion: datosAfiliado.direccionCotizante,
         // Otros campos editables...
@@ -557,62 +512,6 @@ const EdicionAfiliado = () => {
                 value={datosAfiliado.direccionCotizante}
                 onChange={(e) => handleInputChange('Cotizante', 'direccion', e.target.value)}
                 sx={getInputStyles(false, datosAfiliado.direccionCotizante)}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Sección Administrador Registrador (Solo lectura) */}
-          <Divider sx={{ my: 4 }} />
-
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold', color: '#333' }}>
-            Datos administrador registrador (Solo lectura)
-          </Typography>
-
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                variant="outlined"
-                size="small"
-                value={datosAfiliado.emailAdmRegistrador}
-                sx={getInputStyles(false, datosAfiliado.emailAdmRegistrador, true)}
-                disabled={true}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nombre completo"
-                variant="outlined"
-                size="small"
-                value={datosAfiliado.nombreAdmRegistrador}
-                sx={getInputStyles(false, datosAfiliado.nombreAdmRegistrador, true)}
-                disabled={true}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                variant="outlined"
-                size="small"
-                value={datosAfiliado.passwordAdmRegistrador}
-                sx={getInputStyles(false, datosAfiliado.passwordAdmRegistrador, true)}
-                disabled={true}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Teléfono"
-                variant="outlined"
-                size="small"
-                value={datosAfiliado.telefonoAdmRegistrador}
-                sx={getInputStyles(false, datosAfiliado.telefonoAdmRegistrador, true)}
-                disabled={true}
               />
             </Grid>
           </Grid>

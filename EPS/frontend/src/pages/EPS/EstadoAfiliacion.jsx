@@ -149,29 +149,6 @@ const EstadoAfiliacion = () => {
       paciente.beneficiario && paciente.beneficiario.dni === titular.dni
     );
 
-    // Si no hay beneficiarios reales, usar datos mock
-    if (beneficiarios.length === 0) {
-      const apellido = titular.nombre.split(' ').pop();
-      return [
-        {
-          id: 1,
-          nombre: `María Antonia ${apellido}`,
-          relacion: 'Cónyuge',
-          documento: '98765243',
-          fechaNacimiento: '22/03/1987',
-          afiliadoDesde: '19/03/2018'
-        },
-        {
-          id: 2,
-          nombre: `Andrea ${apellido}`,
-          relacion: 'Hijo (a)',
-          documento: '1122334455',
-          fechaNacimiento: '11/09/2010',
-          afiliadoDesde: '22/03/2018'
-        }
-      ];
-    }
-
     // Transformar beneficiarios reales
     return beneficiarios.map((beneficiario, index) => ({
       id: index + 1,
