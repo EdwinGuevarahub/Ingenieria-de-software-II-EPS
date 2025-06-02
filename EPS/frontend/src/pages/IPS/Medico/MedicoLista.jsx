@@ -10,17 +10,25 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
-import { listaServiciosMedicosPorMedico, listaServiciosMedicos } from '@/../../src/services/serviciosMedicosService';
+import { listaServiciosMedicosPorMedico, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
+import { agregarServiciosMedicosPorMedico } from '@/../../src/services/serviciosMedicosService';
+import { obtenerConsultorio } from '@/../../src/services/consultorioService';
+import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 import MedicoFormulario from './MedicoFormulario';
+import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import ExpandableTable from '../../../components/list/ExpandableTable';
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 
 const MedicoLista = () => {
 
+  // Autentificación de ips
+  const { ips } = useIpsContext();
+
   // Estados
   const [editandoMedico, setEditandoMedico] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [modalHorarioAbierto, setModalHorarioAbierto] = useState(false);
 
   // Sobre la tabla
   const [listaMedicos, setListaMedicos] = useState([]);
@@ -48,45 +56,109 @@ const MedicoLista = () => {
     { label: 'Domingo', value: 'SUNDAY' },
   ];
 
-  const handleSubmitMedico = async (medico) => {
-    try {
-      const datosEnviar = {
-        "medico": {
-          "dni": medico.dni,
-          "nombre": medico.nombre,
-          "email": medico.email,
-          "password": "elsapato",
-          "telefono": medico.telefono,
-          "activo": true
-        },
-        "consultorio": {
-          "id": {
-            "ips": {
-              "id": 1
-            },
-            "idConsultorio": 101
-          }
-        },
-        "horario": [
-          {
-            "dia": "MONDAY",
-            "inicio": "12:00:00",
-            "fin": "14:00:00"
-          }
-        ]
-      };
-      if (editandoMedico && editandoMedico.dni) {
-        await actualizarMedico(datosEnviar);
-      } else {
-        await crearMedico(medico);
-      }
-      await fetchMedicos(1, filtrosAplicados);
-      setMostrarFormulario(false);
+  // Funciones para manejar el formulario
+
+  const handleMostrarFormulario = (medico = null) => {
+    if (medico)
+      setEditandoMedico(medico);
+    else
       setEditandoMedico(null);
+
+    setMostrarFormulario(true);
+  }
+
+  const handleOcultarFormulario = () => {
+    setEditandoMedico(null);
+    setMostrarFormulario(false);
+  }
+
+  const handleExpandedChange = (id, expanded) => {
+    if (!expanded && editandoMedico)
+      handleOcultarFormulario();
+  }
+
+  const handleSubmitMedico = async (dataMedico) => {
+    try {
+      const medicoPayload = {
+        dni: dataMedico.dni,
+        nombre: dataMedico.nombre,
+        email: dataMedico.email,
+        password: dataMedico.password,
+        telefono: dataMedico.telefono,
+        imagen: dataMedico.imagen,
+        activo: true,
+      };
+
+      if (editandoMedico && editandoMedico.dni) {
+        // 🛠️ Modo edición
+        await actualizarMedico(medicoPayload);
+      } else {
+        // 🛠️ Modo creación
+        if (!dataMedico.initialSchedule) {
+          console.error('Error: Falta información del horario inicial para crear el médico.');
+          return;
+        }
+
+        const { dias, horaInicio, horaFin, idConsultorio, idIpsConsultorio } = dataMedico.initialSchedule;
+
+        const horarioParaBackend = dias.map((dia) => ({
+          dia: dia,
+          inicio: horaInicio,
+          fin: horaFin,
+        }));
+
+        const datosEnviar = {
+          medico: medicoPayload,
+          consultorio: {
+            id: {
+              ips: {
+                id: idIpsConsultorio,
+              },
+              idConsultorio: idConsultorio,
+            },
+          },
+          horario: horarioParaBackend,
+        };
+
+        const respuesta = await crearMedico(datosEnviar);
+
+        if (!respuesta || respuesta.error) {
+          console.error('Error creando el médico. Respuesta inválida:', respuesta);
+          return;
+        }
+
+        // Agregar servicios médicos al médico recién creado
+        try {
+          console.log('Agregando servicios médicos al médico:', dataMedico.dni, idConsultorio);
+          if (dataMedico.dni && idConsultorio) {
+            const consultorio = await obtenerConsultorio(ips.id, idConsultorio);
+
+            if (!consultorio) {
+              console.error('Consultorio no encontrado');
+              return;
+            }
+
+            if (!consultorio.cupsServicioMedico || consultorio.cupsServicioMedico.length === 0) {
+              console.error('El consultorio no tiene servicios médicos asociados.');
+              return;
+            }
+
+            await agregarServiciosMedicosPorMedico(dataMedico.dni, consultorio.cupsServicioMedico);
+          } else {
+            console.error('Faltan datos requeridos: DNI o ID del consultorio');
+          }
+        } catch (error) {
+          console.error('Error agregando servicio al médico:', error);
+        }
+      }
+
+      await fetchMedicos(pagina, filtrosAplicados);
+      handleOcultarFormulario();
     } catch (e) {
-      console.error('Error guardando médico', e);
+      console.error('Error guardando médico:', e);
     }
   };
+
 
   const fetchMedicos = useCallback(
     async (paginaActual, filtrosExtras = {}) => {
@@ -94,6 +166,7 @@ const MedicoLista = () => {
         const filtros = {
           qPage: paginaActual - 1,
           qSize: 2,
+          idIps: ips.id,
           dniNombreLike: nombreFiltro || undefined,
           ...filtrosExtras,
           estaActivo: true,
@@ -105,29 +178,30 @@ const MedicoLista = () => {
         console.error('Error cargando los médicos:', error);
       }
     },
-    [nombreFiltro]
+    [nombreFiltro, ips]
   );
 
-  const fetchServiciosMedicos = async () => {
-    try {
-      const { servicio } = await listaServiciosMedicos();
-      const opciones = servicio.map((s) => ({
-        label: s.nombre,
-        value: s.cups,
-      }));
-      setServiciosUnicos(opciones);
-    } catch (error) {
-      console.error('Error cargando los servicios médicos:', error);
-    }
-  };
+  useEffect(() => {
+    const fetchServiciosMedicos = async () => {
+      try {
+        const servicio = await listaServiciosMedicosPorIPS(ips.id);
+        const opciones = servicio.map((s) => ({
+          label: s.nombre,
+          value: s.cups,
+        }));
+        setServiciosUnicos(opciones);
+      } catch (error) {
+        console.error('Error cargando los servicios médicos:', error);
+      }
+    };
+
+    fetchServiciosMedicos();
+  }, [ips]);
+
 
   useEffect(() => {
     fetchMedicos(pagina, filtrosAplicados);
   }, [pagina, filtrosAplicados, fetchMedicos]);
-
-  useEffect(() => {
-    fetchServiciosMedicos();
-  }, []);
 
   return (
     <Box sx={{ display: 'flex', gap: 4, }}>
@@ -198,7 +272,7 @@ const MedicoLista = () => {
               horaDeFin: horaFinalFiltro || undefined,
             };
             setFiltrosAplicados(nuevosFiltros);
-            setPagina(1);
+            setPagina(pagina);
           }}
         >
           Buscar
@@ -223,14 +297,10 @@ const MedicoLista = () => {
           />
         </Box>
 
-        {mostrarFormulario && (
+        {mostrarFormulario && !editandoMedico && (
           <MedicoFormulario
-            initialData={editandoMedico}
             onSubmit={handleSubmitMedico}
-            onCancel={() => {
-              setMostrarFormulario(false);
-              setEditandoMedico(null);
-            }}
+            onCancel={handleOcultarFormulario}
           />
         )}
 
@@ -238,64 +308,81 @@ const MedicoLista = () => {
           columns={[{ key: 'dni' }, { key: 'nombre' }]}
           data={listaMedicos}
           rowKey="dni"
+          onExpandedChange={handleExpandedChange}
           fetchDetails={[
             (dni) => detalleMedico(dni),
             (dni) => listaServiciosMedicosPorMedico(dni)
           ]}
-          renderExpandedContent={(detalle) => (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                padding: 2,
-                borderRadius: 2,
-                gap: 2,
-                flexWrap: 'wrap',
-                width: '100%',
-              }}
-            >
-              <Box
-                component="img"
-                src="https://picsum.photos/300"
-                alt="IPS"
-                sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-              />
-              <Box sx={{ flex: 1, minWidth: 200 }}>
-                <Typography variant="h6">{detalle[0].nombre}</Typography>
-                <Typography variant="body2">ID: {detalle[0].dni}</Typography>
-                <Typography variant="body2">Correo: {detalle[0].email}</Typography>
-                <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
-                <Typography variant="body2">
-                  Estado: {detalle[0].activo ? 'Activo' : 'Inactivo'}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setEditandoMedico(detalle[0]);
-                    setMostrarFormulario(true);
+          renderExpandedContent={(detalle) => {
+            if (mostrarFormulario && editandoMedico)
+              return (
+                <MedicoFormulario
+                  initialData={editandoMedico}
+                  onSubmit={handleSubmitMedico}
+                  onCancel={handleOcultarFormulario}
+                />
+              );
+            else
+              return (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    padding: 2,
+                    borderRadius: 2,
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    width: '100%',
                   }}
                 >
-                  Editar
-                </Button>
-                <button style={{ background: '#1e88e5', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Horario</button>
-              </Box>
+                  <Box
+                    component="img"
+                    src={`data:image/png;base64,${detalle[0].imagen}`}
+                    alt="Médico"
+                    sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+                  />
+                  <Box sx={{ flex: 1, minWidth: 200 }}>
+                    <Typography variant="h6">{detalle[0].nombre}</Typography>
+                    <Typography variant="body2">ID: {detalle[0].dni}</Typography>
+                    <Typography variant="body2">Correo: {detalle[0].email}</Typography>
+                    <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
+                    <Typography variant="body2">
+                      Estado: {detalle[0].activo ? 'Activo' : 'Inactivo'}
+                    </Typography>
+                  </Box>
 
-              <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
-                  detalle[1].map((servicio, idx) => (
-                    <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
-                  ))
-                ) : (
-                  <Chip label="Sin servicios" color="default" variant="outlined" />
-                )}
-              </Box>
-            </Box>
-          )}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => handleMostrarFormulario(detalle[0])}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditandoMedico(detalle[0]);
+                        setModalHorarioAbierto(true);
+                      }}
+                    >
+                      Horario
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
+                      detalle[1].map((servicio, idx) => (
+                        <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
+                      ))
+                    ) : (
+                      <Chip label="Sin servicios" color="default" variant="outlined" />
+                    )}
+                  </Box>
+                </Box>
+              )
+          }}
         />
 
         <Pagination
@@ -323,8 +410,16 @@ const MedicoLista = () => {
           <AddIcon />
         </Fab>
       </Box>
-    </Box >
 
+      {editandoMedico && (
+        <Horario
+          open={modalHorarioAbierto}
+          onClose={() => setModalHorarioAbierto(false)}
+          dniMedico={editandoMedico.dni}
+          ipsAdmin={ips}
+        />
+      )}
+    </Box >
   );
 };
 

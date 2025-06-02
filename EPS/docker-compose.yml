@@ -6,7 +6,9 @@ services:
       - ./frontend:/app
       - /app/node_modules  # evita que se sobrescriba la carpeta node_modules
     environment:
-      BACKEND_HOSTNAME: ${BACKEND_HOSTNAME}
+      WATCHPACK_POLLING: "true"
+      REACT_APP_BACKEND_URL: http://${BACKEND_HOST}:${BACKEND_PORT}
+    hostname: ${FRONTEND_HOST}
     ports:
       - "3000:3000"
     depends_on:
@@ -17,13 +19,15 @@ services:
   backend:
     build:
       context: ./backend
-    hostname: ${BACKEND_HOSTNAME}
+    hostname: ${BACKEND_HOST}
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKEND_PORT: ${BACKEND_PORT}
+      FRONTNAME_URL: http://${FRONTEND_HOST}:3000
     networks:
       - app-network
     restart: always

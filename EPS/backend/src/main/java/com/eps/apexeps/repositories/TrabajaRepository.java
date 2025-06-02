@@ -4,13 +4,14 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.eps.apexeps.models.entity.Consultorio;
 import com.eps.apexeps.models.entity.relations.Trabaja;
+import java.util.Optional;
+
 import com.eps.apexeps.models.entity.users.Medico;
-
-
+import com.eps.apexeps.models.entity.Consultorio;
 
 /**
  * Repositorio para la entidad Trabaja, que representa la relación entre un médico y un consultorio.
@@ -26,10 +27,30 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
      * @return Una lista de relaciones de trabajo asociadas a los médicos proporcionados.
      */
     List<Trabaja> findByMedicoIn(List<Medico> medicos);
+
+    /*  Todos los consultorios donde labora un médico (por su DNI) */
+    List<Trabaja> findByMedico_Dni(Long dniMedico);
+
+    Optional<Trabaja> findByMedico_DniAndConsultorio_Id(Long dniMedico,
+                                                        Integer idConsultorio);
+
+    Optional<Trabaja> findByMedico_DniAndConsultorio_Id_IdConsultorio(
+            Long dniMedico,
+            Integer idConsultorio);
+
+
+    @Query("""
+       SELECT t
+         FROM Trabaja t
+        WHERE t.medico.dni = :dni
+          AND t.consultorio.id.idConsultorio = :idCons
+       """)
+    Optional<Trabaja> buscarPorMedicoYConsultorio(Long dniMedico, Integer idConsultorio);
+
     
     List<Trabaja> findByMedico_Dni(long dniMedico);
 
-    List<Trabaja> findByConsultorio(Consultorio consultorio);
+    List<Trabaja> findByConsultorioOrMedico(Consultorio consultorio, Medico medico);
 
     /**
      * Método para encontrar todas las relaciones de trabajo asociadas a un médico por su DNI.
@@ -37,5 +58,7 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
      * @return Una colección de relaciones de trabajo asociadas al médico con el DNI proporcionado.
      */
     Collection<Trabaja> findAllByMedico_Dni(Long dni);
+
+    List<Trabaja> findByMedico_DniAndConsultorio_Id_Ips_Id(long dniMedico, Integer idIps);
     
 }

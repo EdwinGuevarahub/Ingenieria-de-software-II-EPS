@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.users.AdmIps;
 import com.eps.apexeps.models.DTOs.response.IpsEntradaLista;
 import com.eps.apexeps.models.DTOs.response.IpsConServicios;
+import com.eps.apexeps.models.DTOs.response.IpsLista;
 import com.eps.apexeps.services.IpsService;
 
 /**
@@ -44,31 +47,35 @@ public class IpsController {
     }
 
     @GetMapping
-    public ResponseEntity<List<IpsEntradaLista>> filtrarIps(
+    public ResponseEntity<IpsLista> filtrarIps(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String telefono,
             @RequestParam(required = false) String direccion,
             @RequestParam(required = false) String fechaRegistro,
-            @RequestParam(required = false) String cupsServicioMedico) {
+            @RequestParam(required = false) String cupsServicioMedico,
+            @RequestParam(defaultValue = "10") Integer qSize,
+            @RequestParam(defaultValue = "0") Integer qPage) {
         try {
+            Page<Ips> entradas = ipsService.filtrarIpsMulticriterio(
+                    nombre,
+                    telefono,
+                    direccion,
+                    fechaRegistro,
+                    cupsServicioMedico,
+                    qSize,
+                    qPage);
             return ResponseEntity.ok(
-                        ipsService
-                            .filtrarIpsMulticriterio(
-                                    nombre,
-                                    telefono,
-                                    direccion,
-                                    fechaRegistro,
-                                    cupsServicioMedico)
-                            .stream()
-                            .map(IpsEntradaLista::of)
-                            .toList()
-                    );
+                    new IpsLista(
+                            entradas.getTotalPages(),
+                            entradas.stream()
+                                    .map(IpsEntradaLista::of)
+                                    .toList()));
         } catch (RuntimeException e) {
             throw new RuntimeException("Error al obtener las IPS: " + e.getMessage(), e);
         }
     }
 
-        /**
+    /**
      * Obtiene los datos completos de una IPS junto con sus servicios, dado su ID.
      * 
      * @param id ID de la IPS
@@ -83,13 +90,13 @@ public class IpsController {
     }
 
     @PostMapping
-    public ResponseEntity<Ips> save(@RequestBody Ips ips) throws IOException {
+    public ResponseEntity<?> save(@RequestBody AdmIps admIps) throws IOException {
         try {
-            return ResponseEntity.ok(ipsService.save(ips));
+            return ResponseEntity.ok(ipsService.create(admIps));
         } catch (IOException e) {
+            RuntimeException re = new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-            // TODO: throw new RuntimeException("Error al guardar la IPS: " + e.getMessage(), e);
+                    .body(re);
         }
     }
 
@@ -104,8 +111,7 @@ public class IpsController {
         } else {
             try {
                 nuevaIps = ipsService.actualizarIps(ipsData);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new RuntimeException("Error al actualizar la IPS: " + e.getMessage(), e);
             }
         }
@@ -139,6 +145,5 @@ public class IpsController {
         List<ServicioEnIpsDTO> servicios = ipsService.obtenerServiciosPorNombreOIdIps(idIps);
         return ResponseEntity.ok(servicios);
     }
-
 
 }

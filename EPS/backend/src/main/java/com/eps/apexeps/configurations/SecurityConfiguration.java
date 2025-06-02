@@ -3,14 +3,13 @@ package com.eps.apexeps.configurations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.web.cors.CorsConfigurationSource;
 import com.eps.apexeps.models.auth.ERol;
 
 import lombok.RequiredArgsConstructor;
@@ -32,10 +31,13 @@ public class SecurityConfiguration {
     /** Proveedor de autenticación */
     private final AuthenticationProvider authProvider;
 
+    /** Fuente de configuración CORS */
+    private final CorsConfigurationSource corsConfigurationSource;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     // Rutas de prueba de rol.
@@ -48,15 +50,21 @@ public class SecurityConfiguration {
                     .requestMatchers("api/auth/**").permitAll()
 
                     // Rutas de Gestión de IPS.
+                    .requestMatchers(HttpMethod.GET, "api/ips").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/ips/**").permitAll()
+                    .requestMatchers("api/ips").hasAuthority(ERol.ADM_EPS.name())
                     .requestMatchers("api/ips/**").hasAuthority(ERol.ADM_EPS.name())
 
                     // Rutas de Gestión de Consultorios.
+                    .requestMatchers(HttpMethod.GET, "api/consultorio").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/consultorio/**").permitAll()
+                    .requestMatchers("api/consultorio").hasAuthority(ERol.ADM_IPS.name())
                     .requestMatchers("api/consultorio/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Médicos.
+                    .requestMatchers(HttpMethod.GET, "api/medico").permitAll()
                     .requestMatchers(HttpMethod.GET, "api/medico/**").permitAll()
+                    .requestMatchers("api/medico").hasAuthority(ERol.ADM_IPS.name())
                     .requestMatchers("api/medico/**").hasAuthority(ERol.ADM_IPS.name())
 
                     // Rutas de Gestión de Agendas.
@@ -64,6 +72,12 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.GET, "api/agenda/medico").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name())
                     .requestMatchers("api/agenda/update/**").hasAnyAuthority(ERol.PACIENTE.name())
                     .requestMatchers("api/agenda/**").hasAnyAuthority(ERol.ADM_EPS.name(), ERol.MEDICO.name(), ERol.PACIENTE.name())
+
+                    // Rutas de Registro de Resultados.
+                    .requestMatchers(HttpMethod.GET, "api/resultados").permitAll()
+                    .requestMatchers(HttpMethod.GET, "api/resultados/**").permitAll()
+                    .requestMatchers("api/resultados").hasAuthority(ERol.MEDICO.name())
+                    .requestMatchers("api/resultados/**").hasAuthority(ERol.MEDICO.name())
 
                     // Rutas de Gestión de Historia Clinica.
                     .requestMatchers(HttpMethod.GET, "api/historia-clinica/**").permitAll()

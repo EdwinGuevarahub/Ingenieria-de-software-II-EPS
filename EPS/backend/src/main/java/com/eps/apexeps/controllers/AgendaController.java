@@ -1,10 +1,14 @@
 package com.eps.apexeps.controllers;
 
+import com.eps.apexeps.models.DTOs.SolicitudCitaDTO;
+import com.eps.apexeps.models.DTOs.SolicitudExamenDTO;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eps.apexeps.models.entity.relations.Agenda;
-import com.eps.apexeps.models.DTOs.response.AgendaEntradaLista;
-import com.eps.apexeps.models.DTOs.response.AgendaLista;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaMedico;
+import com.eps.apexeps.models.DTOs.response.AgendaEntradaListaPaciente;
+import com.eps.apexeps.models.DTOs.response.AgendaListaMedico;
+import com.eps.apexeps.models.DTOs.response.AgendaListaPaciente;
 import com.eps.apexeps.models.auth.ERol;
 import com.eps.apexeps.services.AgendaService;
 import com.eps.apexeps.services.MedicoService;
@@ -54,7 +60,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/paciente")
-    public ResponseEntity<AgendaLista> getAllAgendasPaciente(
+    public ResponseEntity<AgendaListaPaciente> getAllAgendasPaciente(
         @RequestParam(required = false) Long dniPaciente,
         @RequestParam(required = false) String dniNombreMedicoLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -91,10 +97,10 @@ public class AgendaController {
                                 );
 
         return ResponseEntity.ok(
-                        new AgendaLista(
+                        new AgendaListaPaciente(
                             entradas.getTotalPages(),
                             entradas.stream()
-                                    .map(AgendaEntradaLista::of)
+                                    .map(AgendaEntradaListaPaciente::of)
                                     .toList()
                         )
                     );
@@ -113,7 +119,7 @@ public class AgendaController {
      * @return Una lista de agendas.
      */
     @GetMapping("/medico")
-    public ResponseEntity<AgendaLista> getAllAgendasMedico(
+    public ResponseEntity<AgendaListaMedico> getAllAgendasMedico(
         @RequestParam(required = false) Long dniMedico,
         @RequestParam(required = false) String dniNombrePacienteLike,
         @RequestParam(required = false) String cupsServicioMedico,
@@ -150,10 +156,10 @@ public class AgendaController {
                                 );
 
         return ResponseEntity.ok(
-                    new AgendaLista(
+                    new AgendaListaMedico(
                         entradas.getTotalPages(),
                         entradas.stream()
-                                .map(AgendaEntradaLista::of)
+                                .map(AgendaEntradaListaMedico::of)
                                 .toList()
                     )
                 );
@@ -183,5 +189,46 @@ public class AgendaController {
             throw new RuntimeException("Error al actualizar la relación trabaja o la fecha de la agenda: " + e.getMessage(), e);
         }
     }
-    
+
+    /**
+     * Método para cancelar la cita de una agenda por su ID.
+     * @param id El ID de la agenda.
+     * @return la agenda actualizada.
+     * @throws RuntimeException Si ocurre un error al actualizar la agenda.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Agenda> cancelarAgenda(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(agendaService.cancelarAgendaById(id));
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cancelar la cita de la agenda: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/citas")
+    public Agenda solicitarCita(@RequestBody SolicitudCitaDTO dto) {
+        try{
+            return agendaService.registrarCita(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/examenes")
+    public Agenda solicitarExamen(@RequestBody SolicitudExamenDTO dto) {
+        try{
+            return agendaService.registrarExamen(dto);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
+        }
+    }
+
 }

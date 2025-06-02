@@ -1,6 +1,16 @@
 import { AxiosInstance } from '../services/axios';
 import { isAxiosError } from 'axios';
 
+export async function getIpsByAdmIpsEmail(email) {
+  try {
+    const response = await AxiosInstance.get('admips', { params: {email} });
+    return response.data.ips;
+  } catch (err) {
+    if (isAxiosError(err))
+      throw err;
+  }
+};
+
 export async function listarIPS({
   qPage = 0,
   qSize = 10,
@@ -26,10 +36,15 @@ export async function listarIPS({
       }
     });
 
-    return response.data.map(ip => ({
-      id: ip.id,
-      nombre: ip.nombre
-    }));
+    const { totalPages, ips } = response.data;
+
+    return {
+            totalPaginas: totalPages,
+            ips: ips.map(ips => ({
+                id: ips.id,
+                nombre: ips.nombre
+            }))
+        };
 
   } catch (err) {
     if (isAxiosError(err)) {
@@ -49,6 +64,8 @@ export async function detallesIPS(id) {
       telefono: ips.telefono,
       direccion: ips.direccion,
       fechaRegistro: ips.fechaRegistro,
+      activo: ips.activo,
+      imagen: ips.imagen,
       admEps: ips.admEps,
     };
 
@@ -62,7 +79,6 @@ export async function detallesIPS(id) {
 export async function crearIPS(data) {
     try {
         const response = await AxiosInstance.post('/ips', data);
-        console.log("Respuesta del backend ", response.data)
         return response.data;
     } catch (err) {
         if (isAxiosError(err)) {
@@ -73,7 +89,6 @@ export async function crearIPS(data) {
 
 export async function actualizarIPS(data) {
     try {
-        console.log(data)
         const response = await AxiosInstance.put(`/ips`, data);
         return response.data;
     } catch (err) {

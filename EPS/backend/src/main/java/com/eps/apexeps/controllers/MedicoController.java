@@ -120,11 +120,11 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al crear el médico.
      */
     @PostMapping
-    public ResponseEntity<Trabaja> createMedico(@RequestBody Trabaja trabaja) {
+    public ResponseEntity<?> createMedico(@RequestBody Trabaja trabaja) {
         Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
         Integer idIpsAdm = admIpsService.findIdIpsByEmail(authentification.getName());
         if (trabaja.getConsultorio().getId().getIps().getId() != idIpsAdm)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No tienes permiso para crear este médico en este consultorio.");
 
         try {
             return ResponseEntity.ok(medicoService.createMedico(trabaja));
@@ -141,9 +141,9 @@ public class MedicoController {
      * @throws RuntimeException Si ocurre un error al actualizar el médico.
      */
     @PutMapping
-    public ResponseEntity<Medico> updateMedico(@RequestBody Medico medico) {
+    public ResponseEntity<?> updateMedico(@RequestBody Medico medico) {
         if (!isAdmIpsOfDniMedico(medico.getDni()))
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No tienes permiso para actualizar este médico.");
 
         try {
             return ResponseEntity.ok(medicoService.updateMedico(medico));

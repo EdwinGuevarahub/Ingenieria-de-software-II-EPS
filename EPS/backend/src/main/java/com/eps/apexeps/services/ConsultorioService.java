@@ -77,6 +77,7 @@ public class ConsultorioService {
      * @throws IllegalArgumentException Si el consultorio ya existe.
      */
     public Consultorio createConsultorio(Consultorio consultorio) {
+        System.out.println("Creando consultorio: " + consultorio.getServicioMedico().getCups());
         if (consultorioRepository.existsById(consultorio.getId()))
             throw new IllegalArgumentException( "El consultorio ya existe.");
 

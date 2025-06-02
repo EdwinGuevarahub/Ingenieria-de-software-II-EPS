@@ -54,8 +54,9 @@ public class TrabajaService {
      * @return Una lista de entradas de trabajo asociadas a los médicos
      *         proporcionados.
      */
-    public List<Trabaja> findByMedico_Dni(long dniMedico) {
-        return trabajaRepository.findByMedico_Dni(dniMedico);
+    public List<Trabaja> findByMedico_Dni(long dniMedico, Integer idIps) {
+
+        return trabajaRepository.findByMedico_DniAndConsultorio_Id_Ips_Id(dniMedico, idIps);
     }
 
     /**
@@ -152,21 +153,18 @@ public class TrabajaService {
         return trabajaRepository.save(nuevoTrabaja);
     }
 
-    public void crearTrabaja(long dniMedico, Trabaja trabaja) {
+    public Trabaja crearTrabaja(long dniMedico, Trabaja trabaja) {
         try {
             Medico medico = medicoRepository.findById(dniMedico)
                     .orElseThrow(() -> new RuntimeException("Médico no encontrado"));
 
-            // Obtener todos los trabaja del mismo consultorio
-            List<Trabaja> existentes = trabajaRepository.findByConsultorio(trabaja.getConsultorio());
-
             // Validar solapamiento
-            if (haySolapamientoHorario(existentes, trabaja)) {
-                throw new IllegalArgumentException("El nuevo horario se solapa con otro en el mismo consultorio.");
+            if (haySolapamientoHorario(trabaja)) {
+                throw new IllegalArgumentException("El nuevo horario se solapa con otro del mismo consultorio o médico.");
             }
 
             trabaja.setMedico(medico);
-            trabajaRepository.save(trabaja);
+            return trabajaRepository.save(trabaja);
 
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Error al crear horario: " + e.getMessage());
@@ -175,13 +173,19 @@ public class TrabajaService {
         }
     }
 
-    public boolean haySolapamientoHorario(List<Trabaja> existentes, Trabaja nuevo) {
+    public boolean haySolapamientoHorario(Trabaja trabaja) {
+        // Obtener todos los trabaja del mismo consultorio o médico
+        List<Trabaja> existentes = trabajaRepository.findByConsultorioOrMedico(trabaja.getConsultorio(), trabaja.getMedico());
+
         for (Trabaja existente : existentes) {
             for (EntradaHorario hExistente : existente.getHorario()) {
-                for (EntradaHorario hNuevo : nuevo.getHorario()) {
-
+                for (EntradaHorario hNuevo : trabaja.getHorario()) {
                     // Verifica que sea el mismo día
                     if (hExistente.getDia().equals(hNuevo.getDia())) {
+                        // Saltar verificación para el día que se está modificando.
+                        if (existente.getId().equals(trabaja.getId()))
+                            continue;
+
                         LocalTime iniExist = hExistente.getInicio();
                         LocalTime finExist = hExistente.getFin();
                         LocalTime iniNuevo = hNuevo.getInicio();
@@ -226,15 +230,9 @@ public class TrabajaService {
             throw new RuntimeException("El médico no coincide con el registro de trabajo");
         }
 
-        // Buscar otros trabaja en el mismo consultorio, excepto este mismo
-        List<Trabaja> enMismoConsultorio = trabajaRepository.findByConsultorio(trabajaActualizado.getConsultorio())
-                .stream()
-                .filter(t -> t.getId() != idTrabaja)
-                .toList();
-
         // Validar que no haya solapamiento con otros trabaja en el mismo consultorio
-        if (haySolapamientoHorario(enMismoConsultorio, trabajaActualizado)) {
-            throw new IllegalArgumentException("El nuevo horario se solapa con otro en el mismo consultorio.");
+        if (haySolapamientoHorario(trabajaActualizado)) {
+            throw new IllegalArgumentException("El nuevo horario se solapa con otro del mismo consultorio o médico.");
         }
 
         // Actualizar campos (si es que deseas permitir cambiar consultorio y horario)
@@ -246,6 +244,7 @@ public class TrabajaService {
 
     /**
      * Método para encontrar todas las IPS asociadas a un médico por su DNI.
+     * 
      * @param dni El DNI del médico.
      * @return Una lista de IDs de IPS donde el médico trabaja.
      */

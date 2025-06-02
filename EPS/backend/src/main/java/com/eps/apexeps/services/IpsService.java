@@ -9,25 +9,33 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.eps.apexeps.models.DTOs.ServicioEnIpsDTO;
 import com.eps.apexeps.models.entity.Ips;
+import com.eps.apexeps.models.entity.users.AdmIps;
+import com.eps.apexeps.repositories.AdmIpsRespository;
 import com.eps.apexeps.repositories.IpsRepository;
 import com.eps.apexeps.models.DTOs.response.IpsConServicios;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 /**
  *
  * @author Alexander
  */
 @Service
+@RequiredArgsConstructor
 public class IpsService {
 
-    @Autowired
-    private IpsRepository ipsRepository;
+    /** Repositorio para manejar las operaciones CRUD de AdmIps */
+    private final AdmIpsRespository admIpsRespository;
+
+    /** Repositorio para manejar las operaciones CRUD de Ips */
+    private final IpsRepository ipsRepository;
 
     public List<Ips> findAll() {
         return ipsRepository.findAll();
@@ -43,17 +51,19 @@ public class IpsService {
      * @param fechaRegistro Fecha de registro de la IPS (opcional)
      * @return Lista de IPS que cumplen con los criterios de búsqueda
      */
-    public List<Ips> filtrarIpsMulticriterio(String nombre, String telefono, String direccion, String fechaRegistro,
-            String cupsServicio) {
+    public Page<Ips> filtrarIpsMulticriterio(String nombre, String telefono, String direccion, String fechaRegistro,
+            String cupsServicio, Integer qSize, Integer qPage) {
         try {
             // Limpieza de datos
             nombre = (nombre != null && !nombre.trim().isEmpty()) ? nombre.trim() : null;
             telefono = (telefono != null && !telefono.trim().isEmpty()) ? telefono.trim() : null;
             direccion = (direccion != null && !direccion.trim().isEmpty()) ? direccion.trim() : null;
-            List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
-                    cupsServicio);
+            Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
+            Page<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono, direccion, fechaRegistro,
+                    cupsServicio, pageable);
             // List<Ips> resultado = ipsRepository.filtrarIpsMultiples(nombre, telefono,
             // direccion);
+            
             return resultado;
 
         } catch (IllegalArgumentException e) {
@@ -67,22 +77,23 @@ public class IpsService {
 
 
     /**
-     * Guarda una nueva IPS en la base de datos.
+     * Crea una nueva IPS y administrador en la base de datos.
      * Intenta guardar la imagen de la IPS en el sistema de archivos.
-     * @param ips La IPS a guardar
-     * @return La IPS guardada
+     * @param adm El administrador con la información de la IPS.
+     * @return El administrador creado con la IPS asociada.
      * @throws IOException Si ocurre un error al guardar la imagen
      */
     @Transactional
-    public Ips save(Ips ips) throws IOException {
+    public AdmIps create(AdmIps adm) throws IOException {
 
         // Primero intenta guardar la ips actualizada.
-        Ips ipsNueva = ipsRepository.save(ips);
+        Ips ipsNueva = ipsRepository.save(adm.getIps());
         // Luego intenta guardar la imagen de la ips en el sistema de archivos.
-        ipsNueva.setImagen(ips.getImagen());
+        ipsNueva.setImagen(adm.getIps().getImagen());
         ipsNueva.saveImage();
 
-        return ipsNueva;
+        // Finalmente intenta guardar el administrador de la IPS.
+        return admIpsRespository.save(adm);
     }
 
     public void deleteById(Integer id) {

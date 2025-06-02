@@ -7,6 +7,8 @@ package com.eps.apexeps.repositories;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,8 +33,8 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
         @Query(value = """
                         SELECT DISTINCT i.*
                         FROM ips i
-                        JOIN consultorio c ON c.ips_consultorio = i.id_ips
-                        JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
+                        LEFT JOIN consultorio c ON c.ips_consultorio = i.id_ips
+                        LEFT JOIN servicio_medico sm ON sm.cups_sermed = c.sermed_consultorio
                         WHERE
                             (:nombre IS NULL OR LOWER(i.nom_ips) LIKE LOWER(CONCAT('%', CAST(:nombre AS TEXT), '%'))) AND
                             (:telefono IS NULL OR LOWER(i.tel_ips) LIKE LOWER(CONCAT('%', CAST(:telefono AS TEXT), '%'))) AND
@@ -40,12 +42,13 @@ public interface IpsRepository extends JpaRepository<Ips, Integer> {
                             (:fechaRegistro IS NULL OR date_trunc('day', i.freg_ips) = TO_TIMESTAMP(CAST(:fechaRegistro AS TEXT), 'DD-MM-YYYY')) AND
                             (:cupsServicio IS NULL OR LOWER(sm.cups_sermed) LIKE LOWER(CONCAT('%', CAST(:cupsServicio AS TEXT), '%')))
                         """, nativeQuery = true)
-        List<Ips> filtrarIpsMultiples(
+        Page<Ips> filtrarIpsMultiples(
                         @Param("nombre") String nombre,
                         @Param("telefono") String telefono,
                         @Param("direccion") String direccion,
                         @Param("fechaRegistro") String fechaRegistro,
-                        @Param("cupsServicio") String cupsServicio);
+                        @Param("cupsServicio") String cupsServicio,
+                        Pageable pageable);
 
         // Consulta personalizada: buscar IPS que ofrezcan servicios médicos con nombre similar
         @Query(value = """

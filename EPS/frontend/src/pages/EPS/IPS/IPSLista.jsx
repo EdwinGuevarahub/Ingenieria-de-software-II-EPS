@@ -36,34 +36,61 @@ const IPSLista = () => {
   const [nombreFiltro, setNombreFiltro] = useState('');
   const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
 
+  const handleMostrarFormulario = (ips = null) => {
+    if (ips)
+      setEditandoIPS(ips);
+    else 
+      setEditandoIPS(null);
+
+    setMostrarFormulario(true);
+  }
+
+  const handleOcultarFormulario = () => {
+    setEditandoIPS(null);
+    setMostrarFormulario(false);
+  }
+
+  const handleExpandedChange = (id, expanded) => {
+    if (!expanded && editandoIPS)
+      handleOcultarFormulario();
+  }
+
   const handleSubmitIPS = async (ips) => {
     try {
       const datosEnviar = {
-        nombre: ips.nombre,
-        direccion: ips.direccion,
-        telefono: ips.telefono,
-        admEps: {
-          email: subEmail,
-        },
+        email: ips.emailAdministrador,
+        nombre: ips.nombreAdministrador,
+        telefono: ips.telefonoAdministrador,
+        password: ips.passwordAdministrador,
+        ips: {
+          nombre: ips.nombre,
+          direccion: ips.direccion,
+          telefono: ips.telefono,
+          activo: true,
+          imagen: ips.imagen,
+          admEps: {
+            email: subEmail,
+          }
+        }
       };
-      if (editandoIPS && editandoIPS.dni) {
+
+      if (editandoIPS && editandoIPS.id)
         await actualizarIPS(ips);
-      } else {
+      else
         await crearIPS(datosEnviar);
-      }
+        
       await fetchIPS(pagina);
-      setMostrarFormulario(false);
-      setEditandoIPS(null);
+      handleOcultarFormulario();
     } catch (e) {
       console.error('Error guardando IPS', e);
     }
   };
 
-  const fetchIPS = useCallback(async (paginaActual = 1) => {
+  const fetchIPS = useCallback( async (paginaActual = 1) => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 10,
+        qSize: 2,
         nombre: nombreFiltro || undefined,
         telefono: undefined,
         direccion: undefined,
@@ -73,8 +100,9 @@ const IPSLista = () => {
         idConsultorioLike: undefined,
       };
 
-      const data = await listarIPS(filtros);
-      setListaIPS(data);
+      const { totalPaginas, ips } = await listarIPS(filtros);
+      setListaIPS(ips);
+      setTotalPaginas(totalPaginas);
     } catch (error) {
       console.error('Error cargando las IPS:', error);
     }
@@ -145,14 +173,11 @@ const IPSLista = () => {
         </Grid>
       </Grid>
 
-      {mostrarFormulario && (
+      {mostrarFormulario && !editandoIPS && (
         <IPSFormulario
-          initialData={editandoIPS}
+          isNew
           onSubmit={handleSubmitIPS}
-          onCancel={() => {
-            setMostrarFormulario(false);
-            setEditandoIPS(null);
-          }}
+          onCancel={handleOcultarFormulario}
         />
       )}
 
@@ -161,61 +186,70 @@ const IPSLista = () => {
         columns={[{ key: 'id' }, { key: 'nombre' }]}
         data={listaIPS}
         rowKey="id"
+        onExpandedChange={handleExpandedChange}
         fetchDetails={[
           (id) => detallesIPS(id),
           (id) => listaServiciosMedicosPorIPS(id)
         ]}
-        renderExpandedContent={(detalle) => (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'flex-start',
-              padding: 2,
-              borderRadius: 2,
-              gap: 2,
-              flexWrap: 'wrap',
-              width: '100%',
-            }}
-          >
-            <Box
-              component="img"
-              src="https://picsum.photos/300"
-              alt="IPS"
-              sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-            />
-            <Box sx={{ flex: 1, minWidth: 200 }}>
-              <Typography variant="h6">{detalle[0].nombre}</Typography>
-              <Typography variant="body2">ID: {detalle[0].id}</Typography>
-              <Typography variant="body2">Dirección: {detalle[0].direccion}</Typography>
-              <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
-              <Typography variant="body2">Fecha de creación: {detalle[0].fechaRegistro}</Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setEditandoIPS(detalle[0]);
-                  setMostrarFormulario(true);
+        renderExpandedContent={(detalle) => {
+          if (mostrarFormulario && editandoIPS)
+            return (
+              <IPSFormulario
+                initialData={editandoIPS}
+                onSubmit={handleSubmitIPS}
+                onCancel={handleOcultarFormulario}
+              />
+            )
+          else 
+            return (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  padding: 2,
+                  borderRadius: 2,
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  width: '100%',
                 }}
               >
-                Editar
-              </Button>
-            </Box>
+                <Box
+                  component="img"
+                  src={`data:image/png;base64,${detalle[0].imagen}`}
+                  alt="IPS"
+                  sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
+                />
+                <Box sx={{ flex: 1, minWidth: 200 }}>
+                  <Typography variant="h6">{detalle[0].nombre}</Typography>
+                  <Typography variant="body2">ID: {detalle[0].id}</Typography>
+                  <Typography variant="body2">Dirección: {detalle[0].direccion}</Typography>
+                  <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
+                  <Typography variant="body2">Fecha de creación: {detalle[0].fechaRegistro}</Typography>
+                </Box>
 
-            <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
-                detalle[1].map((servicio, idx) => (
-                  <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
-                ))
-              ) : (
-                <Chip label="Sin servicios" color="default" variant="outlined" />
-              )}
-            </Box>
-          </Box>
-        )}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => handleMostrarFormulario(detalle[0])}
+                  >
+                    Editar
+                  </Button>
+                </Box>
+
+                <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
+                    detalle[1].map((servicio, idx) => (
+                      <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
+                    ))
+                  ) : (
+                    <Chip label="Sin servicios" color="default" variant="outlined" />
+                  )}
+                </Box>
+              </Box>
+            )
+        }}
       />
 
       {/* Paginación */}
@@ -238,9 +272,7 @@ const IPSLista = () => {
           right: 24,
           zIndex: 1000,
         }}
-        onClick={() => {
-          setMostrarFormulario(true);
-        }}
+        onClick={() => handleMostrarFormulario()}
       >
         <AddIcon />
       </Fab>

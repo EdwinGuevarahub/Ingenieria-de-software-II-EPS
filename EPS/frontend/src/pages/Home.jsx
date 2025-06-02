@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Typography, Button, Box, Container, Grid, Card, CardContent, CardMedia
 } from '@mui/material';
 import SpaIcon from '@mui/icons-material/Spa';
 import Doctor from '../assets/Images/Banner.png';
+import { useAuthContext } from '../contexts/AuthContext';
+import { getIpsByAdmIpsEmail } from '../services/ipsService';
 
 const services = [
   {
@@ -24,6 +26,44 @@ const services = [
 ];
 
 const LandingPage = () => {
+  const { isLogged, role } = useAuthContext();
+  const logged = isLogged();
+
+  const [willRedirect, setWillRedirect] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
+  useEffect(() => {
+    if (logged === false || role)
+      setLoadingAuth(false);
+    else
+      return;
+
+    if (logged === false || !['ADM_IPS', 'ADM_EPS'].includes(role)) {
+      setWillRedirect(false);
+      return;
+    }
+
+    if (role === 'ADM_EPS')
+      window.location.href = '/HomeEPS';
+    else
+      window.location.href = '/HomeIPS';
+
+  }, [logged, role]);
+
+  if (loadingAuth)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Cargando...</Typography>
+      </Box>
+    )
+
+  if (willRedirect)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Redirigiendo...</Typography>
+      </Box>
+    )
+
   return (
     <Box>
       <Box sx={{ bgcolor: 'secondary.main', position: 'relative', overflow: 'visible' }}>
@@ -32,7 +72,7 @@ const LandingPage = () => {
             <Box
               component="img"
               src={Doctor}
-              alt="Doctor"
+              alt='Doctor'
               sx={{
                 width: '80%',
                 maxHeight: '80%',
@@ -48,7 +88,7 @@ const LandingPage = () => {
               Bienvenido a <b>ApexEPS</b>
             </Typography>
             <Typography variant="body1">
-              En ApexEPS trabajamos cada día por tu bienestar y el de tu familia.
+              En ApexEPS trabajgamos cada día por tu bienestar y el de tu familia.
               Te ofrecemos servicios de salud con calidad, oportunidad y atención humana.
             </Typography>
           </Grid>
@@ -98,5 +138,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
-
