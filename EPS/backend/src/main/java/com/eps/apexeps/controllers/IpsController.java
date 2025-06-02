@@ -135,6 +135,7 @@ public class IpsController {
             throw new RuntimeException("Error al cambiar el estado de la IPS: " + e.getMessage(), e);
         }
     }
+    
 
     @DeleteMapping
     public void deleteById(@RequestParam(required = true) Integer id) {
