@@ -29,7 +29,7 @@ function ConfirmacionDialog({ open, onClose, errorMessage }) {
 export default function ConfirmacionPagoModal ({
   open,
   onClose,
-  usuario,
+  idPaciente, // TODO: Incluir extracción de paciente en backend para rol PACIENTE.
   idAgenda,
   montoPago = 0,
   setUsuario = () => {}, // TODO: Eliminar cuando método para procesar el pago esté implementado.
@@ -39,15 +39,21 @@ export default function ConfirmacionPagoModal ({
   const [confirmacionOpen, setConfirmacionOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const payload = () => ({
-    idAgenda: idAgenda,
-    fechaPago: dayjs()
-  });
+  const payload = () => (
+    {
+      pacienteId: idPaciente || null,
+      dto: {
+        agendaId: idAgenda,
+        fechaPago: dayjs().toISOString()
+      }
+    }
+  );
 
   const confirmarPago = async () => {
 
     // Actualizar el estado del detalle específico a "Pagado"
-    if (!idAgenda || !usuario) { 
+    console.log('Confirmar pago con payload:', payload());
+    if (!idAgenda || !idPaciente) { 
       setErrorMessage('Información incompleta para procesar el pago.');
       setConfirmacionOpen(true);
       return;
