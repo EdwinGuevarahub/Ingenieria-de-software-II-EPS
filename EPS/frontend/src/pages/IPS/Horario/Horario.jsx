@@ -60,7 +60,6 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
         dias: [], horaInicio: '', horaFin: '', servicio: '', consultorio: '',
     });
     const [isEditing, setIsEditing] = useState(false);
-    // const [error, setError] = useState(''); // Not used, can be removed
 
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
     const showMessage = (message, severity = 'error') => setSnackbar({ open: true, message, severity });
@@ -72,9 +71,8 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
     useEffect(() => {
         if (open) {
             if (initialData) {
-                // initialData.dias should now be an array of display names
                 setFormHorario({
-                    dias: initialData.dias || [], // Ensure it's an array
+                    dias: initialData.dias || [], 
                     horaInicio: initialData.horaInicio || '',
                     horaFin: initialData.horaFin || '',
                     servicio: initialData.servicio || '',
@@ -92,7 +90,7 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
                 setIsEditing(false);
             }
         }
-    }, [initialData, open, serviciosOpts]); // No change needed here, it already expects initialData.dias to be an array
+    }, [initialData, open, serviciosOpts]); 
 
     useEffect(() => {
         if (open && formHorario.servicio && consultoriosOpts.length > 0) {
@@ -142,7 +140,6 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
             showMessage('La hora de fin debe ser posterior a la hora de inicio.', 'warning');
             return;
         }
-        // Pass the original ID if editing, for the save function to use
         onSave(formHorario, isEditing, initialData?.id);
     };
 
@@ -307,8 +304,8 @@ function HorarioFormDialog({ open, onClose, onSave, initialData, serviciosOpts, 
 
 export default function HorarioModal({ open, onClose, dniMedico }) {
     const { ips } = useIpsContext();
-    const [rawHorarios, setRawHorarios] = useState([]); // Stores the direct output from fetchTrabaja for grid
-    const [editingHorario, setEditingHorario] = useState(null); // This will store data for the form
+    const [rawHorarios, setRawHorarios] = useState([]); 
+    const [editingHorario, setEditingHorario] = useState(null);
     const [formOpen, setFormOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [serviciosOpts, setServiciosOpts] = useState([]);
@@ -322,7 +319,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
     };
 
     useEffect(() => {
-        if (open && dniMedico) { // Also fetch if dniMedico changes while open
+        if (open && dniMedico) { 
             const doFetchServicios = async () => {
                 try {
                     const servicios = await listaServiciosMedicosPorMedico(dniMedico);
@@ -333,14 +330,14 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             };
             doFetchServicios();
         }
-    }, [open, dniMedico]); // Removed ips from dependency array as it's not used in service call
+    }, [open, dniMedico]); 
 
     useEffect(() => {
-        if (open && dniMedico) { // Fetch if ips.id changes
+        if (open && dniMedico) {
             const doFetchConsultorios = async () => {
                 setIsLoading(true);
                 try {
-                    const filtros = { idIps: ips?.id || undefined }; // Ensure ips.id exists
+                    const filtros = { idIps: ips?.id || undefined }; 
                     const { consultorios } = await listarConsultorios(filtros);
                     setConsultoriosOpts(consultorios.map((c) => ({
                         nombreServicio: c.nombreServicioMedico,
@@ -356,14 +353,14 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                     setIsLoading(false);
                 }
             };
-            if (ips?.id) { // Only fetch if ips.id is available
+            if (ips?.id) { 
                  doFetchConsultorios();
             } else if (open) {
                  showMessage("ID de IPS no disponible. No se pueden cargar consultorios.", 'warning');
                  setConsultoriosOpts([]);
             }
         }
-    }, [open, dniMedico, ips?.id]); // Depend on ips.id
+    }, [open, dniMedico, ips?.id]); 
 
     const fetchTrabaja = useCallback(async () => {
         if (!dniMedico) {
@@ -371,8 +368,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             setIsLoading(false);
             return;
         }
-        if (consultoriosOpts.length === 0 && open) { // Don't fetch if consultorios aren't loaded yet but modal is open
-            // showMessage("Esperando carga de consultorios...", "info") // Optional: inform user
+        if (consultoriosOpts.length === 0 && open) { 
             return;
         }
         setIsLoading(true);
@@ -384,17 +380,17 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                     return trabaja.horario.map(h => {
                         const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.backendValue === h.dia?.toUpperCase());
                         return {
-                            id: trabaja.id, // This is the ID of the 'trabaja' entry
+                            id: trabaja.id, 
                             dniMedico: trabaja.dniMedico,
                             idIps: trabaja.idIps,
                             idConsultorio: trabaja.idConsultorio,
-                            dia: diaConfig ? diaConfig.display : h.dia, // Display name of the day
-                            _backendDia: h.dia?.toUpperCase(), // Backend name of the day
+                            dia: diaConfig ? diaConfig.display : h.dia, 
+                            _backendDia: h.dia?.toUpperCase(), 
                             horaInicio: h.inicio?.substring(0, 5),
                             horaFin: h.fin?.substring(0, 5),
                             servicio: getServicioNameFromIdConsultorio(trabaja.idConsultorio, consultoriosOpts),
                             consultorio: getConsultorioNameFromId(trabaja.idConsultorio, consultoriosOpts),
-                            color: coloresBase[index % coloresBase.length] // Color based on original trabaja index
+                            color: coloresBase[index % coloresBase.length] 
                         };
                     });
                 });
@@ -408,43 +404,43 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         } finally {
             setIsLoading(false);
         }
-    }, [dniMedico, consultoriosOpts, open]); // Added open to re-evaluate if consultorios become available
+    }, [dniMedico, consultoriosOpts, open]); 
 
     useEffect(() => {
-        if (open && dniMedico && consultoriosOpts.length > 0) { // Ensure consultorios are loaded
+        if (open && dniMedico && consultoriosOpts.length > 0) {
             fetchTrabaja();
         } else if (!dniMedico && open) {
             showMessage("DNI del médico no proporcionado.", 'error');
             setRawHorarios([]);
         }
-    }, [open, dniMedico, fetchTrabaja, consultoriosOpts.length]); // consultoriosOpts.length ensures re-fetch when they load
+    }, [open, dniMedico, fetchTrabaja, consultoriosOpts.length]);
 
-    // --- START: Grouping Logic ---
+
     const groupedHorariosGuardados = useMemo(() => {
         if (!rawHorarios.length) return [];
 
         const groups = new Map();
         rawHorarios.forEach(h => {
-            // Group by 'trabaja' id, times, and consultorio to correctly bundle slots
+
             const groupKey = `${h.id}-${h.horaInicio}-${h.horaFin}-${h.idConsultorio}`;
             if (!groups.has(groupKey)) {
                 groups.set(groupKey, {
-                    id: h.id, // Backend 'trabaja' ID
+                    id: h.id, 
                     idConsultorio: h.idConsultorio,
-                    idIps: h.idIps, // Store this if needed for editing
+                    idIps: h.idIps, 
                     horaInicio: h.horaInicio,
                     horaFin: h.horaFin,
                     servicio: h.servicio,
                     consultorio: h.consultorio,
-                    dias: [], // Store display day names
-                    _backendDias: [], // Store backend day names
-                    color: h.color, // Use color from the first item in group
+                    dias: [], 
+                    _backendDias: [], 
+                    color: h.color,
                 });
             }
             const group = groups.get(groupKey);
-            if (h.dia && !group.dias.includes(h.dia)) { // Avoid duplicate days if data is messy
+            if (h.dia && !group.dias.includes(h.dia)) { 
                 group.dias.push(h.dia);
-                group.dias.sort((a, b) => { // Sort days for consistent display
+                group.dias.sort((a, b) => { 
                     const dayA = DIAS_SEMANA_CONFIG.find(d => d.display === a)?.backendValue;
                     const dayB = DIAS_SEMANA_CONFIG.find(d => d.display === b)?.backendValue;
                     return DIAS_SEMANA_CONFIG.findIndex(d => d.backendValue === dayA) - DIAS_SEMANA_CONFIG.findIndex(d => d.backendValue === dayB);
@@ -456,39 +452,37 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         });
         return Array.from(groups.values());
     }, [rawHorarios]);
-    // --- END: Grouping Logic ---
+
 
     const handleOpenFormForNew = () => {
-        setEditingHorario(null); // Clear any previous editing state
+        setEditingHorario(null); 
         setFormOpen(true);
     };
 
     const handleOpenFormForEdit = (groupedHorarioItem) => {
-        // groupedHorarioItem now contains all days for that specific slot
+
         setEditingHorario({
-            id: groupedHorarioItem.id, // This is the ID of the 'trabaja' entry
-            dias: groupedHorarioItem.dias, // Pass all display days
+            id: groupedHorarioItem.id,
+            dias: groupedHorarioItem.dias, 
             horaInicio: groupedHorarioItem.horaInicio,
             horaFin: groupedHorarioItem.horaFin,
             servicio: groupedHorarioItem.servicio,
             consultorio: groupedHorarioItem.consultorio,
-            idConsultorio: groupedHorarioItem.idConsultorio, // Keep original consultorio ID if needed
-            idIps: groupedHorarioItem.idIps // Keep original IPS ID
+            idConsultorio: groupedHorarioItem.idConsultorio, 
+            idIps: groupedHorarioItem.idIps 
         });
         setFormOpen(true);
     };
 
     const handleCloseForm = () => {
         setFormOpen(false);
-        setEditingHorario(null); // Clear editing state
+        setEditingHorario(null); 
     };
 
     const handleSaveHorario = async (formData, isEditingMode, originalTrabajaId) => {
         setIsLoading(true);
 
         const idConsultorioLocal = getIdConsultorioFromName(formData.consultorio, consultoriosOpts);
-        // idIpsLocal should ideally come from the selected consultorio,
-        // or if consultorio cannot be changed during edit, from editingHorario.idIps
         const idIpsLocal = getIdIPSFromConsultorio(idConsultorioLocal, consultoriosOpts);
 
         if (idIpsLocal === null) {
@@ -503,7 +497,6 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         }
 
         try {
-            // Map form's display days back to backend values
             const horarioItems = formData.dias.map(diaDisplay => {
                 const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === diaDisplay);
                 if (!diaConfig) {
@@ -517,27 +510,24 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             });
 
             if (isEditingMode && originalTrabajaId) {
-                // When editing, we update the 'trabaja' entry identified by originalTrabajaId
-                // The 'horario' array will contain all days selected in the form for this specific slot
                 const dataToUpdate = {
                     idConsultorio: idConsultorioLocal,
-                    idIps: idIpsLocal, // This might need to be fixed if IPS cannot change
+                    idIps: idIpsLocal, 
                     horario: horarioItems,
                 };
                 await actualizarHorario(dniMedico, originalTrabajaId, dataToUpdate);
                 showMessage('Horario actualizado correctamente.', 'success');
             } else {
-                // For new schedules, create one 'trabaja' entry with all selected days
                 const dataToCreate = {
                     idConsultorio: idConsultorioLocal,
                     idIps: idIpsLocal,
-                    horario: horarioItems, // All selected days go into this single new entry
+                    horario: horarioItems, 
                 };
                 await crearHorario(dniMedico, dataToCreate);
                 showMessage('Horario creado correctamente.', 'success');
             }
             handleCloseForm();
-            fetchTrabaja(); // Refresh the list
+            fetchTrabaja(); 
         } catch (err) {
             showMessage(`Error al guardar el horario: ${err.message}`, 'error');
         } finally {
@@ -547,10 +537,9 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
 
     const scheduleMatrix = useMemo(() => {
         const matrix = {};
-        rawHorarios.forEach(h => { // Use rawHorarios for grid display
+        rawHorarios.forEach(h => { 
             const diaConfig = DIAS_SEMANA_CONFIG.find(d => d.display === h.dia);
             if (!diaConfig || !diaConfig.corto) {
-                // showMessage(`Día no válido en scheduleMatrix: ${h.dia}`, 'warning');
                 return;
             }
             const diaCorto = diaConfig.corto;
@@ -559,7 +548,6 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
             const finNum = parseInt(h.horaFin?.split(':')[0]);
 
             if (isNaN(inicioNum) || isNaN(finNum) || !h.horaInicio || !h.horaFin) {
-                // showMessage(`Horario inválido en scheduleMatrix: ${h.horaInicio} - ${h.horaFin}`, 'warning');
                 return;
             }
 
@@ -567,7 +555,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                 const horaKey = `${String(hora).padStart(2, '0')}:00`;
                 if (!matrix[horaKey]) matrix[horaKey] = {};
                 matrix[horaKey][diaCorto] = {
-                    id: h.id, // Store id for fetching full data on click
+                    id: h.id, 
                     idConsultorio: h.idConsultorio,
                     color: h.color,
                     tooltip: `${h.servicio} (${h.consultorio})\n${h.horaInicio} - ${h.horaFin}`
@@ -588,14 +576,11 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
         const cellData = obtenerDatosCelda(diaClickedDisplay, horaClicked);
 
         if (cellData && cellData.id && cellData.idConsultorio) {
-            // Find the original 'trabaja' entry (which might span multiple days)
-            // that this cell belongs to. We need its 'id', 'horaInicio', 'horaFin', 'idConsultorio'
-            // to find all its associated days from rawHorarios.
 
             const clickedHorarioSlot = rawHorarios.find(h =>
                 h.id === cellData.id &&
                 h.idConsultorio === cellData.idConsultorio &&
-                parseInt(h.horaInicio?.split(':')[0]) === parseInt(horaClicked.split(':')[0]) // Approximate match by start hour
+                parseInt(h.horaInicio?.split(':')[0]) === parseInt(horaClicked.split(':')[0]) 
             );
 
             if (clickedHorarioSlot) {
@@ -607,9 +592,9 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                         h.horaFin === clickedHorarioSlot.horaFin
                     )
                     .map(h => h.dia)
-                    .filter((value, index, self) => self.indexOf(value) === index); // Unique days
+                    .filter((value, index, self) => self.indexOf(value) === index); 
 
-                allDaysForThisSlot.sort((a, b) => { // Sort days for consistent display
+                allDaysForThisSlot.sort((a, b) => {
                     const dayA = DIAS_SEMANA_CONFIG.find(d => d.display === a)?.backendValue;
                     const dayB = DIAS_SEMANA_CONFIG.find(d => d.display === b)?.backendValue;
                     return DIAS_SEMANA_CONFIG.findIndex(d => d.backendValue === dayA) - DIAS_SEMANA_CONFIG.findIndex(d => d.backendValue === dayB);
@@ -627,13 +612,12 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                     idIps: clickedHorarioSlot.idIps
                 });
             } else {
-                 // Fallback or error if we can't find the detailed slot
+
                 setEditingHorario({ dia: diaClickedDisplay, horaInicio: horaClicked, dias: [diaClickedDisplay] });
                 setFormOpen(true);
             }
 
         } else {
-            // No existing schedule in this cell, open form for new with this day/time pre-filled
             setEditingHorario({ dia: diaClickedDisplay, horaInicio: horaClicked, dias: [diaClickedDisplay] });
             setFormOpen(true);
         }
@@ -672,7 +656,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                         gap: 2, overflowY: 'auto',
                         maxHeight: {
                             xs: '300px',
-                            md: 'calc(100vh - 160px)' // Adjust based on DialogTitle/Actions height
+                            md: 'calc(100vh - 160px)' 
                         }
                     }}
                 >
@@ -694,11 +678,10 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                             No hay horarios guardados.
                         </Typography>}
 
-                    {/* Iterate over groupedHorariosGuardados for display */}
                     {groupedHorariosGuardados.length > 0 && (
                         <Box>
                             {groupedHorariosGuardados.map((group, index) => (
-                                <Paper key={`${group.id}-${index}`} // Use group.id and index for key
+                                <Paper key={`${group.id}-${index}`} 
                                     elevation={2}
                                     sx={{
                                         p: 1.5,
@@ -718,7 +701,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                         <Tooltip title="Editar">
                                             <IconButton
                                                 size="small"
-                                                onClick={() => handleOpenFormForEdit(group)} // Pass the whole group
+                                                onClick={() => handleOpenFormForEdit(group)} 
                                                 color="primary"
                                                 disabled={isLoading}>
                                                 <Edit fontSize="small" />
@@ -737,7 +720,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                         sx={{
                             flexGrow: 1,
                             overflow: 'auto',
-                            maxHeight: 'calc(100vh - 160px)', // Adjust based on DialogTitle/Actions height
+                            maxHeight: 'calc(100vh - 160px)', 
                         }}
                     >
                         <Table size="small" stickyHeader sx={{ borderCollapse: 'collapse', minWidth: 800 }}>
@@ -748,7 +731,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                         border: '1px solid #ddd',
                                         width: '80px',
                                         backgroundColor: (theme) => theme.palette.grey[100],
-                                        zIndex: 3, // Ensure it's above body cells
+                                        zIndex: 3, 
                                         position: 'sticky',
                                         left: 0
                                     }}>Hora</TableCell>
@@ -760,7 +743,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                                 border: '1px solid #ddd',
                                                 textAlign: 'center',
                                                 backgroundColor: (theme) => theme.palette.grey[100],
-                                                zIndex: 1 // Lower zIndex than sticky Hora cell
+                                                zIndex: 1,
                                             }}
                                         >{diaConfig.display}</TableCell>
                                     ))}
@@ -775,8 +758,8 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                             color: 'text.secondary',
                                             position: 'sticky',
                                             left: 0,
-                                            backgroundColor: (theme) => theme.palette.grey[50], // Lighter for sticky cell
-                                            zIndex: 2 // Above regular cells, below header
+                                            backgroundColor: (theme) => theme.palette.grey[50], 
+                                            zIndex: 2 
                                         }}>{hora}</TableCell>
                                         {DIAS_SEMANA_CONFIG.map((diaConfig, index) => {
                                             const cellData = obtenerDatosCelda(diaConfig.display, hora);
@@ -790,15 +773,15 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                                                         onClick={() => !isLoading && handleCeldaClick(diaConfig.display, hora)}
                                                         sx={{
                                                             cursor: isLoading ? 'default' : 'pointer',
-                                                            bgcolor: cellData?.color || '#ffffff', // Ensure background is white if no data
+                                                            bgcolor: cellData?.color || '#ffffff', 
                                                             border: '1px solid #ddd',
-                                                            height: 40, // Fixed height for cells
-                                                            minWidth: 80, // Minimum width for day cells
+                                                            height: 40, 
+                                                            minWidth: 80, 
                                                             transition: 'background-color 0.2s ease',
                                                             '&:hover': {
                                                                 bgcolor: isLoading ?
-                                                                    (cellData?.color || 'background.paper') : // Use background.paper for default hover
-                                                                    (cellData?.color ? `${cellData.color}E6` : '#e0e0e0'), // Apply opacity or hover color
+                                                                    (cellData?.color || 'background.paper') : 
+                                                                    (cellData?.color ? `${cellData.color}E6` : '#e0e0e0'), 
                                                                 boxShadow: isLoading ? 'none' : 'inset 0 0 5px rgba(0,0,0,0.1)',
                                                             },
                                                         }}
@@ -823,7 +806,7 @@ export default function HorarioModal({ open, onClose, dniMedico }) {
                 open={formOpen}
                 onClose={handleCloseForm}
                 onSave={handleSaveHorario}
-                initialData={editingHorario} // This will now contain all days for the slot
+                initialData={editingHorario} 
                 serviciosOpts={serviciosOpts}
                 consultoriosOpts={consultoriosOpts}
             />
