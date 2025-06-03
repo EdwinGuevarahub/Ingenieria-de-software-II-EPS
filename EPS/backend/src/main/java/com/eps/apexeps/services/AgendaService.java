@@ -173,9 +173,9 @@ public class AgendaService {
 
         Pageable pageable = Pageable.ofSize(qSize).withPage(qPage);
 
-        // puestos que ofrecen ese servicio en esa IPS
+        // puestos que ofrecen ese servicio en esa IPS||
         List<Trabaja> puestos = trabajaRepo
-                .findByConsultorio_Id_Ips_IdIpsAndConsultorio_Servicio_CupsSermed(
+                .buscarTrabajosPorIpsYServicio(
                         Integer.valueOf(idIps), cupsServicioMedico);
         if (puestos.isEmpty()) return Page.empty();
 
@@ -188,7 +188,7 @@ public class AgendaService {
         Instant hasta = dia.atTime(horaFin).atZone(ZoneId.systemDefault()).toInstant();
 
         List<Agenda> ocupadas = agendaRepo
-                .findByTrabajaIdInAndFechaAgendaBetween(trabajaIds, desde, hasta);
+                .findByTrabajaIdInAndFechaBetween(trabajaIds, desde, hasta);
 
         // Índice rápido: (trabajaId, Instant) →
         Set<String> ocupadasIndex = ocupadas.stream()

@@ -47,7 +47,16 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
        """)
     Optional<Trabaja> buscarPorMedicoYConsultorio(Long dniMedico, Integer idConsultorio);
 
-    
+    @Query("""
+        SELECT t FROM Trabaja t
+        WHERE t.consultorio.id.ips.id = :idIps
+        AND t.consultorio.servicioMedico.cups = :cupsSermed
+    """)
+    List<Trabaja> buscarTrabajosPorIpsYServicio(
+            Integer idIps,
+            String cupsSermed);
+
+
     List<Trabaja> findByMedico_Dni(long dniMedico);
 
     List<Trabaja> findByConsultorioOrMedico(Consultorio consultorio, Medico medico);
@@ -61,7 +70,5 @@ public interface TrabajaRepository extends JpaRepository<Trabaja, Integer> {
 
     List<Trabaja> findByMedico_DniAndConsultorio_Id_Ips_Id(long dniMedico, Integer idIps);
 
-    List<Trabaja> findByConsultorio_Id_Ips_IdIpsAndConsultorio_Servicio_CupsSermed(
-            Integer idIps,
-            String  cups);
+
 }
