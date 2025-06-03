@@ -77,11 +77,23 @@ const EdicionAfiliado = () => {
         const resultado = await listarPacientes();
 
         if (resultado.success) {
-          // Buscar el afiliado específico
+          console.log('Todos los pacientes:', resultado.data);
+
+          // Buscar el afiliado específico (cotizante)
           const afiliadoEncontrado = resultado.data.find(p => p.dni.toString() === afiliadoId);
+          console.log('Afiliado encontrado:', afiliadoEncontrado);
 
           if (afiliadoEncontrado) {
-            // Poblar datos del formulario solo con datos reales
+            // Buscar beneficiarios que pertenezcan a este cotizante
+            const beneficiarios = resultado.data.filter(paciente => {
+              console.log('Verificando paciente:', paciente.dni, 'beneficiario:', paciente.beneficiario);
+              return paciente.beneficiario &&
+                     paciente.beneficiario.dni === afiliadoEncontrado.dni;
+            });
+
+            console.log('Beneficiarios encontrados:', beneficiarios);
+
+            // Poblar datos del formulario con datos reales
             setDatosAfiliado({
               dniCotizante: afiliadoEncontrado.dni.toString(),
               nombreCotizante: afiliadoEncontrado.nombre || '',
@@ -92,8 +104,23 @@ const EdicionAfiliado = () => {
               sexoCotizante: afiliadoEncontrado.sexo || '',
               direccionCotizante: afiliadoEncontrado.direccion || '',
 
-              // Solo beneficiarios reales si existen
-              beneficiarios: afiliadoEncontrado.beneficiarios || []
+              // Beneficiarios encontrados con la estructura correcta para el formulario
+              beneficiarios: beneficiarios.map(beneficiario => ({
+                dni: beneficiario.dni.toString(),
+                nombre: beneficiario.nombre || '',
+                fechaNacimiento: beneficiario.fechaNacimiento || '',
+                email: beneficiario.email || '',
+                password: '********', // Password oculto
+                telefono: beneficiario.telefono || '',
+                sexo: beneficiario.sexo || '',
+                parentesco: beneficiario.parentezco || '', // Nota: verificar si es parentezco o parentesco en tu API
+                direccion: beneficiario.direccion || ''
+              }))
+            });
+
+            console.log('Datos del afiliado cargados:', {
+              cotizante: afiliadoEncontrado.nombre,
+              numeroBeneficiarios: beneficiarios.length
             });
           } else {
             setMensajeError(`Afiliado con ID ${afiliadoId} no encontrado`);

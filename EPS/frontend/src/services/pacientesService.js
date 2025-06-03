@@ -75,7 +75,7 @@ export async function listarPacientes() {
 export async function crearPaciente(datosPaciente) {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await axios.post('http://localhost:8080/api/users', datosPaciente, {
+    const response = await axios.post('http://localhost:8080/api/afiliacion', datosPaciente, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
