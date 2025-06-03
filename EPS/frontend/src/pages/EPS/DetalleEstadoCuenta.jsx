@@ -23,7 +23,6 @@ import { obtenerEstadoCuentaPorPaciente } from '../../services/estadoCuentaServi
 import ConfirmacionPago from './ConfirmacionPago';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-
 const DetalleEstadoCuenta = () => {
     const { userId } = useParams();
     const navigate = useNavigate();
@@ -107,7 +106,6 @@ const DetalleEstadoCuenta = () => {
         setMontoPago(0);
         setTipoPago('');
         setFacturaSeleccionada(null);
-    };
 
     // Función para manejar el pago individual
     const handlePagar = (factura) => {

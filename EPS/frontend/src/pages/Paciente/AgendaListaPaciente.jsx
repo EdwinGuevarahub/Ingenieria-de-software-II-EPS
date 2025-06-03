@@ -14,6 +14,7 @@ import CanceladoCita from '@/../../src/pages/Paciente/ComponentesCita/CanceladoC
 import ExpandableTable from '../../components/list/ExpandableTable';
 import SearchFilter from '../../components/filters/SearchFilter';
 import SelectFilter from '../../components/filters/SelectFilter';
+import ConfirmarPago from '../EPS/ConfirmacionPago';
 
 import { DatePicker } from '@mui/x-date-pickers'
 
@@ -21,6 +22,7 @@ const AgendaListaPaciente = () => {
 
     // Estados
     const [modalCanceladoCitaAbierto, setModalCanceladoCitaAbierto] = useState(false);
+    const [modalPagoCitaAbierto, setModalPagoCitaAbierto] = useState(false);
 
     // Sobre la tabla
     const [listaAgendas, setListaAgendas] = useState([]);
@@ -252,8 +254,7 @@ const AgendaListaPaciente = () => {
                                         borderRadius: 4
                                     }}
                                     onClick={() => {
-                                        // TODO: Pago de cita en AgendaListaPaciente.
-                                        console.log("Le puchaste al de pagar.")
+                                        setModalPagoCitaAbierto(true);
                                     }}
                                 >
                                     Pagar Cita
@@ -276,6 +277,14 @@ const AgendaListaPaciente = () => {
                                     fetchAgendas(pagina, filtrosAplicados);
                                 }}
                                 idAgenda={detalle[0].id}
+                            />
+
+                            <ConfirmarPago
+                                open={modalPagoCitaAbierto}
+                                onClose={() => { setModalPagoCitaAbierto(false); }}
+                                idAgenda={detalle[0].id}
+                                idPaciente={detalle[0].paciente.dni}
+                                montoPago={detalle[0].trabaja.consultorio.servicioMedico.tarifa}
                             />
                         </Box>
                     )}

@@ -6,10 +6,13 @@ import {
   Pagination,
   Fab,
   Button,
-  Grid
+  Grid,
+  Slide,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-
+import EditIcon from '@mui/icons-material/Edit';
 import SearchFilter from "@/../../src/components/filters/SearchFilter";
 import SelectFilter from "@/../../src/components/filters/SelectFilter";
 import ExpandableTable from "@/../../src/components/list/ExpandableTable";
@@ -23,6 +26,10 @@ import {
 } from "@/../../src/services/consultorioService.js";
 import { listaServiciosMedicos } from "@/../../src/services/serviciosMedicosService.js";
 import { useIpsContext } from "../../../contexts/UserIPSContext.js";
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 const ConsultorioLista = () => {
 
@@ -42,6 +49,14 @@ const ConsultorioLista = () => {
   const [idConsultorioFiltro, setIdConsultorioFiltro] = useState("");
   const [servicioFiltro, setServicioFiltro] = useState("");
   const [serviciosOpts, setServiciosOpts] = useState([]);
+
+  // Snackbar state y funciones
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const showMessage = (message, severity = 'error') => setSnackbar({ open: true, message, severity });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   const handleMostrarFormulario = (consultorio = null) => {
     if (consultorio)
@@ -66,15 +81,20 @@ const ConsultorioLista = () => {
     try {
       // Acceder a los campos de la estructura anidada
       consultorio.id.ips.id = ips.id; // Asegúrate que 'ips' tenga el ID correcto
-      if (editData?.idConsultorio)
+      if (editData?.idConsultorio) {
         await actualizarConsultorio(consultorio);
-      else
+        showMessage("Consultorio actualizado correctamente.", "success");
+      }
+      else {
         await crearConsultorio(consultorio);
+        showMessage("Consultorio creado correctamente.", "success");
+      }
 
       await fetchConsultorios(pagina);
       handleOcultarFormulario();
     } catch (e) {
-      console.error("Error guardando consultorio:", e);
+      showMessage("Error guardando consultorio: " + e.message, "error");
+      //console.error("Error guardando consultorio:", e);
     }
   };
 
@@ -92,7 +112,7 @@ const ConsultorioLista = () => {
           ips && ips.id
             ? await listarConsultorios(filtros)
             : ([])
-              
+
         const flattened = data.map((item) => ({
           idConsultorio: item.idConsultorio,
           idIps: item.idIps,
@@ -134,10 +154,8 @@ const ConsultorioLista = () => {
       setPagina(1);
     } else if (idConsultorioFiltro === "" && servicioFiltro === "") {
       // Si se limpian todos los filtros
-      setPagina(1); // Asegura que se recargue desde la página 1
+      setPagina(1);
     }
-    // Para la primera carga, si quieres que se cargue en página 1,
-    // el siguiente useEffect se encargará si pagina es 1 por defecto.
   }, [idConsultorioFiltro, servicioFiltro]);
 
   useEffect(() => {
@@ -146,6 +164,12 @@ const ConsultorioLista = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} TransitionComponent={SlideTransition} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Typography variant="h4" gutterBottom>
         Lista de Consultorios
       </Typography>
@@ -167,7 +191,7 @@ const ConsultorioLista = () => {
           <SearchFilter
             label="Buscar consultorio"
             value={idConsultorioFiltro}
-            onChange={(value) => setIdConsultorioFiltro(value)} // Asegúrate que SearchFilter pase el valor directamente
+            onChange={(value) => setIdConsultorioFiltro(value)}
             fullWidth
           />
         </Grid>
@@ -186,9 +210,8 @@ const ConsultorioLista = () => {
           <SelectFilter
             placeholder="Todos"
             value={servicioFiltro}
-            onChange={(value) => setServicioFiltro(value)} // Asegúrate que SelectFilter pase el valor directamente
+            onChange={(value) => setServicioFiltro(value)}
             options={serviciosOpts}
-            // fullWidth si quieres que ocupe todo el ancho del Grid item
           />
         </Grid>
       </Grid>
@@ -208,11 +231,10 @@ const ConsultorioLista = () => {
           { key: "servicioMedico", label: "Servicio" },
         ]}
         data={consultorios}
-        rowKey="idConsultorio" // Asegúrate que este valor sea único en 'consultorios'
+        rowKey="idConsultorio"
         onExpandedChange={handleExpandedChange}
         fetchDetails={[
           (idConsultorioRow) => {
-            // Renombrado para evitar confusión con idConsultorio del scope superior
             const fila = consultorios.find(
               (c) => c.idConsultorio === idConsultorioRow
             );
@@ -291,13 +313,14 @@ const ConsultorioLista = () => {
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Button
-                  variant="outlined"
+                  variant="contained"
+                  startIcon={<EditIcon />}
                   onClick={() =>
                     // Prepara los datos para el formulario de edición y lo muestra
                     handleMostrarFormulario({
                       idIps: idIpsDetalle,
                       idConsultorio: idConsultorioDetalle,
-                      cupsServicioMedico: cupsServicioMedicoDetalle, // Asegúrate que este campo exista en 'detalle' o ajústalo
+                      cupsServicioMedico: cupsServicioMedicoDetalle,
                     })
                   }
                   aria-label="Editar consultorio"

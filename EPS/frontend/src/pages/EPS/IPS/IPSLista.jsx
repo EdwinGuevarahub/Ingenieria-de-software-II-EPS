@@ -3,20 +3,25 @@ import {
   Typography,
   Box,
   Pagination,
-  Chip,
   Fab,
-  Button,
   Grid,
+  Slide,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import IPSFormulario from './IPSFormulario'
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
 import ExpandableTable from '../../../components/list/ExpandableTable';
+import IPSDetalleExpandido from './IPSDetalleExpandido';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { listarIPS, detallesIPS, crearIPS, actualizarIPS } from '@/../../src/services/ipsService';
 import { listaServiciosMedicos, listaServiciosMedicosPorIPS } from '@/../../src/services/serviciosMedicosService';
 
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 const IPSLista = () => {
 
@@ -36,10 +41,18 @@ const IPSLista = () => {
   const [nombreFiltro, setNombreFiltro] = useState('');
   const [servicioMedicoFiltro, setServicioMedicoFiltro] = useState('');
 
+  // Snackbar state y funciones
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const showMessage = (message, severity = 'error') => setSnackbar({ open: true, message, severity });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
   const handleMostrarFormulario = (ips = null) => {
     if (ips)
       setEditandoIPS(ips);
-    else 
+    else
       setEditandoIPS(null);
 
     setMostrarFormulario(true);
@@ -55,6 +68,7 @@ const IPSLista = () => {
       handleOcultarFormulario();
   }
 
+  // Función para manejar el envío del formulario de IPS
   const handleSubmitIPS = async (ips) => {
     try {
       const datosEnviar = {
@@ -74,23 +88,28 @@ const IPSLista = () => {
         }
       };
 
-      if (editandoIPS && editandoIPS.id)
+      if (editandoIPS && editandoIPS.id) {
         await actualizarIPS(ips);
-      else
+        showMessage('IPS actualizada correctamente.', 'success');
+      }
+      else {
         await crearIPS(datosEnviar);
-        
+        showMessage('IPS guardada correctamente.', 'success');
+      }
       await fetchIPS(pagina);
       handleOcultarFormulario();
     } catch (e) {
-      console.error('Error guardando IPS', e);
+      //console.error('Error guardando IPS', e);
+      showMessage('Error guardando la IPS.', 'error');
     }
   };
 
-  const fetchIPS = useCallback( async (paginaActual = 1) => {
+  // Función para cargar las IPS con los filtros aplicados
+  const fetchIPS = useCallback(async (paginaActual = 1) => {
     try {
       const filtros = {
         qPage: paginaActual - 1,
-        qSize: 2,
+        qSize: 10,
         nombre: nombreFiltro || undefined,
         telefono: undefined,
         direccion: undefined,
@@ -104,11 +123,13 @@ const IPSLista = () => {
       setListaIPS(ips);
       setTotalPaginas(totalPaginas);
     } catch (error) {
-      console.error('Error cargando las IPS:', error);
+      showMessage('Error cargando las IPS.', 'error');
+      //console.error('Error cargando las IPS:', error);
     }
   }, [nombreFiltro, servicioMedicoFiltro]);
 
 
+  // Cargar los servicios médicos únicos al inicio
   useEffect(() => {
     const fetchServiciosMedicos = async () => {
       try {
@@ -119,7 +140,8 @@ const IPSLista = () => {
         }));
         setServiciosUnicos(opciones);
       } catch (error) {
-        console.error('Error cargando los servicios médicos:', error);
+        //console.error('Error cargando los servicios médicos:', error);
+        showMessage('Error cargando los servicios médicos.', 'error');
       }
     };
 
@@ -131,10 +153,13 @@ const IPSLista = () => {
     fetchIPS(pagina);
   }, [pagina, fetchIPS]);
 
-
-
   return (
     <Box sx={{ width: '100%' }}>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} TransitionComponent={SlideTransition} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       <Typography variant="h4" gutterBottom>
         Lista de IPS
       </Typography>
@@ -199,56 +224,15 @@ const IPSLista = () => {
                 onSubmit={handleSubmitIPS}
                 onCancel={handleOcultarFormulario}
               />
-            )
-          else 
+            );
+          else {
             return (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  padding: 2,
-                  borderRadius: 2,
-                  gap: 2,
-                  flexWrap: 'wrap',
-                  width: '100%',
-                }}
-              >
-                <Box
-                  component="img"
-                  src={`data:image/png;base64,${detalle[0].imagen}`}
-                  alt="IPS"
-                  sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-                />
-                <Box sx={{ flex: 1, minWidth: 200 }}>
-                  <Typography variant="h6">{detalle[0].nombre}</Typography>
-                  <Typography variant="body2">ID: {detalle[0].id}</Typography>
-                  <Typography variant="body2">Dirección: {detalle[0].direccion}</Typography>
-                  <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
-                  <Typography variant="body2">Fecha de creación: {detalle[0].fechaRegistro}</Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => handleMostrarFormulario(detalle[0])}
-                  >
-                    Editar
-                  </Button>
-                </Box>
-
-                <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
-                    detalle[1].map((servicio, idx) => (
-                      <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
-                    ))
-                  ) : (
-                    <Chip label="Sin servicios" color="default" variant="outlined" />
-                  )}
-                </Box>
-              </Box>
-            )
+              <IPSDetalleExpandido
+                detalle={detalle}
+                onEditar={handleMostrarFormulario}
+              />
+            );
+          }
         }}
       />
 
