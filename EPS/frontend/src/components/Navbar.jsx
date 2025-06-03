@@ -13,11 +13,17 @@ const Navbar = () => {
       <AppBar position="static" elevation={0}>
         <Toolbar sx={{ bgcolor: 'primary.main', display: 'flex', justifyContent: 'space-between', height: '80px' }}>
           <Box
-            component="img"
-            src={Logo}
-            alt="Logo EPS"
-            sx={{ width: 270, height: 50, borderRadius: 2, objectFit: 'cover' }}
-          />
+            component={Link}
+            to="/"
+            sx={{ display: 'inline-block' }}
+          >
+            <Box
+              component="img"
+              src={Logo}
+              alt="Logo EPS"
+              sx={{ width: 270, height: 50, borderRadius: 2, objectFit: 'cover', cursor: 'pointer' }}
+            />
+          </Box>
 
           <Box display="flex" alignItems="center" gap={2}>
             <Button

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -66,7 +66,7 @@ public class Paciente {
     )
     Paciente beneficiario;
 
-    @NotEmpty
+    @NotNull
     @Column(
         name = "nom_paciente",
         length = 80,
@@ -91,7 +91,7 @@ public class Paciente {
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotEmpty
+    @NotNull
     @Column(
         name = "pass_paciente",
         length = 256,
@@ -111,7 +111,7 @@ public class Paciente {
     )
     private String parentezco;
 
-    @NotEmpty
+    @NotNull
     @Column(
         name = "sexo_paciente",
         nullable = false,
@@ -119,7 +119,7 @@ public class Paciente {
     )
     private Character sexo;
 
-    @NotEmpty
+    @NotNull
     @Column(
         name = "dir_paciente",
         length = 255,
@@ -127,7 +127,7 @@ public class Paciente {
     )
     private String direccion;
 
-    @NotEmpty
+    @NotNull
     @ManyToOne
     @JoinColumn(
         name = "admreg_paciente",
