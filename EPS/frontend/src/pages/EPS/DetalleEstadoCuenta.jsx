@@ -14,138 +14,90 @@ import {
     Grid,
     Avatar,
     Chip,
-    Modal,
-    Backdrop,
-    Fade
+    Alert,
+    CircularProgress
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listarPacientes } from '../../services/pacientesService';
+import { obtenerEstadoCuentaPorPaciente } from '../../services/estadoCuentaService';
 import ConfirmacionPago from './ConfirmacionPago';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const DetalleEstadoCuenta = () => {
     const { userId } = useParams();
     const navigate = useNavigate();
+    const { role } = useAuthContext();
 
-    // Estados originales
-    const [usuario, setUsuario] = useState(null);
-    const [cargandoUsuario, setCargandoUsuario] = useState(false);
-    const [errorUsuario, setErrorUsuario] = useState(null);
+    // Estados principales
+    const [paciente, setPaciente] = useState(null);
+    const [estadoCuenta, setEstadoCuenta] = useState(null);
+
+    // Estados de carga
+    const [cargandoDatos, setCargandoDatos] = useState(false);
+    const [errorDatos, setErrorDatos] = useState(null);
 
     // Estados para el modal de pago
     const [modalPagoAbierto, setModalPagoAbierto] = useState(false);
     const [montoPago, setMontoPago] = useState(0);
     const [tipoPago, setTipoPago] = useState('');
-    const [detalleIdPago, setDetalleIdPago] = useState(null);
+    const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
 
-    // Cargar datos del usuario
+    // Cargar datos del paciente y su estado de cuenta
     useEffect(() => {
-        const cargarUsuario = async () => {
-            setCargandoUsuario(true);
-            setErrorUsuario(null);
+        const cargarDatos = async () => {
+            setCargandoDatos(true);
+            setErrorDatos(null);
 
             try {
-                const resultado = await listarPacientes();
-                console.log('Resultado del servicio:', resultado);
+                // 1. Cargar datos del paciente
+                console.log('Cargando datos para DNI:', userId);
+                const resultadoPacientes = await listarPacientes();
 
-                if (resultado.success) {
-                    // Buscar el usuario específico por ID en los datos del backend
-                    const usuarioEncontrado = resultado.data.find(u => u.dni.toString() === userId);
-
-                    if (usuarioEncontrado) {
-                        // Combinar datos del backend con datos mock para completar la información
-                        setUsuario({
-                            ...usuarioEncontrado,
-                            // Agregar campos adicionales que no vienen del backend
-                            pendientePagar: generarPendientePagar(),
-                            detallesFacturacion: generarDetallesFacturacion()
-                        });
-                    } else {
-                        setErrorUsuario(`Usuario con ID ${userId} no encontrado`);
-                        setUsuario(null);
-                    }
-                } else {
-                    console.error('Error al cargar usuarios:', resultado.message);
-                    setErrorUsuario(resultado.message);
-                    setUsuario(null);
+                if (!resultadoPacientes.success) {
+                    setErrorDatos('Error al cargar datos del paciente: ' + resultadoPacientes.message);
+                    return;
                 }
+
+                // Buscar el paciente específico por DNI
+                const pacienteEncontrado = resultadoPacientes.data.find(p => p.dni.toString() === userId);
+
+                if (!pacienteEncontrado) {
+                    setErrorDatos(`Paciente con DNI ${userId} no encontrado`);
+                    return;
+                }
+
+                console.log('Paciente encontrado:', pacienteEncontrado);
+                setPaciente(pacienteEncontrado);
+
+                // 2. Cargar estado de cuenta
+                const resultadoEstado = await obtenerEstadoCuentaPorPaciente(userId);
+
+                if (resultadoEstado.success) {
+                    console.log('Estado de cuenta obtenido:', resultadoEstado.data);
+                    setEstadoCuenta(resultadoEstado.data);
+                } else {
+                    console.error('Error al cargar estado:', resultadoEstado.message);
+                    setErrorDatos('Error al cargar estado de cuenta: ' + resultadoEstado.message);
+                }
+
             } catch (error) {
                 console.error('Error inesperado:', error);
-                setErrorUsuario('Error inesperado al cargar el usuario');
-                setUsuario(null);
+                setErrorDatos('Error inesperado al cargar los datos');
             } finally {
-                setCargandoUsuario(false);
+                setCargandoDatos(false);
             }
         };
 
         if (userId) {
-            cargarUsuario();
+            cargarDatos();
         }
     }, [userId]);
 
-    // Funciones para generar datos adicionales basados en el usuario real
-    const generarPendientePagar = () => {
-        const valores = ['270.000', '370.000', '150.000', '450.000', '200.000'];
-        return valores[Math.floor(Math.random() * valores.length)];
-    };
-
-    const generarDetallesFacturacion = () => {
-        const detallesBase = [
-            {
-                id: 1,
-                fecha: '15/02/2025',
-                descripcion: 'Fórmula médica: Medicamento A',
-                valor: '$45.000',
-                estado: 'Pagado',
-                accion: null
-            },
-            {
-                id: 2,
-                fecha: '05/03/2025',
-                descripcion: 'Cita Médica: Consulta General',
-                valor: '$60.000',
-                estado: 'Pendiente',
-                accion: 'pagar'
-            },
-            {
-                id: 3,
-                fecha: '20/02/2025',
-                descripcion: 'Exámenes: Examen de tiroides',
-                valor: '$30.000',
-                estado: 'Pendiente',
-                accion: 'pagar'
-            }
-        ];
-
-        // Agregar variaciones aleatorias para diferentes usuarios
-        const variaciones = [
-            {
-                id: 4,
-                fecha: '10/03/2025',
-                descripcion: 'Fisioterapia: Sesión de rehabilitación',
-                valor: '$40.000',
-                estado: 'Pagado',
-                accion: null
-            },
-            {
-                id: 5,
-                fecha: '25/02/2025',
-                descripcion: 'Consulta especializada: Cardiología',
-                valor: '$85.000',
-                estado: 'Pendiente',
-                accion: 'pagar'
-            }
-        ];
-
-        // Retornar detalles base + algunas variaciones aleatorias
-        const detallesAdicionales = variaciones.filter(() => Math.random() > 0.5);
-        return [...detallesBase, ...detallesAdicionales];
-    };
-
     // Funciones para el modal de pago
-    const abrirModalPago = (monto, tipo, detalleId = null) => {
+    const abrirModalPago = (monto, tipo, factura = null) => {
         setMontoPago(monto);
         setTipoPago(tipo);
-        setDetalleIdPago(detalleId);
+        setFacturaSeleccionada(factura);
         setModalPagoAbierto(true);
     };
 
@@ -153,59 +105,106 @@ const DetalleEstadoCuenta = () => {
         setModalPagoAbierto(false);
         setMontoPago(0);
         setTipoPago('');
-        setDetalleIdPago(null);
-    };
+        setFacturaSeleccionada(null);
 
     // Función para manejar el pago individual
-    const handlePagar = (detalleId) => {
-        const detalle = usuario.detallesFacturacion.find(d => d.id === detalleId);
-        if (detalle) {
-            // Extraer el número del valor ($60.000 -> 60000)
-            const valor = parseInt(detalle.valor.replace(/\$|\.|,/g, ''));
-            abrirModalPago(valor, 'individual', detalleId);
-        }
+    const handlePagar = (factura) => {
+        console.log('Iniciando pago para factura:', factura);
+        abrirModalPago(factura.monto, 'individual', factura);
     };
 
-    // Función para pagar todo
+    // Función para pagar todo (solo facturas pendientes)
     const handlePagarTodo = () => {
-        const detallesPendientes = usuario.detallesFacturacion.filter(d => d.estado === 'Pendiente');
-        const totalPendiente = detallesPendientes.reduce((total, detalle) => {
-            return total + parseInt(detalle.valor.replace(/\$|\.|,/g, ''));
-        }, 0);
+        if (!estadoCuenta?.facturas) return;
+
+        const facturasPendientes = estadoCuenta.facturas.filter(f =>
+            f.estado === 'pendiente' || f.estado === 'vencida'
+        );
+
+        const totalPendiente = facturasPendientes.reduce((total, factura) => total + factura.monto, 0);
 
         if (totalPendiente > 0) {
-            abrirModalPago(totalPendiente, 'total');
+            abrirModalPago(totalPendiente, 'total', null);
         }
     };
 
     // Función para volver atrás
     const handleVolver = () => {
-        navigate(-1); // Volver a la página anterior
+        navigate(-1);
     };
 
-    // Funciones para manejar colores de estados (igual que en GestionPagos)
+    // Funciones para manejar colores de estados
     const getEstadoColor = (estado) => {
-        return estado === 'Pagado' ? 'success' : 'warning';
+        switch (estado?.toLowerCase()) {
+            case 'pagada':
+            case 'pagado':
+                return 'success';
+            case 'pendiente':
+                return 'warning';
+            case 'vencida':
+            case 'vencido':
+                return 'error';
+            default:
+                return 'default';
+        }
     };
 
     const getEstadoVariant = (estado) => {
-        return estado === 'Pagado' ? 'contained' : 'outlined';
+        return estado?.toLowerCase() === 'pagada' || estado?.toLowerCase() === 'pagado'
+            ? 'filled'
+            : 'outlined';
     };
 
-    if (cargandoUsuario) {
+    // Función para formatear valores monetarios
+    const formatearMonto = (monto) => {
+        if (!monto && monto !== 0) return 'N/A';
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0
+        }).format(monto);
+    };
+
+    // Función para formatear fechas
+    const formatearFecha = (fecha) => {
+        if (!fecha) return 'N/A';
+        try {
+            return new Date(fecha).toLocaleDateString('es-ES');
+        } catch {
+            return 'N/A';
+        }
+    };
+
+    // Función para obtener descripción de la factura
+    const obtenerDescripcionFactura = (factura) => {
+        if (!factura.detalles || factura.detalles.length === 0) {
+            return `${factura.tipo} - ${formatearFecha(factura.fecha)}`;
+        }
+
+        // Si hay múltiples detalles, mostrar el primer servicio + cantidad
+        if (factura.detalles.length === 1) {
+            return factura.detalles[0].servicio;
+        } else {
+            return `${factura.detalles[0].servicio} (+${factura.detalles.length - 1} más)`;
+        }
+    };
+
+    // Estados de carga y error
+    if (cargandoDatos) {
         return (
             <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="h6">Cargando información del usuario...</Typography>
+                <CircularProgress sx={{ mb: 2 }} />
+                <Typography variant="h6">Cargando información del estado de cuenta...</Typography>
             </Box>
         );
     }
 
-    if (errorUsuario) {
+    if (errorDatos) {
         return (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="h6" color="error" sx={{ mb: 2 }}>
-                    {errorUsuario}
-                </Typography>
+            <Box sx={{ p: 3 }}>
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {errorDatos}
+                </Alert>
                 <Button
                     variant="contained"
                     onClick={handleVolver}
@@ -214,17 +213,17 @@ const DetalleEstadoCuenta = () => {
                         '&:hover': { backgroundColor: '#b71c1c' }
                     }}
                 >
-                    Volver a la lista
+                    ← Volver
                 </Button>
             </Box>
         );
     }
 
-    if (!usuario) {
+    if (!paciente || !estadoCuenta) {
         return (
             <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                    Usuario no encontrado
+                    No se encontraron datos
                 </Typography>
                 <Button
                     variant="contained"
@@ -234,32 +233,50 @@ const DetalleEstadoCuenta = () => {
                         '&:hover': { backgroundColor: '#b71c1c' }
                     }}
                 >
-                    Volver a la lista
+                    ← Volver
                 </Button>
             </Box>
         );
     }
 
-    // Calcular total pendiente para el botón "Pagar Todo"
-    const totalPendiente = usuario.detallesFacturacion
-        .filter(d => d.estado === 'Pendiente')
-        .reduce((total, detalle) => {
-            return total + parseInt(detalle.valor.replace(/\$|\.|,/g, ''));
-        }, 0);
+    // Calcular información derivada
+    const facturasPendientes = estadoCuenta.facturas.filter(f =>
+        f.estado === 'pendiente' || f.estado === 'vencida'
+    );
+    const totalPendienteFacturas = facturasPendientes.reduce((total, factura) => total + factura.monto, 0);
+    const estadoGeneral = estadoCuenta.saldoPendiente > 0 ? 'Pendiente' : 'Al día';
 
     return (
         <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
             {/* Header */}
-            <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: '#333' }}>
-                Detalle Estado de Cuenta
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+                {(role !== 'PACIENTE' &&
+                    <Button
+                        variant="outlined"
+                        onClick={handleVolver}
+                        sx={{
+                            borderColor: '#d32f2f',
+                            color: '#d32f2f',
+                            '&:hover': {
+                                borderColor: '#b71c1c',
+                                backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                            }
+                        }}
+                    >
+                        ← Volver
+                    </Button>
+                )}
+                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#333' }}>
+                    Detalle Estado de Cuenta
+                </Typography>
+            </Box>
 
             {/* Card Principal - Datos del Usuario */}
             <Card sx={{ backgroundColor: 'white', mb: 3, boxShadow: 2 }}>
                 <CardContent sx={{ p: 3 }}>
-                    <Grid container style={{ justifyContent: 'space-between' }}>
+                    <Grid container spacing={3}>
                         {/* Columna Izquierda - Datos de Afiliación */}
-                        <Grid item xs={7}>
+                        <Grid item xs={12} md={7}>
                             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, fontSize: '1.1rem' }}>
                                 Datos de Afiliación
                             </Typography>
@@ -278,43 +295,62 @@ const DetalleEstadoCuenta = () => {
                             }}>
                                 <Box>
                                     <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
-                                        <strong>Afiliado:</strong> {usuario.nombre}
+                                        <strong>Afiliado:</strong> {paciente.nombre}
                                     </Typography>
                                 </Box>
 
                                 <Box>
                                     <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
-                                        <strong>No. Identificación:</strong> {usuario.dni || usuario.identificacion}
+                                        <strong>No. Identificación:</strong> {paciente.tipoDni} {paciente.dni}
                                     </Typography>
                                 </Box>
 
                                 <Box>
                                     <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
-                                        <strong>Estado:</strong> {usuario.estado}
+                                        <strong>Email:</strong> {paciente.email}
                                     </Typography>
                                 </Box>
 
                                 <Box>
                                     <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
-                                        <strong>Plan:</strong> {usuario.plan}
+                                        <strong>Estado:</strong>
+                                        <Chip
+                                            label={estadoGeneral}
+                                            color={getEstadoColor(estadoGeneral)}
+                                            variant={getEstadoVariant(estadoGeneral)}
+                                            size="small"
+                                            sx={{ ml: 1 }}
+                                        />
                                     </Typography>
                                 </Box>
 
                                 <Box>
                                     <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
-                                        <strong>Pendiente por pagar:</strong> {usuario.pendientePagar}
+                                        <strong>Total Pagado:</strong> {formatearMonto(estadoCuenta.totalPagado)}
+                                    </Typography>
+                                </Box>
+
+                                <Box>
+                                    <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
+                                        <strong>Saldo Pendiente:</strong> {formatearMonto(estadoCuenta.saldoPendiente)}
+                                    </Typography>
+                                </Box>
+
+                                <Box>
+                                    <Typography variant="body1" sx={{ fontSize: '0.95rem' }}>
+                                        <strong>Total Facturas:</strong> {estadoCuenta.facturas.length}
                                     </Typography>
                                 </Box>
                             </Box>
                         </Grid>
 
-                        {/* Columna Derecha - Cotizante */}
-                        <Grid item xs={5}>
+                        {/* Columna Derecha - Avatar del Paciente */}
+                        <Grid item xs={12} md={5}>
                             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, fontSize: '1.1rem', textAlign: 'center' }}>
-                                Cotizante
+                                Paciente
                             </Typography>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <Box sx={{
                                     width: 120,
                                     height: 120,
@@ -325,7 +361,8 @@ const DetalleEstadoCuenta = () => {
                                     justifyContent: 'center',
                                     background: 'linear-gradient(135deg, #ff9800, #ffa726)',
                                     border: '1px solid #e0e0e0',
-                                    overflow: 'hidden'
+                                    overflow: 'hidden',
+                                    mb: 2
                                 }}>
                                     <Avatar
                                         sx={{
@@ -335,26 +372,81 @@ const DetalleEstadoCuenta = () => {
                                             fontSize: '2.5rem',
                                             color: 'white'
                                         }}
-                                        src={usuario.avatar || '/api/placeholder/100/100'}
                                     >
-                                        {usuario.nombre?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                        {paciente.nombre?.split(' ').map(n => n[0]).join('').slice(0, 2)}
                                     </Avatar>
                                 </Box>
+
+                                <Typography variant="body2" color="text.secondary" align="center">
+                                    {paciente.nombre}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" align="center">
+                                    DNI: {paciente.dni}
+                                </Typography>
                             </Box>
                         </Grid>
                     </Grid>
                 </CardContent>
             </Card>
 
-            {/* Tabla de Detalles de Facturación */}
+            {/* Resumen Financiero */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} md={4}>
+                    <Card sx={{ bgcolor: '#e8f5e8' }}>
+                        <CardContent sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" color="success.main">
+                                Total Pagado
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                                {formatearMonto(estadoCuenta.totalPagado)}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Card sx={{ bgcolor: '#fff3e0' }}>
+                        <CardContent sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" color="warning.main">
+                                Saldo Pendiente
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                                {formatearMonto(estadoCuenta.saldoPendiente)}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Card sx={{ bgcolor: '#f3e5f5' }}>
+                        <CardContent sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" color="primary.main">
+                                Total Facturas
+                            </Typography>
+                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                                {estadoCuenta.facturas.length}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* Tabla de Facturas */}
             <Card sx={{ backgroundColor: 'white', boxShadow: 2 }}>
                 <CardContent sx={{ p: 0 }}>
+                    <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            Historial de Facturas
+                        </Typography>
+                    </Box>
+
                     <TableContainer>
                         <Table>
                             <TableHead>
                                 <TableRow sx={{ backgroundColor: '#e0e0e0' }}>
                                     <TableCell sx={{ fontWeight: 'bold', fontSize: '1rem', py: 2, textAlign: 'center' }}>
                                         Fecha
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', fontSize: '1rem', py: 2, textAlign: 'center' }}>
+                                        Tipo
                                     </TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', fontSize: '1rem', py: 2, textAlign: 'center' }}>
                                         Descripción
@@ -371,44 +463,46 @@ const DetalleEstadoCuenta = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {usuario.detallesFacturacion.map((detalle, index) => (
+                                {estadoCuenta.facturas
+                                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)) // Ordenar por fecha descendente
+                                    .map((factura) => (
                                     <TableRow
-                                        key={detalle.id}
+                                        key={factura.id}
                                         sx={{
                                             backgroundColor: '#f0f0f0',
                                             '&:hover': { backgroundColor: '#e8e8e8' }
                                         }}
                                     >
                                         <TableCell sx={{ fontSize: '0.95rem', py: 2, textAlign: 'center', fontWeight: 'medium' }}>
-                                            {detalle.fecha}
+                                            {formatearFecha(factura.fecha)}
                                         </TableCell>
                                         <TableCell sx={{ fontSize: '0.95rem', py: 2, textAlign: 'center' }}>
-                                            {detalle.descripcion}
+                                            <Chip
+                                                label={factura.tipo}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        </TableCell>
+                                        <TableCell sx={{ fontSize: '0.95rem', py: 2, textAlign: 'center' }}>
+                                            {obtenerDescripcionFactura(factura)}
                                         </TableCell>
                                         <TableCell sx={{ fontSize: '0.95rem', py: 2, textAlign: 'center', fontWeight: 'medium' }}>
-                                            {detalle.valor}
+                                            {formatearMonto(factura.monto)}
                                         </TableCell>
                                         <TableCell sx={{ fontSize: '0.95rem', py: 2, textAlign: 'center' }}>
-                                            <Typography
-                                                sx={{
-                                                    color: detalle.estado === 'Pagado' ? '#4caf50' : '#ff9800',
-                                                    fontWeight: 'medium'
-                                                }}
-                                            >
-                                                <Chip
-                                                    label={detalle.estado}
-                                                    color={getEstadoColor(detalle.estado)}
-                                                    variant={getEstadoVariant(detalle.estado)}
-                                                    size="small"
-                                                />
-                                            </Typography>
+                                            <Chip
+                                                label={factura.estado.charAt(0).toUpperCase() + factura.estado.slice(1)}
+                                                color={getEstadoColor(factura.estado)}
+                                                variant={getEstadoVariant(factura.estado)}
+                                                size="small"
+                                            />
                                         </TableCell>
                                         <TableCell sx={{ py: 2, textAlign: 'center' }}>
-                                            {detalle.accion === 'pagar' && (
+                                            {(factura.estado === 'pendiente' || factura.estado === 'vencida') && (
                                                 <Button
                                                     variant="contained"
                                                     size="small"
-                                                    onClick={() => handlePagar(detalle.id)}
+                                                    onClick={() => handlePagar(factura)}
                                                     sx={{
                                                         backgroundColor: '#d32f2f',
                                                         color: 'white',
@@ -426,19 +520,23 @@ const DetalleEstadoCuenta = () => {
                                     </TableRow>
                                 ))}
 
-                                {/* Fila de total y botón Pagar Todo */}
-                                {totalPendiente > 0 && (
-                                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
-                                        <TableCell colSpan={3} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                                            Total a pagar: ${totalPendiente.toLocaleString()}
+                                {/* Fila de total y botón Pagar Todo - Solo si hay facturas pendientes */}
+                                {totalPendienteFacturas > 0 && (
+                                    <TableRow sx={{ backgroundColor: '#f8f9fa', borderTop: '2px solid #dee2e6' }}>
+                                        <TableCell colSpan={4} sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: '1rem' }}>
+                                            Total pendiente de pago: {formatearMonto(totalPendienteFacturas)}
                                         </TableCell>
                                         <TableCell colSpan={2} sx={{ textAlign: 'center' }}>
                                             <Button
                                                 variant="contained"
                                                 color="error"
-                                                size="small"
+                                                size="medium"
                                                 onClick={handlePagarTodo}
-                                                sx={{ fontSize: '0.8rem', px: 2 }}
+                                                sx={{
+                                                    fontSize: '0.9rem',
+                                                    px: 3,
+                                                    fontWeight: 'bold'
+                                                }}
                                             >
                                                 Pagar Todo
                                             </Button>
@@ -451,38 +549,17 @@ const DetalleEstadoCuenta = () => {
                 </CardContent>
             </Card>
 
-            {/* Botón para volver */}
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-start' }}>
-                <Button
-                    variant="outlined"
-                    onClick={handleVolver}
-                    sx={{
-                        borderColor: '#d32f2f',
-                        color: '#d32f2f',
-                        textTransform: 'none',
-                        px: 3,
-                        py: 1,
-                        '&:hover': {
-                            borderColor: '#b71c1c',
-                            backgroundColor: 'rgba(211, 47, 47, 0.04)'
-                        }
-                    }}
-                >
-                    ← Volver
-                </Button>
-            </Box>
-
             {/* Modal de Confirmación de Pago */}
             <ConfirmacionPago
                 open={modalPagoAbierto}
                 onClose={cerrarModalPago}
                 idPaciente={userId}
-                idAgenda={detalleIdPago}
+                idAgenda={facturaSeleccionada?.id}
                 montoPago={montoPago}
-                setUsuario={setUsuario}
                 onSuccess={() => {
-                    // Aquí puedes manejar la lógica de confirmación del pago
-                    console.log(`Pago confirmado: ${montoPago} (${tipoPago}) para detalle ID: ${detalleIdPago}`);
+                    console.log(`Pago confirmado: ${montoPago} (${tipoPago})`);
+                    // Recargar datos después del pago
+                    window.location.reload();
                 }}
             />
         </Box>

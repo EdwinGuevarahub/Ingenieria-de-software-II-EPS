@@ -1,25 +1,25 @@
-import axios from "axios";
+import { AxiosInstance } from "../services/axios";
 
-const API_URL = "http://localhost:8080/api/resultados";
+const API_URL = "/resultados";
 
 // Obtener un paciente y el listado de citas pendientes
 export const obtenerPacienteCitas = async (dniPaciente) =>
-  await axios.get(`${API_URL}/citas?dniPaciente=${dniPaciente}`);
+  await AxiosInstance.get(`${API_URL}/citas?dniPaciente=${dniPaciente}`);
 
 // Listas de valores estaticos
 export const obtenerDiagnosticos = async () =>
-  await axios.get(`${API_URL}/lista-diagnosticos`);
+  await AxiosInstance.get(`${API_URL}/lista-diagnosticos`);
 
 export const obtenerMedicamentos = async () =>
-  await axios.get(`${API_URL}/lista-medicamentos`);
+  await AxiosInstance.get(`${API_URL}/lista-medicamentos`);
 
 export const obtenerServiciosMedicos = async () =>
-  await axios.get(`${API_URL}/lista-servicios`);
+  await AxiosInstance.get(`${API_URL}/lista-servicios`);
 
 // Registro del resultado (formula medica o remision)
 export const registrarResultado = async (resultado) =>
-  await axios.post(`${API_URL}`, resultado);
+  await AxiosInstance.post(`${API_URL}`, resultado);
 
 // Actualizar unicamente el resultado de la agenda
 export const actualizarResultadoAgenda = async (idAgenda, resultado) =>
-  await axios.put(`${API_URL}/${idAgenda}`, resultado);
+  await AxiosInstance.put(`${API_URL}/${idAgenda}`, resultado);
