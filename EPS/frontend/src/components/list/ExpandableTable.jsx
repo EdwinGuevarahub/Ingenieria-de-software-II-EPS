@@ -9,12 +9,13 @@ import {
 	TableContainer,
 	TableRow,
 	Typography,
-	IconButton
+	IconButton,
+	CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 
-const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDetails, onExpandedChange = () => {} }) => {
+const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDetails, onExpandedChange = () => { } }) => {
 	const [expandedState, setExpandedState] = useState({
 		index: null, // Índice de la fila expandida
 		loadingIndex: null, // Índice de la fila que está cargando detalles.
@@ -64,11 +65,11 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
 			else if (typeof fetchDetails === 'function')
 				result = [await fetchDetails(row[rowKey])];
 
-      setExpandedState(prevState => ({ ...prevState, details: result }));
+			setExpandedState(prevState => ({ ...prevState, details: result }));
 		} catch (err) {
 			console.error('Error al cargar detalle:', err);
 		} finally {
-      setExpandedState(prevState => ({ ...prevState, loadingIndex: null }));
+			setExpandedState(prevState => ({ ...prevState, loadingIndex: null }));
 		}
 	};
 
@@ -90,7 +91,7 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
 								: {
 									transform: 'scale(1.01)',
 									boxShadow: 6
-								  }
+								}
 						}}
 					>
 						<TableContainer>
@@ -118,16 +119,19 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
 						</TableContainer>
 
 						<Collapse in={expandedState.index === index} timeout="auto" unmountOnExit>
-							<Box sx={{ p: 4, bgcolor: '#f5f5f5', position: 'relative' }}>
+							<Box sx={{ p: 4, bgcolor: '#f9f9f9', position: 'relative' }}>
 								<IconButton
 									size="big"
 									onClick={collapse}
 									sx={{ position: 'absolute', top: 8, right: 8 }}
 								>
-									<CloseIcon/>
+									<CloseIcon />
 								</IconButton>
 								{expandedState.loadingIndex === index ? (
-									<Typography variant="body2">Cargando detalles...</Typography>
+									<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+										<CircularProgress size={24} color="primary" />
+										<Typography variant="body2">Cargando detalles...</Typography>
+									</Box>
 								) : expandedState.details ? (
 									renderExpandedContent(expandedState.details)
 								) : (
@@ -139,7 +143,9 @@ const ExpandableTable = ({ columns, data, rowKey, renderExpandedContent, fetchDe
 				))
 			) : (
 				<Typography variant="body2" sx={{ p: 2 }}>
-					No se han cargado los datos.
+					{data === null
+						? 'Cargando datos...'
+						: 'No se han cargado los datos.'}
 				</Typography>
 			)}
 		</Box>

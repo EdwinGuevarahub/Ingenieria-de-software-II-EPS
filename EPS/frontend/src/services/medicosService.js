@@ -87,3 +87,14 @@ export async function actualizarMedico(data) {
         }
     }
 }
+
+export async function estadoMedico(id) {
+    try {
+        const response = await AxiosInstance.put(`/medico/${id}/activo`);
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw err;
+        }
+    }
+}
