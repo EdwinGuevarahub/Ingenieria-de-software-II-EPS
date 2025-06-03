@@ -1,13 +1,13 @@
-import axios, { isAxiosError } from 'axios';
+import { AxiosInstance } from '../services/axios';
+import { isAxiosError } from 'axios';
 
 // Obtener estado de cuenta por ID de paciente
 export async function obtenerEstadoCuentaPorPaciente(pacienteId) {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get(`http://localhost:8080/api/estado-cuenta?pacienteId=${pacienteId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await AxiosInstance.get('estado-cuenta', {
+      params: {
+        pacienteId: pacienteId
+      }
     });
 
     return {
@@ -83,18 +83,12 @@ export async function obtenerEstadoCuentaPorPaciente(pacienteId) {
 // Buscar estados de cuenta por múltiples pacientes (opcional - para búsquedas)
 export async function buscarEstadosCuenta(filtros) {
   try {
-    const token = localStorage.getItem('authToken');
-
-    // Construir query params
-    const params = new URLSearchParams();
-    if (filtros.pacienteId) params.append('pacienteId', filtros.pacienteId);
-    if (filtros.dni) params.append('dni', filtros.dni);
-    if (filtros.nombre) params.append('nombre', filtros.nombre);
-
-    const response = await axios.get(`http://localhost:8080/api/estado-cuenta?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await AxiosInstance.get('estado-cuenta', {
+      params: {
+        pacienteId: filtros.pacienteId,
+        dni: filtros.dni,
+        nombre: filtros.nombre
+      }
     });
 
     return {

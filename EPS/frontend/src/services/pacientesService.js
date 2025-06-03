@@ -1,14 +1,10 @@
-import axios, { isAxiosError } from 'axios';
+import { AxiosInstance } from '../services/axios';
+import { isAxiosError } from 'axios';
 
 // Obtener todos los pacientes
 export async function listarPacientes() {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get('http://localhost:8080/api/users', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await AxiosInstance.get('users');
 
     return {
       success: true,
@@ -56,7 +52,7 @@ export async function listarPacientes() {
 
       return {
         success: false,
-        message: err.message,
+        message: err.response?.data?.message || err.message,
         status: err.response?.status || 400,
         data: [],
       };
@@ -74,13 +70,7 @@ export async function listarPacientes() {
 // Crear un nuevo paciente
 export async function crearPaciente(datosPaciente) {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.post('http://localhost:8080/api/afiliacion', datosPaciente, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await AxiosInstance.post('afiliacion', datosPaciente);
 
     return {
       success: true,
@@ -164,12 +154,7 @@ export async function crearPaciente(datosPaciente) {
 // Obtener detalles de un paciente específico
 export async function obtenerPaciente(id) {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get(`http://localhost:8080/api/users/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await AxiosInstance.get(`users/${id}`);
 
     return {
       success: true,
@@ -208,7 +193,7 @@ export async function obtenerPaciente(id) {
 
       return {
         success: false,
-        message: err.message,
+        message: err.response?.data?.message || err.message,
         status: err.response?.status || 400,
         data: null,
       };
