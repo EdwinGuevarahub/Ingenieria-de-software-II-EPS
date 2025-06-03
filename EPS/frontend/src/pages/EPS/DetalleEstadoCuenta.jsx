@@ -14,9 +14,6 @@ import {
     Grid,
     Avatar,
     Chip,
-    Modal,
-    Backdrop,
-    Fade,
     Alert,
     CircularProgress
 } from '@mui/material';
