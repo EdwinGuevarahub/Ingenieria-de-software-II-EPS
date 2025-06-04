@@ -26,15 +26,14 @@ public class PacienteService {
      * @throws IllegalArgumentException Si el correo electrónico es nulo.
      */
     public Long findDniByEmail(String email) {
-        if (email == null)
+        if (email == null) {
             throw new IllegalArgumentException("El correo electrónico no puede ser nulo.");
+        }
 
-        Paciente paciente = pacienteRepository.findByEmail(email).orElse(null);
-
-        if (paciente == null)
-            return null;
-
-        return paciente.getDni();
+        return pacienteRepository.findByEmail(email)
+                .map(Paciente::getDni)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró un paciente con el correo: " + email));
     }
+
 
 }

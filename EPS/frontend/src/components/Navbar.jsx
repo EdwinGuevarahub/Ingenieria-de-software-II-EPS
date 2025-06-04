@@ -80,8 +80,11 @@ const Navbar = () => {
             {logged && role === 'PACIENTE' && (
               <>
                 <Button color="inherit" component={Link} to="/paciente/agenda">Consultar Agenda</Button>
-                <Button color="inherit" component={Link} to="/estado-afiliado">Consultar Estado del Afiliado</Button>
-                <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Estado de Cuenta</Button>
+                <Button color="inherit" component={Link} to="/agendar-cita">Solicitar Cita</Button>
+                <Button color="inherit" component={Link} to="/solicitar-examen-medico">Solicitar Examen Médico </Button>
+                <Button color="inherit" component={Link} to="/solicitar-medicamento">Solicitar Medicamento </Button>
+                <Button color="inherit" component={Link} to="/estado-afiliado">Consultar Afiliación</Button>
+                <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Cuenta</Button>
               </>
             )}
           </Box>

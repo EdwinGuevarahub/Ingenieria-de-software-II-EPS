@@ -27,6 +27,8 @@ import com.eps.apexeps.repositories.TrabajaRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.eps.apexeps.models.DTOs.CupsNombreDTO;
+
 
 /**
  * Servicio para manejar la lógica de negocio relacionada con las agendas médicas.
@@ -152,9 +154,9 @@ public class AgendaService {
 
         if (fecha != null)
             try {
-                LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                LocalDate.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));  // <-- aquí el cambio
             } catch (Exception e) {
-                throw new IllegalArgumentException("Fecha inválida. Formato esperado: dd-MM-yyyy");
+                throw new IllegalArgumentException("Fecha inválida. Formato esperado: yyyy-MM-dd");
             }
 
         if (horaDeInicio != null)
@@ -315,10 +317,10 @@ public class AgendaService {
 
         // 2. Afiliación vigente (último pago < 1 año)
         Instant ultimoPago = pagoAfiliacionRepository.findUltimoPago(dto.getDniPaciente());
-        if (ultimoPago == null
-                || ultimoPago.isBefore(Instant.now().minus(365, ChronoUnit.DAYS))) {
-            throw new IllegalStateException("El paciente no tiene afiliación activa");
-        }
+        //if (ultimoPago == null
+        //        || ultimoPago.isBefore(Instant.now().minus(365, ChronoUnit.DAYS))) {
+        //    throw new IllegalStateException("El paciente no tiene afiliación activa");
+        //}
 
         // 3. Relación médico-consultorio
         Trabaja trabaja = dto.getIdConsultorio() == null
@@ -367,12 +369,13 @@ public class AgendaService {
         verificarAfiliacion(dto.getDniPaciente());
 
         /* 2. Valida que la orden exista y corresponda al paciente */
-        Ordena orden = ordenaRepo.validar(
-                        dto.getAgendaOrden(),
-                        dto.getCupsServicio(),
-                        dto.getDniPaciente())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("La orden no existe o no pertenece al paciente"));
+        List<CupsNombreDTO> serviciosAutorizados = ordenaRepo.findCupsAndNamesByOrdenIdAndPaciente(
+                dto.getAgendaOrden(), dto.getDniPaciente());
+
+        if (serviciosAutorizados.stream().noneMatch(s -> s.getCups().equals(dto.getCupsServicio()))) {
+            throw new IllegalArgumentException("El servicio no está autorizado en esta orden");
+        }
+
 
         /* 3. Localiza médico-consultorio */
         Trabaja trabaja = trabajaRepo
@@ -393,7 +396,7 @@ public class AgendaService {
 
         /* 5. Registra en agenda */
         Agenda nueva = Agenda.builder()
-                .paciente(orden.getId().getAgenda().getPaciente())
+                .paciente(pacienteRepository.getReferenceById(dto.getDniPaciente()))
                 .trabaja(trabaja)
                 .fecha(fechaHora)
                 .estado("PENDIENTE")
@@ -418,6 +421,10 @@ public class AgendaService {
         ordenaRepo.save(examen);
 
         return guardada;
+    }
+
+    public List<CupsNombreDTO> getServiciosAutorizados(Integer idOrden, Long dniPaciente) {
+        return ordenaRepo.findCupsAndNamesByOrdenIdAndPaciente(idOrden, dniPaciente);
     }
 
     /* -------- utilidades ---------- */

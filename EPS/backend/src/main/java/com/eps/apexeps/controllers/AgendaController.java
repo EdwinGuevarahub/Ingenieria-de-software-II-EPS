@@ -25,6 +25,8 @@ import com.eps.apexeps.services.MedicoService;
 import com.eps.apexeps.services.PacienteService;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import com.eps.apexeps.models.DTOs.CupsNombreDTO;
 
 /**
  * Controlador REST para manejar las operaciones relacionadas con la agenda de una IPS.
@@ -245,16 +247,36 @@ public class AgendaController {
 
     @PostMapping("/citas")
     public Agenda solicitarCita(@RequestBody SolicitudCitaDTO dto) {
-        try{
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            // Verifica si el usuario autenticado tiene el rol PACIENTE
+            boolean esPaciente = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals(ERol.PACIENTE.name()));
+
+            if (esPaciente) {
+                // Se obtiene el correo (username) del usuario autenticado
+                String email = authentication.getName();
+
+                // Busca el DNI asociado a ese correo
+                Long dni = pacienteService.findDniByEmail(email);
+
+                // Sobrescribe el campo en el DTO, ignorando lo que venga del frontend
+                dto.setDniPaciente(dni);
+            }
+
+            // Llama al servicio como antes
             return agendaService.registrarCita(dto);
+
         } catch (IllegalStateException e) {
             throw new RuntimeException("El paciente no tiene afiliación activa, no puede solicitar citas: " + e.getMessage(), e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Error al solicitar la cita, el paciente no existe: " + e.getMessage(), e);
         } catch (Exception e) {
             throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
         }
     }
+
 
     @PostMapping("/examenes")
     public Agenda solicitarExamen(@RequestBody SolicitudExamenDTO dto) {
@@ -267,6 +289,21 @@ public class AgendaController {
         } catch (Exception e) {
             throw new RuntimeException("Error al solicitar la cita, verifique los datos: " + e.getMessage(), e);
         }
+    }
+
+    @GetMapping("/orden/servicios")
+    public ResponseEntity<List<CupsNombreDTO>> getServiciosDeOrden(@RequestParam Integer idOrden) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        Long dniPaciente = pacienteService.findDniByEmail(email);
+
+        List<CupsNombreDTO> servicios = agendaService.getServiciosAutorizados(idOrden, dniPaciente);
+
+        if (servicios.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        return ResponseEntity.ok(servicios);
     }
 
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
+import axios from 'axios';
 import {
   Box, Typography, Container, FormControl, InputLabel, Select, MenuItem,
   Button, Paper, Snackbar, Alert
@@ -12,60 +13,124 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
+// Reemplaza tu componente AgendarCita por este
 const AgendarCita = () => {
-  // Estados para controlar los valores del formulario
   const [servicio, setServicio] = useState('');
   const [ips, setIps] = useState('');
   const [fecha, setFecha] = useState(null);
   const [horario, setHorario] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Opciones para los selects
-  const servicios = ['Medicina General', 'Odontología', 'Pediatría'];
-  const ipsDisponibles = ['Famisanar', 'Colsanitas', 'Compensar'];
-  const horarios = [
-    '8:00 - 08:20',
-    '8:30 - 08:50',
-    '9:00 - 09:20 Dr. Haessler Ortiz'
-  ];
+  const [servicios, setServicios] = useState([]);
+  const [ipsDisponibles, setIpsDisponibles] = useState([]);
+  const [horarios, setHorarios] = useState([]);
 
-  // Estilos para los menús desplegables Select
-  const menuProps = {
-    PaperProps: {
-      sx: {
-        bgcolor: 'white',  // Fondo blanco del menú desplegable
-        color: 'black',    // Texto negro para legibilidad
-      },
-    },
-  };
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/servicioMedico?qSize=20&qPage=0')
+      .then(res => setServicios(res.data.servicios))
+      .catch(err => console.error('Error cargando servicios:', err));
+  }, []);
 
-  // Acción para mostrar snackbar cuando el formulario está completo
+  // Cargar IPS según servicio
+  useEffect(() => {
+    if (servicio) {
+      axios.get(`http://localhost:8080/api/ips?cupsServicioMedico=${servicio}&qSize=10&qPage=0`)
+        .then(res => setIpsDisponibles(res.data.ips))
+        .catch(err => console.error('Error cargando IPS:', err));
+    } else {
+      setIpsDisponibles([]);
+      setIps('');
+    }
+  }, [servicio]);
+  // Cargar horarios según servicio, ips y fecha
+  useEffect(() => {
+    if (servicio && ips && fecha) {
+      const token = localStorage.getItem('authToken');
+      axios.get(`http://localhost:8080/api/agenda/servicios_ips?cupsServicioMedico=${servicio}&idIPS=${ips}&qSize=10&qPage=0`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(res => {
+        const horariosDisponibles = res.data.resultados
+          .map(item => ({
+            label: `${item.hora} - ${item.nombreMedico}`,
+            value: `${item.fecha} ${item.hora}`,
+            dniMedico: item.dniMedico,
+            idConsultorio: item.idConsultorio
+          }));
+
+        // ⚠️ VALIDACIÓN DE LISTA VACÍA
+        if (!horariosDisponibles || horariosDisponibles.length === 0) {
+          alert('No hay horarios disponibles para la fecha seleccionada. Intente con otra.');
+          setHorarios([]);
+          return;
+        }
+
+        setHorarios(horariosDisponibles);
+      })
+      .catch(err => {
+        console.error('Error cargando horarios:', err);
+        setHorarios([]);
+      });
+    } else {
+      setHorarios([]);
+      setHorario('');
+    }
+  }, [servicio, ips, fecha]);
+
+
   const handleAgendar = () => {
     if (servicio && ips && fecha && horario) {
-      setOpenSnackbar(true);
+      const token = localStorage.getItem('authToken');
+
+      const hora = horario.split(' ')[1]; // Toma solo la hora
+      const slotSeleccionado = horarios.find(h => h.value === horario);
+
+      const payload = {
+        dniMedico: slotSeleccionado?.dniMedico,
+        idConsultorio: slotSeleccionado?.idConsultorio,
+        fecha: fecha.format('YYYY-MM-DD'),
+        hora: hora,
+        cupsServicios: [servicio]
+      };
+
+      console.log("Payload que se enviará:", payload);
+
+      axios.post(
+        'http://localhost:8080/api/agenda/citas',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      .then(() => setOpenSnackbar(true))
+      .catch(err => console.error('Error al agendar cita:', err));
     }
   };
 
+  const menuProps = {
+    PaperProps: {
+      sx: { bgcolor: 'white', color: 'black' },
+    },
+  };
+
   return (
-    // Contenedor principal con fondo beige claro y relleno vertical
     <Box sx={{ bgcolor: '#fefaf4', minHeight: '100vh', py: 8 }}>
-      {/* GlobalStyles para forzar fondo blanco en el calendario emergente */}
       <GlobalStyles styles={{
         '.MuiCalendarOrClockPicker-root, .MuiCalendarPicker-root, .MuiPaper-root': {
           backgroundColor: 'white !important',
         }
       }} />
-
-      {/* Contenedor centrado */}
       <Container maxWidth="sm">
-        {/* Cuadro blanco con sombra para el formulario */}
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff' }}>
-          {/* Título del formulario */}
           <Typography variant="h5" align="center" gutterBottom>
-            Solicitar Cita Medica
+            Solicitar Cita Médica
           </Typography>
 
-          {/* Select para elegir servicio médico */}
+          {/* Servicio Médico */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Servicio médico</InputLabel>
             <Select
@@ -74,13 +139,15 @@ const AgendarCita = () => {
               label="Servicio médico"
               MenuProps={menuProps}
             >
-              {servicios.map((s) => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
+              {servicios.map(s => (
+                <MenuItem key={s.cupsServicioMedico} value={s.cupsServicioMedico}>
+                  {s.nombreServicioMedico}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {/* Select para elegir IPS */}
+          {/* IPS */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Seleccione IPS</InputLabel>
             <Select
@@ -89,40 +156,25 @@ const AgendarCita = () => {
               label="Seleccione IPS"
               MenuProps={menuProps}
             >
-              {ipsDisponibles.map((i) => (
-                <MenuItem key={i} value={i}>{i}</MenuItem>
+              {ipsDisponibles.map(i => (
+                <MenuItem key={i.id} value={i.id}>{i.nombre}</MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {/* Selector de fecha con fondo blanco asegurado */}
+          {/* Fecha */}
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Seleccione la fecha"
               value={fecha}
               onChange={(newValue) => setFecha(newValue)}
               format="DD-MM-YYYY"
+              minDate={dayjs()}
               sx={{ mt: 2, width: '100%' }}
-              // Aquí forzamos fondo blanco en el popup calendario a varios niveles
-              componentsProps={{
-                popper: {
-                  sx: {
-                    '& .MuiPaper-root': {
-                      bgcolor: 'white',
-                    },
-                    '& .MuiCalendarOrClockPicker-root': {
-                      bgcolor: 'white',
-                    },
-                    '& .MuiCalendarPicker-root': {
-                      bgcolor: 'white',
-                    },
-                  },
-                },
-              }}
             />
           </LocalizationProvider>
 
-          {/* Select para elegir horario y especialista */}
+          {/* Horario */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Hora y especialista</InputLabel>
             <Select
@@ -131,13 +183,13 @@ const AgendarCita = () => {
               label="Hora y especialista"
               MenuProps={menuProps}
             >
-              {horarios.map((h) => (
-                <MenuItem key={h} value={h}>{h}</MenuItem>
+              {horarios.map((h, index) => (
+                <MenuItem key={index} value={h.value}>{h.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {/* Botón para agendar cita */}
+          {/* Botón Agendar */}
           <Button
             fullWidth
             variant="contained"
@@ -150,7 +202,7 @@ const AgendarCita = () => {
         </Paper>
       </Container>
 
-      {/* Snackbar de confirmación */}
+      {/* Snackbar */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={4000}
@@ -168,5 +220,6 @@ const AgendarCita = () => {
     </Box>
   );
 };
+
 
 export default AgendarCita;
