@@ -106,6 +106,7 @@ const DetalleEstadoCuenta = () => {
         setMontoPago(0);
         setTipoPago('');
         setFacturaSeleccionada(null);
+    };
 
     // Función para manejar el pago individual
     const handlePagar = (factura) => {
