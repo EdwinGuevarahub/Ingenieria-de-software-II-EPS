@@ -71,7 +71,7 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Estado de Cuenta</Button>
                 <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
                 <Button color="inherit" component={Link} to="/agendar-cita-admin">Solicitar Cita</Button>
-                <Button color="inherit" component={Link} to="/solicitar-examen-medico">Solicitar Examen Médico</Button>
+                {/* <Button color="inherit" component={Link} to="/solicitar-examen-medico">Solicitar Examen Médico</Button> */}
               </>
             )}
 
