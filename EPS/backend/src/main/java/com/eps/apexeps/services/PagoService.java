@@ -68,7 +68,6 @@ public class PagoService {
         }
 
         agenda.setFechaPago(dto.getFechaPago().atZone(ZoneId.systemDefault()).toInstant());
-        agenda.setEstado(dto.getEstado() != null ? dto.getEstado() : "COMPLETADA"); // Marca como completada si no se especifica
         Agenda actualizado = agendaRepository.save(agenda);
 
         return new AgendaPagoDTO(
