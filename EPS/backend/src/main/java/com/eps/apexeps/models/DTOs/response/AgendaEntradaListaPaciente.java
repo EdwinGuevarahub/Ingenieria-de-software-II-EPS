@@ -41,9 +41,9 @@ public class AgendaEntradaListaPaciente {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return AgendaEntradaListaPaciente.builder()
                 .idAgenda(agenda.getId())
-                // TODO: Revisar cómo determinar la zona horaria.
-                .fecha(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalDate().format(formatter))
-                .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC")).toLocalTime())
+                // TODO: Revisar cómo determinar la zona horaria. Hotfix: Quemar UTC-5
+                .fecha(agenda.getFecha().atZone(ZoneId.of("UTC-5")).toLocalDate().format(formatter))
+                .horaInicio(agenda.getFecha().atZone(ZoneId.of("UTC-5")).toLocalTime())
                 .nombreIps(agenda.getTrabaja().getConsultorio().getId().getIps().getNombre())
                 .nombreServicioMedico(agenda.getTrabaja().getConsultorio().getServicioMedico().getNombre())
                 .nombreMedico(agenda.getTrabaja().getMedico().getNombre())
