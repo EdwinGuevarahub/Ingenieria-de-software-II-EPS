@@ -31,6 +31,11 @@ const AppRouter = () => (
     {/*Rutas varias*/}
     <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
     <Route path="/HomeEPS" element={<LandingLayout><HomeAdmEPS /></LandingLayout>} />
+    <Route path="/HomeIPS" element={
+      <IpsContextProvider>
+        <LandingLayout><HomeAdmIPS /></LandingLayout>
+      </IpsContextProvider>
+    } />
     <Route path="/signIn" element={<MainLayout><Login /></MainLayout>} />
 
     {/*Rutas para la parte de EPS*/}
