@@ -203,6 +203,23 @@ public class MedicoController {
     }
 
     /**
+     * Endpoint para cambiar el estado de un médico (activo/inactivo).
+     * @param dniMedico El DNI del médico. 
+     * @return El médico actualizado.
+     * @throws RuntimeException Si ocurre un error al cambiar el estado del médico.
+     */
+    @PutMapping("/{dniMedico}/activo")
+    public ResponseEntity<?> cambiarEstadoIps(
+            @PathVariable Long dniMedico) {
+        try {
+            Medico medicoActualizado = medicoService.actualizarActivo(dniMedico);
+            return ResponseEntity.ok(medicoActualizado);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cambiar el estado de la IPS: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Endpoint para eliminar un dominio de servicio médico de un médico.
      * @param dniMedico El DNI del médico.
      * @param cupsServicioMedico El código CUPS del servicio médico a eliminar.

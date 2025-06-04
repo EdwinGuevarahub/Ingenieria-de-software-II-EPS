@@ -18,13 +18,16 @@ import {
   Backdrop,
   Fade,
 } from '@mui/material';
-import { crearPaciente } from '../../services/pacientesService'; // Importar el servicio
+import { crearPaciente } from '../../services/pacientesService';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const GestionAfiliado = () => {
+  const { subEmail } = useAuthContext();
   // Estados para el formulario
   const [datosAfiliado, setDatosAfiliado] = useState({
     // Datos cotizante (titular)
     dniCotizante: '',
+    tipoDniCotizante: '',
     nombreCotizante: '',
     fechaNacimientoCotizante: '',
     emailCotizante: '',
@@ -33,26 +36,29 @@ const GestionAfiliado = () => {
     sexoCotizante: '',
     direccionCotizante: '',
 
-    // Datos administrador registrador
-    emailAdmRegistrador: '',
-    nombreAdmRegistrador: '',
-    passwordAdmRegistrador: '',
-    telefonoAdmRegistrador: '',
+    // Datos administrador registrador (solo email)
+    admRegistradorEmail: subEmail,
 
-    // Beneficiarios (array de beneficiarios) - Por defecto vacío
+    // Beneficiarios (array de beneficiarios)
     beneficiarios: []
   });
 
   // Estados para la UI
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
-  const [tipoMensaje, setTipoMensaje] = useState('success'); // 'success', 'error', 'warning'
-  const [mostrarValidacion, setMostrarValidacion] = useState(false); // Para mostrar errores visuales
+  const [tipoMensaje, setTipoMensaje] = useState('success');
+  const [mostrarValidacion, setMostrarValidacion] = useState(false);
 
   // Estados para modales de resultado
   const [modalExitoAbierto, setModalExitoAbierto] = useState(false);
   const [modalErrorAbierto, setModalErrorAbierto] = useState(false);
   const [mensajeError, setMensajeError] = useState('');
+
+  const opcionesTipoDni = [
+    { value: 'CC', label: 'Cédula de Ciudadanía' },
+    { value: 'TI', label: 'Tarjeta de Identidad' },
+    { value: 'PP', label: 'Pasaporte' }
+  ];
 
   const opcionesSexo = [
     { value: 'M', label: 'Masculino' },
@@ -163,7 +169,6 @@ const GestionAfiliado = () => {
   };
 
   const agregarBeneficiario = () => {
-    // Solo permitir máximo 3 beneficiarios
     if (datosAfiliado.beneficiarios.length < 3) {
       setDatosAfiliado(prev => ({
         ...prev,
@@ -171,13 +176,14 @@ const GestionAfiliado = () => {
           ...prev.beneficiarios,
           {
             dni: '',
+            tipoDni: '',
             nombre: '',
             fechaNacimiento: '',
             email: '',
             password: '',
             telefono: '',
             sexo: '',
-            parentesco: '',
+            parentezco: '',
             direccion: ''
           }
         ]
@@ -195,7 +201,6 @@ const GestionAfiliado = () => {
   const mostrarMensaje = (texto, tipo = 'success') => {
     setMensaje(texto);
     setTipoMensaje(tipo);
-    // Ocultar mensaje después de 5 segundos
     setTimeout(() => {
       setMensaje(null);
     }, 5000);
@@ -212,7 +217,7 @@ const GestionAfiliado = () => {
 
   const cerrarModalExito = () => {
     setModalExitoAbierto(false);
-    setMostrarValidacion(false); // Resetear validación visual
+    setMostrarValidacion(false);
     limpiarFormulario();
   };
 
@@ -224,6 +229,7 @@ const GestionAfiliado = () => {
   const limpiarFormulario = () => {
     setDatosAfiliado({
       dniCotizante: '',
+      tipoDniCotizante: '',
       nombreCotizante: '',
       fechaNacimientoCotizante: '',
       emailCotizante: '',
@@ -231,30 +237,58 @@ const GestionAfiliado = () => {
       telefonoCotizante: '',
       sexoCotizante: '',
       direccionCotizante: '',
-      emailAdmRegistrador: '',
-      nombreAdmRegistrador: '',
-      passwordAdmRegistrador: '',
-      telefonoAdmRegistrador: '',
+      admRegistradorEmail: subEmail,
       beneficiarios: []
     });
   };
 
   const validarFormulario = () => {
-    setMostrarValidacion(true); // Activar validación visual
+    setMostrarValidacion(true);
 
-    // Validar cotizante
-    if (!datosAfiliado.dniCotizante || !datosAfiliado.nombreCotizante ||
-        !datosAfiliado.emailCotizante || !datosAfiliado.passwordCotizante) {
+    // Validar cotizante (campos obligatorios)
+    if (!datosAfiliado.dniCotizante || !datosAfiliado.tipoDniCotizante ||
+        !datosAfiliado.nombreCotizante || !datosAfiliado.emailCotizante ||
+        !datosAfiliado.passwordCotizante) {
       mostrarModalError('Por favor complete todos los campos requeridos del cotizante');
+      return false;
+    }
+
+    // Validar formato de email del cotizante
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(datosAfiliado.emailCotizante)) {
+      mostrarModalError('Por favor ingrese un email válido para el cotizante');
       return false;
     }
 
     // Validar beneficiarios si existen
     for (let i = 0; i < datosAfiliado.beneficiarios.length; i++) {
       const beneficiario = datosAfiliado.beneficiarios[i];
-      if (!beneficiario.dni || !beneficiario.nombre || !beneficiario.email || !beneficiario.password) {
+
+      // Campos obligatorios para beneficiarios
+      if (!beneficiario.dni || !beneficiario.tipoDni || !beneficiario.nombre ||
+          !beneficiario.email || !beneficiario.password || !beneficiario.parentezco) {
         mostrarModalError(`Por favor complete todos los campos requeridos del beneficiario ${i + 1}`);
         return false;
+      }
+
+      // Validar email del beneficiario
+      if (!emailRegex.test(beneficiario.email)) {
+        mostrarModalError(`Por favor ingrese un email válido para el beneficiario ${i + 1}`);
+        return false;
+      }
+
+      // Verificar que no se repitan DNIs
+      if (beneficiario.dni === datosAfiliado.dniCotizante) {
+        mostrarModalError(`El DNI del beneficiario ${i + 1} no puede ser igual al del cotizante`);
+        return false;
+      }
+
+      // Verificar DNIs únicos entre beneficiarios
+      for (let j = i + 1; j < datosAfiliado.beneficiarios.length; j++) {
+        if (beneficiario.dni === datosAfiliado.beneficiarios[j].dni) {
+          mostrarModalError(`Los beneficiarios ${i + 1} y ${j + 1} tienen el mismo DNI`);
+          return false;
+        }
       }
     }
 
@@ -262,51 +296,37 @@ const GestionAfiliado = () => {
   };
 
   const construirJSONRequest = () => {
-    // Construir objeto principal del cotizante
-    const cotizante = {
+    // Construir objeto principal con la nueva estructura
+    const requestData = {
       dni: parseInt(datosAfiliado.dniCotizante),
-      beneficiario: null, // El cotizante no tiene beneficiario
+      tipoDni: datosAfiliado.tipoDniCotizante,
       nombre: datosAfiliado.nombreCotizante,
       fechaNacimiento: datosAfiliado.fechaNacimientoCotizante,
+      sexo: datosAfiliado.sexoCotizante,
       email: datosAfiliado.emailCotizante,
       password: datosAfiliado.passwordCotizante,
       telefono: datosAfiliado.telefonoCotizante,
-      sexo: datosAfiliado.sexoCotizante,
       direccion: datosAfiliado.direccionCotizante,
-      admRegistrador: {
-        email: datosAfiliado.emailAdmRegistrador,
-        nombre: datosAfiliado.nombreAdmRegistrador,
-        password: datosAfiliado.passwordAdmRegistrador,
-        telefono: datosAfiliado.telefonoAdmRegistrador
-      },
-      fechaAfiliacion: new Date().toISOString()
+      parentezco: null, // Siempre null para el cotizante
+      admRegistradorEmail: subEmail,
+      fechaAfiliacion: new Date().toISOString(),
+      beneficiarios: datosAfiliado.beneficiarios.map(beneficiario => ({
+        dni: parseInt(beneficiario.dni),
+        tipoDni: beneficiario.tipoDni,
+        nombre: beneficiario.nombre,
+        fechaNacimiento: beneficiario.fechaNacimiento,
+        sexo: beneficiario.sexo,
+        email: beneficiario.email,
+        password: beneficiario.password,
+        parentezco: beneficiario.parentezco,
+        telefono: beneficiario.telefono,
+        direccion: beneficiario.direccion,
+        admRegistradorEmail: datosAfiliado.admRegistradorEmail,
+        fechaAfiliacion: new Date().toISOString()
+      }))
     };
 
-    // Construir array de beneficiarios
-    const beneficiarios = datosAfiliado.beneficiarios.map(beneficiario => ({
-      dni: parseInt(beneficiario.dni),
-      beneficiario: datosAfiliado.dniCotizante, // DNI del cotizante como beneficiario
-      nombre: beneficiario.nombre,
-      fechaNacimiento: beneficiario.fechaNacimiento,
-      email: beneficiario.email,
-      password: beneficiario.password,
-      telefono: beneficiario.telefono,
-      sexo: beneficiario.sexo,
-      parentesco: beneficiario.parentesco,
-      direccion: beneficiario.direccion,
-      admRegistrador: {
-        email: datosAfiliado.emailAdmRegistrador,
-        nombre: datosAfiliado.nombreAdmRegistrador,
-        password: datosAfiliado.passwordAdmRegistrador,
-        telefono: datosAfiliado.telefonoAdmRegistrador
-      },
-      fechaAfiliacion: new Date().toISOString()
-    }));
-
-    return {
-      cotizante,
-      beneficiarios
-    };
+    return requestData;
   };
 
   const handleValidar = () => {
@@ -315,7 +335,7 @@ const GestionAfiliado = () => {
 
     if (validarFormulario()) {
       mostrarMensaje('Formulario validado correctamente', 'success');
-      setMostrarValidacion(false); // Ocultar errores visuales si todo está bien
+      setMostrarValidacion(false);
     }
   };
 
@@ -331,41 +351,14 @@ const GestionAfiliado = () => {
       const requestData = construirJSONRequest();
       console.log('JSON para el request POST:', requestData);
 
-      // Crear cotizante primero
-      const resultadoCotizante = await crearPaciente(requestData.cotizante);
+      // Enviar la nueva estructura al servicio
+      const resultado = await crearPaciente(requestData);
 
-      if (!resultadoCotizante.success) {
-        mostrarModalError(resultadoCotizante.message);
-        setCargando(false);
-        return;
-      }
-
-      console.log('Cotizante creado exitosamente:', resultadoCotizante.data);
-
-      // Crear beneficiarios si existen
-      if (requestData.beneficiarios.length > 0) {
-        const resultadosBeneficiarios = [];
-        let erroresBeneficiarios = [];
-
-        for (const beneficiario of requestData.beneficiarios) {
-          const resultadoBeneficiario = await crearPaciente(beneficiario);
-
-          if (resultadoBeneficiario.success) {
-            resultadosBeneficiarios.push(resultadoBeneficiario.data);
-            console.log('Beneficiario creado exitosamente:', resultadoBeneficiario.data);
-          } else {
-            console.error('Error creando beneficiario:', resultadoBeneficiario.message);
-            erroresBeneficiarios.push(resultadoBeneficiario.message);
-          }
-        }
-
-        if (erroresBeneficiarios.length > 0) {
-          mostrarModalError(`Cotizante creado pero hubo errores con beneficiarios: ${erroresBeneficiarios.join(', ')}`);
-        } else {
-          mostrarModalExito();
-        }
-      } else {
+      if (resultado.success) {
+        console.log('Afiliado creado exitosamente:', resultado.data);
         mostrarModalExito();
+      } else {
+        mostrarModalError(resultado.message || 'Error al crear el afiliado');
       }
 
     } catch (error) {
@@ -418,6 +411,27 @@ const GestionAfiliado = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl
+                fullWidth
+                size="small"
+                sx={getFormControlStyles(true, datosAfiliado.tipoDniCotizante)}
+                error={esCampoObligatorioVacio(datosAfiliado.tipoDniCotizante)}
+              >
+                <InputLabel>{getLabelConAsterisco("Tipo de Documento")}</InputLabel>
+                <Select
+                  value={datosAfiliado.tipoDniCotizante}
+                  label={getLabelConAsterisco("Tipo de Documento")}
+                  onChange={(e) => handleInputChange('Cotizante', 'tipoDni', e.target.value)}
+                >
+                  {opcionesTipoDni.map((opcion) => (
+                    <MenuItem key={opcion.value} value={opcion.value}>
+                      {opcion.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 label={getLabelConAsterisco("Nombre completo")}
@@ -453,7 +467,6 @@ const GestionAfiliado = () => {
                   value={datosAfiliado.sexoCotizante}
                   label="Sexo"
                   onChange={(e) => handleInputChange('Cotizante', 'sexo', e.target.value)}
-                  style={{minWidth: '100px'}}
                 >
                   {opcionesSexo.map((opcion) => (
                     <MenuItem key={opcion.value} value={opcion.value}>
@@ -516,7 +529,6 @@ const GestionAfiliado = () => {
           {/* Sección Beneficiarios */}
           <Divider sx={{ my: 4 }} />
 
-          {/* Header de Beneficiarios con botón para agregar */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
               Beneficiarios {datosAfiliado.beneficiarios.length > 0 && `(${datosAfiliado.beneficiarios.length}/3)`}
@@ -534,7 +546,6 @@ const GestionAfiliado = () => {
             </Button>
           </Box>
 
-          {/* Mostrar mensaje si no hay beneficiarios */}
           {datosAfiliado.beneficiarios.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
               No hay beneficiarios agregados. Haga clic en "Agregar Beneficiario" para añadir uno.
@@ -572,6 +583,27 @@ const GestionAfiliado = () => {
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    sx={getFormControlStyles(true, beneficiario.tipoDni)}
+                    error={esCampoObligatorioVacio(beneficiario.tipoDni)}
+                  >
+                    <InputLabel>{getLabelConAsterisco("Tipo de Documento")}</InputLabel>
+                    <Select
+                      value={beneficiario.tipoDni}
+                      label={getLabelConAsterisco("Tipo de Documento")}
+                      onChange={(e) => handleInputChange('beneficiarios', 'tipoDni', e.target.value, index)}
+                    >
+                      {opcionesTipoDni.map((opcion) => (
+                        <MenuItem key={opcion.value} value={opcion.value}>
+                          {opcion.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label={getLabelConAsterisco("Nombre completo")}
@@ -607,7 +639,6 @@ const GestionAfiliado = () => {
                       value={beneficiario.sexo}
                       label="Sexo"
                       onChange={(e) => handleInputChange('beneficiarios', 'sexo', e.target.value, index)}
-                      style={{minWidth: '100px'}}
                     >
                       {opcionesSexo.map((opcion) => (
                         <MenuItem key={opcion.value} value={opcion.value}>
@@ -621,14 +652,14 @@ const GestionAfiliado = () => {
                   <FormControl
                     fullWidth
                     size="small"
-                    sx={getFormControlStyles(false, beneficiario.parentesco)}
+                    sx={getFormControlStyles(true, beneficiario.parentezco)}
+                    error={esCampoObligatorioVacio(beneficiario.parentezco)}
                   >
-                    <InputLabel>Parentesco</InputLabel>
+                    <InputLabel>{getLabelConAsterisco("Parentesco")}</InputLabel>
                     <Select
-                      value={beneficiario.parentesco}
-                      label="Parentesco"
-                      onChange={(e) => handleInputChange('beneficiarios', 'parentesco', e.target.value, index)}
-                      style={{minWidth: '100px'}}
+                      value={beneficiario.parentezco}
+                      label={getLabelConAsterisco("Parentesco")}
+                      onChange={(e) => handleInputChange('beneficiarios', 'parentezco', e.target.value, index)}
                     >
                       {opcionesParentesco.map((opcion) => (
                         <MenuItem key={opcion.value} value={opcion.value}>
@@ -805,6 +836,10 @@ const GestionAfiliado = () => {
               </Typography>
             </Box>
 
+            <Typography variant="body1" sx={{ mb: 3, color: '#666' }}>
+              El afiliado ha sido registrado correctamente en el sistema
+            </Typography>
+
             <Button
               variant="contained"
               onClick={cerrarModalExito}
@@ -856,7 +891,7 @@ const GestionAfiliado = () => {
               mb: 3,
               color: '#333'
             }}>
-              Registro no exitoso
+              Error en el registro
             </Typography>
 
             {/* Icono de X */}

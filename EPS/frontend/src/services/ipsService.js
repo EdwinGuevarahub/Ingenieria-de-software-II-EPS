@@ -97,3 +97,14 @@ export async function actualizarIPS(data) {
         }
     }
 }
+
+export async function estadoIPS(id) {
+    try {
+        const response = await AxiosInstance.put(`/ips/${id}/activo`);
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw err;
+        }
+    }
+}

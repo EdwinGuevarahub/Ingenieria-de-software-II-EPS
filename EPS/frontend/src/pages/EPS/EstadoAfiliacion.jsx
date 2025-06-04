@@ -12,7 +12,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Grid,
   Avatar,
   Modal,
   Backdrop,
@@ -29,8 +28,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import { listarPacientes } from '../../services/pacientesService';
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const EstadoAfiliacion = () => {
+  const { subEmail, role } = useAuthContext();
+
   const navigate = useNavigate();
 
   // Estado para el filtro de búsqueda
@@ -74,6 +76,24 @@ const EstadoAfiliacion = () => {
     cargarPacientes();
   }, []);
 
+  // Auto-seleccionar paciente si el rol es PACIENTE
+  useEffect(() => {
+    if (role === 'PACIENTE' && pacientes.length > 0 && subEmail) {
+      // Buscar el paciente que coincida con el email del usuario logueado
+      const pacienteLogueado = pacientes.find(paciente =>
+        paciente.email?.toLowerCase() === subEmail.toLowerCase()
+      );
+
+      if (pacienteLogueado) {
+        setAfiliadoSeleccionado(pacienteLogueado);
+        console.log('Paciente auto-seleccionado:', pacienteLogueado);
+      } else {
+        console.log('No se encontró paciente con email:', subEmail);
+        setErrorPacientes('No se encontró información de afiliación para su cuenta');
+      }
+    }
+  }, [pacientes, role, subEmail]);
+
   // Función para determinar si es cotizante o beneficiario
   const esCotizante = (usuario) => {
     return usuario.beneficiario === null;
@@ -103,8 +123,12 @@ const EstadoAfiliacion = () => {
     }
   };
 
-  // Filtrar pacientes según el texto de búsqueda
+  // Filtrar pacientes según el texto de búsqueda (solo para no-PACIENTE)
   const pacientesFiltrados = useMemo(() => {
+    if (role === 'PACIENTE') {
+      return []; // Los pacientes no necesitan filtrar
+    }
+
     if (!filtroTexto.trim()) {
       return [];
     }
@@ -116,7 +140,7 @@ const EstadoAfiliacion = () => {
       paciente.dni?.toString().includes(textoFiltro) ||
       paciente.email?.toLowerCase().includes(textoFiltro)
     );
-  }, [filtroTexto, pacientes]);
+  }, [filtroTexto, pacientes, role]);
 
   // Función para seleccionar un afiliado
   const seleccionarAfiliado = (afiliado) => {
@@ -140,7 +164,6 @@ const EstadoAfiliacion = () => {
     setAfiliadoSeleccionado(null);
   };
 
-  // Datos de beneficiarios mock (basados en el afiliado seleccionado)
   const obtenerBeneficiarios = (titular) => {
     if (!titular) return [];
 
@@ -148,29 +171,6 @@ const EstadoAfiliacion = () => {
     const beneficiarios = pacientes.filter(paciente =>
       paciente.beneficiario && paciente.beneficiario.dni === titular.dni
     );
-
-    // Si no hay beneficiarios reales, usar datos mock
-    if (beneficiarios.length === 0) {
-      const apellido = titular.nombre.split(' ').pop();
-      return [
-        {
-          id: 1,
-          nombre: `María Antonia ${apellido}`,
-          relacion: 'Cónyuge',
-          documento: '98765243',
-          fechaNacimiento: '22/03/1987',
-          afiliadoDesde: '19/03/2018'
-        },
-        {
-          id: 2,
-          nombre: `Andrea ${apellido}`,
-          relacion: 'Hijo (a)',
-          documento: '1122334455',
-          fechaNacimiento: '11/09/2010',
-          afiliadoDesde: '22/03/2018'
-        }
-      ];
-    }
 
     // Transformar beneficiarios reales
     return beneficiarios.map((beneficiario, index) => ({
@@ -206,172 +206,289 @@ const EstadoAfiliacion = () => {
         Estado de afiliación
       </Typography>
 
-      {/* Sección de Búsqueda */}
-      <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-        {/* Left Section - Search */}
-        <Box sx={{ flex: 1, maxWidth: '50%' }}>
-          <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
-            Busque por cédula
-          </Typography>
-          <Typography variant="caption" sx={{ mb: 2, color: 'text.secondary', display: 'block' }}>
-            Digite la cédula del afiliado a consultar
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <TextField
-              placeholder="Buscar por cédula o nombre"
-              variant="outlined"
-              size="small"
-              value={filtroTexto}
-              onChange={(e) => setFiltroTexto(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleBuscar();
-                }
-              }}
-              disabled={cargandoPacientes}
-              sx={{ flex: 1 }}
-            />
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#d32f2f',
-                '&:hover': { backgroundColor: '#b71c1c' },
-                minWidth: 'auto',
-                px: 2
-              }}
-              onClick={handleBuscar}
-              disabled={cargandoPacientes}
-            >
-              {cargandoPacientes ? 'Cargando...' : 'Buscar'}
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: '#d32f2f',
-                color: '#d32f2f',
-                '&:hover': { borderColor: '#b71c1c', backgroundColor: 'rgba(211, 47, 47, 0.04)' },
-                minWidth: 'auto',
-                px: 2
-              }}
-              onClick={limpiarFiltro}
-            >
-              Limpiar
-            </Button>
+      {/* Sección de Búsqueda - Solo mostrar si NO es PACIENTE */}
+      {role !== 'PACIENTE' && (
+        <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+          {/* Left Section - Search */}
+          <Box sx={{ flex: 1, maxWidth: '50%' }}>
+            <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+              Busque por cédula
+            </Typography>
+            <Typography variant="caption" sx={{ mb: 2, color: 'text.secondary', display: 'block' }}>
+              Digite la cédula del afiliado a consultar
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <TextField
+                placeholder="Buscar por cédula o nombre"
+                variant="outlined"
+                size="small"
+                value={filtroTexto}
+                onChange={(e) => setFiltroTexto(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleBuscar();
+                  }
+                }}
+                disabled={cargandoPacientes}
+                sx={{ flex: 1 }}
+              />
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: '#d32f2f',
+                  '&:hover': { backgroundColor: '#b71c1c' },
+                  minWidth: 'auto',
+                  px: 2
+                }}
+                onClick={handleBuscar}
+                disabled={cargandoPacientes}
+              >
+                {cargandoPacientes ? 'Cargando...' : 'Buscar'}
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{
+                  borderColor: '#d32f2f',
+                  color: '#d32f2f',
+                  '&:hover': { borderColor: '#b71c1c', backgroundColor: 'rgba(211, 47, 47, 0.04)' },
+                  minWidth: 'auto',
+                  px: 2
+                }}
+                onClick={limpiarFiltro}
+              >
+                Limpiar
+              </Button>
+            </Box>
+
+            {/* Mostrar errores si existen */}
+            {errorPacientes && (
+              <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                Error pacientes: {errorPacientes}
+              </Typography>
+            )}
+
+            {/* Resultados de búsqueda */}
+            <Collapse in={mostrarResultados && pacientesFiltrados.length > 0}>
+              <Card sx={{ mb: 2 }}>
+                <CardContent sx={{ py: 1 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Afiliados encontrados ({pacientesFiltrados.length}):
+                  </Typography>
+                  <List dense>
+                    {pacientesFiltrados.map((paciente) => (
+                      <ListItem key={paciente.dni} disablePadding>
+                        <ListItemButton onClick={() => seleccionarAfiliado(paciente)}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: getColorTipo(paciente) === 'primary' ? '#1976d2' : '#9c27b0' }}>
+                              {esCotizante(paciente) ? <PersonIcon /> : <FamilyRestroomIcon />}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={paciente.nombre}
+                            secondary={`DNI: ${paciente.dni} - ${getTipoUsuario(paciente)}`}
+                            primaryTypographyProps={{ fontSize: '0.875rem' }}
+                            secondaryTypographyProps={{ fontSize: '0.75rem' }}
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            </Collapse>
+
+            {/* Mensaje cuando no hay resultados */}
+            {mostrarResultados && pacientesFiltrados.length === 0 && (
+              <Typography variant="body2" color="text.secondary">
+                No se encontraron afiliados para "{filtroTexto}"
+              </Typography>
+            )}
           </Box>
 
-          {/* Mostrar errores si existen */}
-          {errorPacientes && (
-            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-              Error pacientes: {errorPacientes}
-            </Typography>
-          )}
+          {/* Right Section - Info Rápida */}
+          <Card sx={{ flex: 1, maxWidth: '50%' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Información del Afiliado
+              </Typography>
 
-          {/* Resultados de búsqueda */}
-          <Collapse in={mostrarResultados && pacientesFiltrados.length > 0}>
-            <Card sx={{ mb: 2 }}>
-              <CardContent sx={{ py: 1 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Afiliados encontrados ({pacientesFiltrados.length}):
-                </Typography>
-                <List dense>
-                  {pacientesFiltrados.map((paciente) => (
-                    <ListItem key={paciente.dni} disablePadding>
-                      <ListItemButton onClick={() => seleccionarAfiliado(paciente)}>
-                        <ListItemAvatar>
-                          <Avatar sx={{ width: 32, height: 32, bgcolor: getColorTipo(paciente) === 'primary' ? '#1976d2' : '#9c27b0' }}>
-                            {esCotizante(paciente) ? <PersonIcon /> : <FamilyRestroomIcon />}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={paciente.nombre}
-                          secondary={`DNI: ${paciente.dni} - ${getTipoUsuario(paciente)}`}
-                          primaryTypographyProps={{ fontSize: '0.875rem' }}
-                          secondaryTypographyProps={{ fontSize: '0.75rem' }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Collapse>
+              {afiliadoSeleccionado ? (
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                        Afiliado:
+                      </Typography>
+                      <Typography variant="body2">
+                        {afiliadoSeleccionado.nombre}
+                      </Typography>
+                    </Box>
 
-          {/* Mensaje cuando no hay resultados */}
-          {mostrarResultados && pacientesFiltrados.length === 0 && (
-            <Typography variant="body2" color="text.secondary">
-              No se encontraron afiliados para "{filtroTexto}"
-            </Typography>
-          )}
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                        No. Identificación:
+                      </Typography>
+                      <Typography variant="body2">
+                        {afiliadoSeleccionado.tipoDni} {afiliadoSeleccionado.dni}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                        Tipo:
+                      </Typography>
+                      <Chip
+                        label={getTipoUsuario(afiliadoSeleccionado)}
+                        color={getColorTipo(afiliadoSeleccionado)}
+                        size="small"
+                        icon={esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      {getTipoUsuario(afiliadoSeleccionado)}
+                    </Typography>
+                    <Avatar
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        mb: 1,
+                        bgcolor: getColorTipo(afiliadoSeleccionado) === 'primary' ? '#1976d2' : '#9c27b0'
+                      }}
+                      alt="Afiliado"
+                    >
+                      {esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
+                    </Avatar>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Busque y seleccione un afiliado para ver su estado de afiliación
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         </Box>
+      )}
 
-        {/* Right Section - Info Rápida */}
-        <Card sx={{ flex: 1, maxWidth: '50%' }}>
+      {/* Para PACIENTE - Mostrar card de información si está cargando o hay error */}
+      {role === 'PACIENTE' && !afiliadoSeleccionado && (
+        <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Información del Afiliado
+              Mi Información de Afiliación
             </Typography>
 
-            {afiliadoSeleccionado ? (
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
-                      Afiliado:
-                    </Typography>
-                    <Typography variant="body2">
-                      {afiliadoSeleccionado.nombre}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
-                      No. Identificación:
-                    </Typography>
-                    <Typography variant="body2">
-                      {afiliadoSeleccionado.tipoDni} {afiliadoSeleccionado.dni}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
-                      Tipo:
-                    </Typography>
-                    <Chip
-                      label={getTipoUsuario(afiliadoSeleccionado)}
-                      color={getColorTipo(afiliadoSeleccionado)}
-                      size="small"
-                      icon={esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
-                    />
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {getTipoUsuario(afiliadoSeleccionado)}
-                  </Typography>
-                  <Avatar
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      mb: 1,
-                      bgcolor: getColorTipo(afiliadoSeleccionado) === 'primary' ? '#1976d2' : '#9c27b0'
-                    }}
-                    alt="Afiliado"
-                  >
-                    {esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
-                  </Avatar>
-                </Box>
-              </Box>
-            ) : (
+            {cargandoPacientes && (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Busque y seleccione un afiliado para ver su estado de afiliación
+                  Cargando información de afiliación...
+                </Typography>
+              </Box>
+            )}
+
+            {errorPacientes && !cargandoPacientes && (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="body2" color="error">
+                  {errorPacientes}
+                </Typography>
+              </Box>
+            )}
+
+            {!cargandoPacientes && !errorPacientes && (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  No se encontró información de afiliación para su cuenta
                 </Typography>
               </Box>
             )}
           </CardContent>
         </Card>
-      </Box>
+      )}
+
+      {/* Para PACIENTE - Mostrar información del usuario logueado automáticamente */}
+      {role === 'PACIENTE' && afiliadoSeleccionado && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Mi Información de Afiliación
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                    Afiliado:
+                  </Typography>
+                  <Typography variant="body2">
+                    {afiliadoSeleccionado.nombre}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                    No. Identificación:
+                  </Typography>
+                  <Typography variant="body2">
+                    {afiliadoSeleccionado.tipoDni} {afiliadoSeleccionado.dni}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                    Tipo:
+                  </Typography>
+                  <Chip
+                    label={getTipoUsuario(afiliadoSeleccionado)}
+                    color={getColorTipo(afiliadoSeleccionado)}
+                    size="small"
+                    icon={esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
+                  />
+                </Box>
+
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                    Email:
+                  </Typography>
+                  <Typography variant="body2">
+                    {afiliadoSeleccionado.email}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+                    Fecha de afiliación:
+                  </Typography>
+                  <Typography variant="body2">
+                    {formatearFecha(afiliadoSeleccionado.fechaAfiliacion)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  {getTipoUsuario(afiliadoSeleccionado)}
+                </Typography>
+                <Avatar
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    mb: 1,
+                    bgcolor: getColorTipo(afiliadoSeleccionado) === 'primary' ? '#1976d2' : '#9c27b0'
+                  }}
+                  alt="Afiliado"
+                >
+                  {esCotizante(afiliadoSeleccionado) ? <PersonIcon /> : <FamilyRestroomIcon />}
+                </Avatar>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Card Principal - Datos de Afiliación (solo si hay afiliado seleccionado) */}
       {afiliadoSeleccionado && (
@@ -459,21 +576,24 @@ const EstadoAfiliacion = () => {
                 >
                   Enviar Certificado
                 </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleEditarAfiliados}
-                  sx={{
-                    backgroundColor: '#d32f2f',
-                    color: 'white',
-                    textTransform: 'none',
-                    fontSize: '0.9rem',
-                    py: 1,
-                    px: 3,
-                    '&:hover': { backgroundColor: '#b71c1c' }
-                  }}
-                >
-                  Editar Afiliados
-                </Button>
+                {/* Solo mostrar botón de editar si NO es PACIENTE */}
+                {role !== 'PACIENTE' && (
+                  <Button
+                    variant="contained"
+                    onClick={handleEditarAfiliados}
+                    sx={{
+                      backgroundColor: '#d32f2f',
+                      color: 'white',
+                      textTransform: 'none',
+                      fontSize: '0.9rem',
+                      py: 1,
+                      px: 3,
+                      '&:hover': { backgroundColor: '#b71c1c' }
+                    }}
+                  >
+                    Editar Afiliados
+                  </Button>
+                )}
               </Box>
             </CardContent>
           </Card>

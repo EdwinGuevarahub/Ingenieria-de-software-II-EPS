@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import {
   Box, TextField, Typography, Chip, Button, Modal, Fade,
-  Backdrop, InputAdornment, IconButton, Grid, Stack,
+  Backdrop, InputAdornment, IconButton, Stack, Snackbar,
   Dialog, DialogActions, DialogContent, DialogTitle, Checkbox,
-  MenuItem, Select, InputLabel, FormControl, Alert
+  MenuItem, Select, InputLabel, FormControl, Alert, Slide,
 } from '@mui/material';
 import {
   Save, Delete as DeleteIcon, Add as AddIcon,
@@ -20,8 +20,14 @@ import {
 } from '@/../../src/services/serviciosMedicosService';
 import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
 import { listarConsultorios } from '@/../../src/services/consultorioService';
+import SelectFilter from '../../../components/filters/SelectFilter';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
+import ImagenDefault from '@/../../src/assets/Images/placeholder.png';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 // Constantes para los días de la semana
 const DIAS_SEMANA_CONFIG = [
@@ -88,6 +94,23 @@ const MedicoFormulario = ({
   const [modalHorarioAbierto, setModalHorarioAbierto] = useState(false);
   const [isInitialScheduleModalOpen, setIsInitialScheduleModalOpen] = useState(false);
 
+  // Validación de formulario
+  const [errors, setErrors] = useState({
+    dni: false,
+    nombre: false,
+    email: false,
+    telefono: false,
+    password: false,
+  });
+
+  // Snackbar state y funciones
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const showMessage = (message, severity = 'error') => setSnackbar({ open: true, message, severity });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
   // Cargar servicios médicos del médico al iniciar
   useEffect(() => {
     const fetchServiciosDelMedico = async () => {
@@ -96,7 +119,8 @@ const MedicoFormulario = ({
           const servicios = await listaServiciosMedicosPorMedico(initialData.dni);
           setServiciosMedicos(servicios);
         } catch (error) {
-          console.error('Error cargando servicios del médico:', error);
+          //console.error('Error cargando servicios del médico:', error);
+          showMessage('Error cargando servicios del médico.', 'error');
         }
       }
     };
@@ -114,7 +138,8 @@ const MedicoFormulario = ({
         }));
         setTodosServicios(opciones);
       } catch (error) {
-        console.error('Error cargando todos los servicios médicos:', error);
+        //console.error('Error cargando todos los servicios médicos:', error);
+        showMessage('Error cargando servicios médicos.', 'error');
       }
     };
     fetchTodosServicios();
@@ -149,7 +174,7 @@ const MedicoFormulario = ({
 
         } catch (e) {
           console.error("Error cargando opciones para horario inicial:", e);
-          setFormError("Error cargando opciones para el horario.");
+          showMessage("Error cargando opciones para el horario.");
         } finally {
           setIsLoadingFormOpts(false);
         }
@@ -192,10 +217,12 @@ const MedicoFormulario = ({
     try {
       if (formData.dni) {
         await eliminarServiciosMedicosPorMedico(formData.dni, cups);
+        showMessage('Servicio eliminado correctamente.', 'success');
       }
       setServiciosMedicos(serviciosMedicos.filter(s => s.cups !== cups));
     } catch (error) {
-      console.error('Error eliminando servicio del médico:', error);
+      //console.error('Error eliminando servicio del médico:', error);
+      showMessage('Error eliminando servicio del médico.', 'error');
     }
   };
 
@@ -206,13 +233,15 @@ const MedicoFormulario = ({
     try {
       if (formData.dni) {
         await agregarServiciosMedicosPorMedico(formData.dni, nuevo.value);
+        showMessage('Servicio agregado correctamente.', 'success');
       }
       setServiciosMedicos([
         ...serviciosMedicos,
         { cups: nuevo.value, nombre: nuevo.label },
       ]);
     } catch (error) {
-      console.error('Error agregando servicio al médico:', error);
+      //console.error('Error agregando servicio al médico:', error);
+      showMessage('Error agregando servicio al médico.', 'error');
     }
 
     setModalAbierto(false);
@@ -221,6 +250,22 @@ const MedicoFormulario = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const newErrors = {
+      dni: !String(formData.dni || '').trim(),
+      nombre: !String(formData.nombre || '').trim(),
+      email: !String(formData.email || '').trim() || !formData.email.includes('@'),
+      telefono: !String(formData.telefono || '').trim(),
+      password: !initialData?.dni && !String(formData.password || '').trim(),
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(Boolean)) {
+      showMessage('Por favor completa todos los campos obligatorios correctamente.', 'warning');
+      return;
+    }
+
     if (initialData?.dni) { // Modo Edición
       if (onSubmit) {
         await onSubmit({ ...formData });
@@ -261,23 +306,23 @@ const MedicoFormulario = ({
 
   const handleSaveInitialSchedule = async () => {
     if (!initialSchedule.dias || initialSchedule.dias.length === 0 || !initialSchedule.horaInicio || !initialSchedule.horaFin || !initialSchedule.servicio || !initialSchedule.consultorio) {
-      alert('Por favor, complete todos los campos del horario, incluyendo al menos un día.');
+      showMessage('Por favor, complete todos los campos del horario, incluyendo al menos un día.', 'warning');
       return;
     }
     if (initialSchedule.horaInicio >= initialSchedule.horaFin) {
-      alert('La hora de fin debe ser posterior a la hora de inicio.');
+      showMessage('La hora de fin debe ser posterior a la hora de inicio.', 'warning');
       return;
     }
 
     const consultorioDetails = getConsultorioDetailsByNameFromForm(initialSchedule.consultorio, formConsultoriosOpts);
     if (!consultorioDetails) {
-      alert('Consultorio no válido seleccionado.');
+      showMessage('Consultorio no válido seleccionado.', 'warning');
       return;
     }
 
     const diasSeleccionadosParaBackend = initialSchedule.dias.map(displayDay => {
       const config = DIAS_SEMANA_CONFIG.find(d => d.display === displayDay);
-      return config ? config.backendValue : null; // Debería siempre encontrarlo si la lógica es correcta
+      return config ? config.backendValue : null;
     }).filter(Boolean);
 
     const schedulePayload = {
@@ -309,6 +354,7 @@ const MedicoFormulario = ({
           flexDirection: 'row',
           alignItems: 'flex-start',
           padding: 2,
+          marginBottom: 2,
           borderRadius: 2,
           gap: 2,
           flexWrap: 'wrap',
@@ -320,7 +366,7 @@ const MedicoFormulario = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
           <Box
             component="img"
-            src={formData && formData.imagen ? `data:image/png;base64,${formData.imagen}` : null}
+            src={formData && formData.imagen ? `data:image/png;base64,${formData.imagen}` : ImagenDefault}
             alt="Foto"
             sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
           />
@@ -337,15 +383,43 @@ const MedicoFormulario = ({
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 250, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField disabled={initialData.dni ? true : false} label="DNI" value={formData.dni || ''} onChange={handleChange('dni')} />
-          <TextField label="Nombre" value={formData.nombre || ''} onChange={handleChange('nombre')} />
-          <TextField label="Correo" value={formData.email || ''} onChange={handleChange('email')} />
-          <TextField label="Teléfono" value={formData.telefono || ''} onChange={handleChange('telefono')} />
+          <TextField
+            label="DNI"
+            value={formData.dni || ''}
+            type="number"
+            error={errors.dni}
+            helperText={errors.dni ? 'Este campo es obligatorio' : ''}
+            onChange={handleChange('dni')}
+          />
+          <TextField
+            label="Nombre"
+            value={formData.nombre || ''}
+            error={errors.nombre}
+            helperText={errors.nombre ? 'Este campo es obligatorio' : ''}
+            onChange={handleChange('nombre')}
+          />
+          <TextField
+            label="Correo"
+            value={formData.email || ''}
+            error={errors.email}
+            helperText={errors.email ? 'Este campo es obligatorio y  debe ser un correo válido' : ''}
+            onChange={handleChange('email')}
+          />
+          <TextField
+            label="Teléfono"
+            value={formData.telefono || ''}
+            type="number"
+            error={errors.telefono}
+            helperText={errors.telefono ? 'Este campo es obligatorio' : ''}
+            onChange={handleChange('telefono')}
+          />
           {!initialData?.dni && (
             <TextField
-              label='Password'
+              label='Contraseña'
               type={showPassword ? "text" : "password"}
               value={formData.password || ''}
+              error={errors.password}
+              helperText={errors.password ? 'Este campo es obligatorio' : ''}
               onChange={handleChange('password')}
               slotProps={{
                 input: {
@@ -536,7 +610,7 @@ const MedicoFormulario = ({
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              bgcolor: 'background.paper',
+              bgcolor: 'background.default',
               boxShadow: 24,
               p: 4,
               borderRadius: 3,
@@ -551,21 +625,12 @@ const MedicoFormulario = ({
               Agregar servicio médico
             </Typography>
 
-            <TextField
-              select
-              fullWidth
-              label="Seleccionar servicio"
+            <SelectFilter
+              placeholder="Seleccione un servicio médico"
               value={servicioSeleccionado}
-              onChange={(e) => setServicioSeleccionado(e.target.value)}
-              variant="outlined"
-            >
-              {todosServicios.map((servicio) => (
-                <MenuItem key={servicio.value} value={servicio.value}>
-                  {servicio.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
+              onChange={setServicioSeleccionado}
+              options={todosServicios}
+            />
 
             <Button
               variant="contained"
@@ -588,6 +653,12 @@ const MedicoFormulario = ({
           dniMedico={formData?.dni}
         />
       )}
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} TransitionComponent={SlideTransition} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
     </form>
   );

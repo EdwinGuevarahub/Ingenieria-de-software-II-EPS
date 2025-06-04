@@ -44,7 +44,7 @@ export const IpsContextProvider = ({ children }) => {
     fetchIps();
   }, [willRedirect, subEmail]);
 
-  if (isAuthLoading) {
+  if (isAuthLoading || !ips || Object.keys(ips).length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Typography variant="h6">Cargando...</Typography>
@@ -60,8 +60,8 @@ export const IpsContextProvider = ({ children }) => {
     )
 
   return (
-    <IpsContext.Provider value={{ ips, isAuthLoading }}>
-      {!isAuthLoading && children}
+    <IpsContext.Provider value={{ ips }}>
+      {children}
     </IpsContext.Provider>
   );
 };

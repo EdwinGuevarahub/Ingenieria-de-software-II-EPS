@@ -7,7 +7,7 @@ const HeaderG1 = () => {
       {/* Barra azul superior */}
       <Box
         sx={{
-          bgcolor: '#1E88E5', // 
+          bgcolor: '#1E88E5', //
           color: 'white',
           display: 'flex',
           justifyContent: 'space-between',
