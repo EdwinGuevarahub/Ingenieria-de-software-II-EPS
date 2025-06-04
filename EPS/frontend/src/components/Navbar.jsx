@@ -83,7 +83,7 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="#">Consultar Agenda</Button>
                 <Button color="inherit" component={Link} to="/agendar-cita">Solicitar Cita</Button>
                 <Button color="inherit" component={Link} to="/solicitar-examen-medico">Solicitar Examen Médico</Button>
-                <Button color="inherit" component={Link} to="/solicitar-medicamento">Solicitar Medicamentos</Button>
+                <Button color="inherit" component={Link} to="/solicitar-medicamento-admin">Solicitar Medicamentos</Button>
               </>
             )}
           </Box>

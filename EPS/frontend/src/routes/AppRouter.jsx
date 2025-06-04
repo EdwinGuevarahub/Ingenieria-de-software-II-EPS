@@ -14,6 +14,7 @@ import IPSLista from '../pages/EPS/IPS/IPSLista';
 import MedicoLista from '../pages/IPS/Medico/MedicoLista';
 import ConsultorioLista from '../pages/IPS/Consultorio/ConsultorioLista';
 import RegistrarResultado from "../pages/IPS/RegistrarResultado";
+import SolicitarExamenMedicoAdmin from '../pages/EPS/SolicitarExamenMedicoAdmin';
 
 const AppRouter = () => (
   <Routes>
@@ -38,6 +39,7 @@ const AppRouter = () => (
     <Route path="/agendar-cita-admin" element={<MainLayout><AgendarCitaAdmin /></MainLayout>} />
     <Route path="/solicitar-examen-medico" element={<MainLayout><SolicitarExamenMedico /></MainLayout>} />  
     <Route path="/solicitar-medicamento" element={<MainLayout><SolicitarMedicamento /></MainLayout>} />
+    <Route path="/solicitar-examen-medico-admin" element={<SolicitarExamenMedicoAdmin />} />
 
 
   </Routes>
