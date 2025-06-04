@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +23,16 @@ public class PacienteController {
     @GetMapping
     public List<Paciente> getAllUsers() {
         return pacienteRepository.findAll();
+    }
+
+    @GetMapping("/pacientes/{dni}")
+    public ResponseEntity<?> getPacienteByDni(@PathVariable Long dni) {
+        Optional<Paciente> paciente = pacienteRepository.findById(dni);
+        if (paciente.isPresent()) {
+            return ResponseEntity.ok(paciente.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PostMapping

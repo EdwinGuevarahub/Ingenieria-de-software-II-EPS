@@ -16,6 +16,7 @@ const SolicitarExamenMedico = () => {
   // ──────────────────────────
   const [ordenMedica, setOrdenMedica] = useState('');
   const [ordenValida, setOrdenValida] = useState(false);
+  const [mensajeOrdenError, setMensajeOrdenError] = useState('');
 
   // Esta lista la llenaremos con los CUPS que nos arroja
   // GET /api/agenda/orden/servicios?idOrden=...
@@ -32,50 +33,42 @@ const SolicitarExamenMedico = () => {
   const [fecha, setFecha] = useState(null);
 
   // Lista dinámica de horarios+especialista para (cupsSeleccionado, ipsSeleccionada, fecha)
-  // Cada elem: { label: '08:00 – Dr. Pérez', value: { hora: '08:00', dniMedico: 100123..., idConsultorio: 55 } }
   const [horariosDisponibles, setHorariosDisponibles] = useState([]);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
-
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [mensajeHorariosVacio, setMensajeHorariosVacio] = useState('');
 
-  // ──────────────────────────
   // FUNCIÓN: validarOrden → paso 1
-  // ──────────────────────────
   const validarOrden = () => {
-    if (ordenMedica.trim() === '') {
-      alert('Ingrese número de orden médica');
-      return;
-    }
+  if (ordenMedica.trim() === '') {
+    setMensajeOrdenError('Ingrese número de orden médica');
+    return;
+  }
 
-    const token = localStorage.getItem('authToken');
-    axios
-      .get(
-        `http://localhost:8080/api/agenda/orden/servicios?idOrden=${ordenMedica}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then(res => {
-        const lista = res.data; // ej. [{ cups: "903810", nombre: "Hemograma completo" }, ...]
-        if (!lista || lista.length === 0) {
-          alert('No se encontraron servicios válidos para esta orden.');
-          return;
-        }
-        setServicios(lista); // ← Guardamos objetos { cups, nombre }
-        setOrdenValida(true);
-      })
-
-      .catch(err => {
-        console.error('Error al validar la orden médica:', err);
-        alert('La orden médica es inválida o no corresponde a este paciente.');
-      });
+  const token = localStorage.getItem('authToken');
+  axios
+    .get(`http://localhost:8080/api/agenda/orden/servicios?idOrden=${ordenMedica}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then(res => {
+      const lista = res.data;
+      if (!lista || lista.length === 0) {
+        setMensajeOrdenError('No se encontraron servicios válidos para esta orden.');
+        return;
+      }
+      setServicios(lista);
+      setOrdenValida(true);
+      setMensajeOrdenError(''); // Limpia el mensaje si todo va bien
+    })
+    .catch(err => {
+      console.error('Error al validar la orden médica:', err);
+      setMensajeOrdenError('La orden médica es inválida o no corresponde a este paciente.');
+    });
   };
 
-  // ──────────────────────────
   // useEffect → cargar IPS cuando cupsSeleccionado cambie
-  // ──────────────────────────
   useEffect(() => {
     if (!cupsSeleccionado) {
       setIpsDisponibles([]);
@@ -123,9 +116,11 @@ const SolicitarExamenMedico = () => {
         )
         .then(res => {
           if (!res.data.resultados || res.data.resultados.length === 0) {
-            alert('No hay horarios disponibles para la fecha seleccionada. Intente con otra fecha.');
             setHorariosDisponibles([]);
+            setMensajeHorariosVacio('No hay horarios disponibles para la fecha seleccionada.');
             return;
+          } else {
+            setMensajeHorariosVacio('');
           }
 
           const slots = res.data.resultados.map(item => ({
@@ -215,9 +210,18 @@ const SolicitarExamenMedico = () => {
                 fullWidth
                 label="Ingresa No. Orden Médica"
                 value={ordenMedica}
-                onChange={e => setOrdenMedica(e.target.value)}
+                onChange={e => {
+                  setOrdenMedica(e.target.value);
+                  setMensajeOrdenError('');
+                }}
                 margin="normal"
               />
+              {mensajeOrdenError && (
+                <Typography variant="body2" color="error" sx={{ mt: 1, mb: 1 }}>
+                  {mensajeOrdenError}
+                </Typography>
+              )}
+
               <Button variant="contained" fullWidth onClick={validarOrden}>
                 Validar Orden Médica
               </Button>
@@ -293,9 +297,7 @@ const SolicitarExamenMedico = () => {
                 <Select
                   value={slotSeleccionado ? slotSeleccionado.hora + '_' + slotSeleccionado.dniMedico : ''}
                   onChange={e => {
-                    // guardo el objeto completo: { hora, dniMedico, idConsultorio }
                     const [hora, dni] = e.target.value.split('_');
-                    // Busco en horariosDisponibles el objeto que coincida
                     const encontrado = horariosDisponibles.find(
                       s => s.value.hora === hora && String(s.value.dniMedico) === dni
                     );
@@ -312,7 +314,14 @@ const SolicitarExamenMedico = () => {
                     </MenuItem>
                   ))}
                 </Select>
+
+                {mensajeHorariosVacio && (
+                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                    {mensajeHorariosVacio}
+                  </Typography>
+                )}
               </FormControl>
+
 
               {/* ▸ Botón AGENDAR */}
               <Button

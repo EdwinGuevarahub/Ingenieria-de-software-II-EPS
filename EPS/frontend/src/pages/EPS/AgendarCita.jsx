@@ -26,6 +26,8 @@ const AgendarCita = () => {
   const [servicios, setServicios] = useState([]);
   const [ipsDisponibles, setIpsDisponibles] = useState([]);
   const [horarios, setHorarios] = useState([]);
+  const [mensajeHorariosVacio, setMensajeHorariosVacio] = useState('');
+
 
   useEffect(() => {
     axios.get('http://localhost:8080/api/servicioMedico?qSize=20&qPage=0')
@@ -62,12 +64,13 @@ const AgendarCita = () => {
             idConsultorio: item.idConsultorio
           }));
 
-        // ⚠️ VALIDACIÓN DE LISTA VACÍA
-        if (!horariosDisponibles || horariosDisponibles.length === 0) {
-          alert('No hay horarios disponibles para la fecha seleccionada. Intente con otra.');
-          setHorarios([]);
-          return;
+        //VALIDACIÓN DE LISTA VACÍA
+        if (horariosDisponibles.length === 0) {
+          setMensajeHorariosVacio('No hay horarios disponibles para la fecha seleccionada.');
+        } else {
+          setMensajeHorariosVacio('');
         }
+
 
         setHorarios(horariosDisponibles);
       })
@@ -194,7 +197,7 @@ const AgendarCita = () => {
               }}
             />
           </LocalizationProvider>
-
+          
           <FormControl fullWidth margin="normal">
             <InputLabel>Hora y especialista</InputLabel>
             <Select
@@ -207,6 +210,12 @@ const AgendarCita = () => {
                 <MenuItem key={index} value={h.value}>{h.label}</MenuItem>
               ))}
             </Select>
+
+            {mensajeHorariosVacio && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {mensajeHorariosVacio}
+              </Typography>
+            )}
           </FormControl>
 
           {/* Botón Agendar */}
