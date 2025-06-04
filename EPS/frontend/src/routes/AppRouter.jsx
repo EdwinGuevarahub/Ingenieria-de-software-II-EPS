@@ -24,6 +24,7 @@ import EstadoAfiliacion from '../pages/EPS/EstadoAfiliacion';
 import EstadoCuenta from '../pages/EPS/EstadoCuenta';
 import DetalleEstadoCuenta from '../pages/EPS/DetalleEstadoCuenta';
 import EdicionAfiliado from '../pages/EPS/EdicionAfiliado';
+import SolicitarExamenMedicoAdmin from '../pages/EPS/SolicitarExamenMedicoAdmin';
 
 const AppRouter = () => (
   <Routes>
@@ -69,6 +70,7 @@ const AppRouter = () => (
     <Route path="/agendar-cita-admin" element={<MainLayout><AgendarCitaAdmin /></MainLayout>} />
     <Route path="/solicitar-examen-medico" element={<MainLayout><SolicitarExamenMedico /></MainLayout>} />  
     <Route path="/solicitar-medicamento" element={<MainLayout><SolicitarMedicamento /></MainLayout>} />
+    <Route path="/solicitar-examen-medico-admin" element={<SolicitarExamenMedicoAdmin />} />
 
 
   </Routes>
