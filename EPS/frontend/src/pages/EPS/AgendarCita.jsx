@@ -5,16 +5,18 @@ import {
   Button, Paper, Snackbar, Alert
 } from '@mui/material';
 
-// Importamos GlobalStyles para aplicar estilos globales personalizados
 import { GlobalStyles } from '@mui/styled-engine';
-
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-// Reemplaza tu componente AgendarCita por este
+// 👇 Importa el contexto de autenticación
+import { useAuthContext } from '../../contexts/AuthContext';
+
 const AgendarCita = () => {
+  const { role } = useAuthContext(); //  Obtiene el rol del usuario
+
   const [servicio, setServicio] = useState('');
   const [ips, setIps] = useState('');
   const [fecha, setFecha] = useState(null);
@@ -124,7 +126,17 @@ const AgendarCita = () => {
           backgroundColor: 'white !important',
         }
       }} />
+
       <Container maxWidth="sm">
+        {/*  Contenido exclusivo para el rol PACIENTE */}
+        {role === 'PACIENTE' && (
+          <Box sx={{ mb: 3, textAlign: 'center' }}>
+            <Typography variant="subtitle1" color="primary">
+              Bienvenido paciente, aquí puedes agendar tu cita médica.
+            </Typography>
+          </Box>
+        )}
+
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff' }}>
           <Typography variant="h5" align="center" gutterBottom>
             Solicitar Cita Médica
@@ -171,10 +183,18 @@ const AgendarCita = () => {
               format="DD-MM-YYYY"
               minDate={dayjs()}
               sx={{ mt: 2, width: '100%' }}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    '& .MuiPaper-root': { bgcolor: 'white' },
+                    '& .MuiCalendarOrClockPicker-root': { bgcolor: 'white' },
+                    '& .MuiCalendarPicker-root': { bgcolor: 'white' },
+                  },
+                },
+              }}
             />
           </LocalizationProvider>
 
-          {/* Horario */}
           <FormControl fullWidth margin="normal">
             <InputLabel>Hora y especialista</InputLabel>
             <Select

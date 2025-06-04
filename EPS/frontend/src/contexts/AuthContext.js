@@ -27,6 +27,9 @@ export const AuthContextProvider = ({ children }) => {
       localStorage.removeItem("authToken");
       setRole("");
       setSubEmail("");
+     // setRole("PACIENTE");
+     // setSubEmail("paciente@fake.com");
+      //setAuthToken_("dev-token");
     }
   }, [authToken]);
 

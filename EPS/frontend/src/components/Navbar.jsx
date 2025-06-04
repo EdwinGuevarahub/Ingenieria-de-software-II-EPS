@@ -20,13 +20,17 @@ const Navbar = () => {
           />
 
           <Box display="flex" alignItems="center" gap={2}>
-            <Button
-              color="inherit"
-              component={Link}
-              to="/"
-            >
-                Inicio
-            </Button>
+            {logged && role === 'ADM_EPS' && (
+              <Button color="inherit" component={Link} to="/HomeEPS">Inicio</Button>
+            )}
+
+            {logged && role === 'ADM_IPS' && (
+              <Button color="inherit" component={Link} to="/HomeIPS">Inicio</Button>
+            )}
+
+            {logged && role === 'PACIENTE' && (
+              <Button color="inherit" component={Link} to="/">Inicio</Button>
+            )}
 
             {logged ? (
               <>
@@ -51,7 +55,7 @@ const Navbar = () => {
               </>
             )}
 
-            {/* Con roles */}
+            {/* Rol EPS */}
             {logged && role === 'ADM_EPS' && (
               <>
                 <Button color="inherit" component={Link} to="/gestion-pagos">Gestión de pagos</Button>
@@ -60,9 +64,11 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/estado-afiliado">Consultar Estado del Afiliado</Button>
                 <Button color="inherit" component={Link} to="/estado-cuenta">Consultar Estado de Cuenta</Button>
                 <Button color="inherit" component={Link} to="/historia-clinica">Ver Historia Clínica</Button>
+                <Button color="inherit" component={Link} to="/agendar-cita-admin">Solicitar Cita</Button>
               </>
             )}
 
+            {/* Rol IPS */}
             {logged && role === 'ADM_IPS' && (
               <>
                 <Button color="inherit" component={Link} to="/medicos">Gestionar Médicos</Button>
@@ -76,7 +82,7 @@ const Navbar = () => {
                 <Button color="inherit" component={Link} to="/medico/agenda">Consultar Agenda</Button>
               </>
             )}
-
+            {/* Rol PACIENTE */}
             {logged && role === 'PACIENTE' && (
               <>
                 <Button color="inherit" component={Link} to="/paciente/agenda">Consultar Agenda</Button>
