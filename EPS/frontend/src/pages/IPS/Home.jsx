@@ -89,7 +89,7 @@ const Home = () => {
       <Box sx={{ bgcolor: '#222', color: 'white', py: 4 }}>
         <Container>
           <Typography variant="body2" align="center">
-            © 2024 ApexEPS. Todos los derechos reservados.
+            © 2025 ApexEPS. Todos los derechos reservados.
           </Typography>
         </Container>
       </Box>

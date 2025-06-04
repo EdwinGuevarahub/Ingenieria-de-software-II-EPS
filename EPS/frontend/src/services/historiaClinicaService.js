@@ -1,13 +1,13 @@
-import axios, { isAxiosError } from 'axios';
+import { AxiosInstance } from '../services/axios';
+import { isAxiosError } from 'axios';
 
 // Obtener historias clínicas por paciente DNI
 export async function obtenerHistoriasClinicasPorPaciente(pacienteDni) {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get(`http://localhost:8080/api/historia-clinica?pacienteId=${pacienteDni}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const response = await AxiosInstance.get('historia-clinica', {
+      params: {
+        pacienteId: pacienteDni
+      }
     });
 
     return {
@@ -56,7 +56,7 @@ export async function obtenerHistoriasClinicasPorPaciente(pacienteDni) {
 
       return {
         success: false,
-        message: err.message,
+        message: err.response?.data?.message || err.message,
         status: err.response?.status || 400,
         data: [],
       };

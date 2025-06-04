@@ -301,4 +301,20 @@ public class MedicoService {
         return medico.getDni();
     }
 
+    @Transactional
+    public Medico actualizarActivo(Long dniMedico) {
+        Medico medico = medicoRepository
+                            .findById(dniMedico)
+                            .orElse(null);
+
+        if (medico == null)
+            throw new IllegalArgumentException("El médico no existe.");
+
+        medico.setActivo(!Boolean.TRUE.equals(medico.getActivo()));
+        try {
+            return medicoRepository.save(medico);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el estado de la IPS: " + e.getMessage(), e);
+        }
+    }
 }

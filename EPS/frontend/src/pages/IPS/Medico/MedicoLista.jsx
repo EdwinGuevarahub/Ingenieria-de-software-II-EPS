@@ -3,10 +3,15 @@ import {
   Typography,
   Box,
   Pagination,
-  Chip,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
   Fab,
   TextField,
   Button,
+  Slide,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { listarMedicos, detalleMedico, crearMedico, actualizarMedico } from '@/../../src/services/medicosService';
@@ -14,11 +19,16 @@ import { listaServiciosMedicosPorMedico, listaServiciosMedicosPorIPS } from '@/.
 import { agregarServiciosMedicosPorMedico } from '@/../../src/services/serviciosMedicosService';
 import { obtenerConsultorio } from '@/../../src/services/consultorioService';
 import { useIpsContext } from '@/../../src/contexts/UserIPSContext';
+import MedicoDetalleExpandido from './MedicoDetalleExpandido';
 import MedicoFormulario from './MedicoFormulario';
 import Horario from '@/../../src/pages/IPS/Horario/Horario';
 import ExpandableTable from '../../../components/list/ExpandableTable';
 import SearchFilter from '../../../components/filters/SearchFilter';
 import SelectFilter from '../../../components/filters/SelectFilter';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 const MedicoLista = () => {
 
@@ -42,9 +52,18 @@ const MedicoLista = () => {
   const [diaFiltro, setDiaFiltro] = useState('');
   const [horaInicioFiltro, setHoraInicioFiltro] = useState('');
   const [horaFinalFiltro, setHoraFinalFiltro] = useState('');
+  const [estadoFiltro, setEstadoFiltro] = useState(true);
 
   // Para evitar que los filtros se borren al cambiar la página
   const [filtrosAplicados, setFiltrosAplicados] = useState({});
+
+  // Snackbar state y funciones
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const showMessage = (message, severity = 'error') => setSnackbar({ open: true, message, severity });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   const diasSemana = [
     { label: 'Lunes', value: 'MONDAY' },
@@ -90,12 +109,13 @@ const MedicoLista = () => {
       };
 
       if (editandoMedico && editandoMedico.dni) {
-        // 🛠️ Modo edición
+        //  Modo edición
         await actualizarMedico(medicoPayload);
+        showMessage('Médico actualizado correctamente.', 'success');
       } else {
-        // 🛠️ Modo creación
+        //  Modo creación
         if (!dataMedico.initialSchedule) {
-          console.error('Error: Falta información del horario inicial para crear el médico.');
+          showMessage('Falta información del horario inicial para crear el médico.', 'error');
           return;
         }
 
@@ -123,39 +143,45 @@ const MedicoLista = () => {
         const respuesta = await crearMedico(datosEnviar);
 
         if (!respuesta || respuesta.error) {
-          console.error('Error creando el médico. Respuesta inválida:', respuesta);
+          //console.error('Error creando el médico. Respuesta inválida:', respuesta);
+          showMessage('Error creando el médico. Por favor, intente nuevamente.', 'error');
           return;
         }
 
+        showMessage('Médico creado correctamente.', 'success');
+
         // Agregar servicios médicos al médico recién creado
         try {
-          console.log('Agregando servicios médicos al médico:', dataMedico.dni, idConsultorio);
           if (dataMedico.dni && idConsultorio) {
             const consultorio = await obtenerConsultorio(ips.id, idConsultorio);
 
             if (!consultorio) {
-              console.error('Consultorio no encontrado');
+              showMessage('Consultorio no encontrado.', 'error');
               return;
             }
 
             if (!consultorio.cupsServicioMedico || consultorio.cupsServicioMedico.length === 0) {
-              console.error('El consultorio no tiene servicios médicos asociados.');
+              showMessage('El consultorio no tiene servicios médicos asociados.', 'warning');
               return;
             }
 
             await agregarServiciosMedicosPorMedico(dataMedico.dni, consultorio.cupsServicioMedico);
+            showMessage('Servicios médicos agregados al médico correctamente.', 'success');
           } else {
-            console.error('Faltan datos requeridos: DNI o ID del consultorio');
+            //console.error('Faltan datos requeridos: DNI o ID del consultorio');
+            showMessage('Faltan datos requeridos: DNI o ID del consultorio.', 'error');
           }
         } catch (error) {
-          console.error('Error agregando servicio al médico:', error);
+          showMessage('Error agregando servicio al médico.', 'error');
+          //  console.error('Error agregando servicio al médico:', error);
         }
       }
 
       await fetchMedicos(pagina, filtrosAplicados);
       handleOcultarFormulario();
     } catch (e) {
-      console.error('Error guardando médico:', e);
+      showMessage('Error guardando médico. Por favor, intente nuevamente.', 'error');
+      //console.error('Error guardando médico:', e);
     }
   };
 
@@ -165,17 +191,17 @@ const MedicoLista = () => {
       try {
         const filtros = {
           qPage: paginaActual - 1,
-          qSize: 2,
+          qSize: 10,
           idIps: ips.id,
           dniNombreLike: nombreFiltro || undefined,
           ...filtrosExtras,
-          estaActivo: true,
         };
         const { totalPaginas, medicos } = await listarMedicos(filtros);
         setListaMedicos(medicos);
         setTotalPaginas(totalPaginas);
       } catch (error) {
-        console.error('Error cargando los médicos:', error);
+        showMessage('Error cargando los médicos.', 'error');
+        //console.error('Error cargando los médicos:', error);
       }
     },
     [nombreFiltro, ips]
@@ -191,13 +217,18 @@ const MedicoLista = () => {
         }));
         setServiciosUnicos(opciones);
       } catch (error) {
-        console.error('Error cargando los servicios médicos:', error);
+        showMessage('Error cargando los servicios médicos.', 'error');
+        //console.error('Error cargando los servicios médicos:', error);
       }
     };
 
     fetchServiciosMedicos();
   }, [ips]);
 
+  // Obtener el cambio del estado
+  const handleChange = (event) => {
+    setEstadoFiltro(event.target.checked);
+  };
 
   useEffect(() => {
     fetchMedicos(pagina, filtrosAplicados);
@@ -205,6 +236,11 @@ const MedicoLista = () => {
 
   return (
     <Box sx={{ display: 'flex', gap: 4, }}>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} TransitionComponent={SlideTransition} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       {/* Panel de filtros */}
       <Box
         sx={{
@@ -262,6 +298,19 @@ const MedicoLista = () => {
           </Box>
         </Box>
 
+        <Box>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={estadoFiltro}
+                  onChange={handleChange}
+                />}
+              label="Mostrar médicos activos"
+            />
+          </FormGroup>
+        </Box>
+
         <Button
           variant="red"
           onClick={() => {
@@ -270,6 +319,7 @@ const MedicoLista = () => {
               diaSemanaIngles: diaFiltro || undefined,
               horaDeInicio: horaInicioFiltro || undefined,
               horaDeFin: horaFinalFiltro || undefined,
+              estaActivo: estadoFiltro,
             };
             setFiltrosAplicados(nuevosFiltros);
             setPagina(pagina);
@@ -324,63 +374,12 @@ const MedicoLista = () => {
               );
             else
               return (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'flex-start',
-                    padding: 2,
-                    borderRadius: 2,
-                    gap: 2,
-                    flexWrap: 'wrap',
-                    width: '100%',
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={`data:image/png;base64,${detalle[0].imagen}`}
-                    alt="Médico"
-                    sx={{ width: 150, height: 125, borderRadius: 2, objectFit: 'cover' }}
-                  />
-                  <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="h6">{detalle[0].nombre}</Typography>
-                    <Typography variant="body2">ID: {detalle[0].dni}</Typography>
-                    <Typography variant="body2">Correo: {detalle[0].email}</Typography>
-                    <Typography variant="body2">Teléfono: {detalle[0].telefono}</Typography>
-                    <Typography variant="body2">
-                      Estado: {detalle[0].activo ? 'Activo' : 'Inactivo'}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <button style={{ background: '#e53935', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 4 }}>Desvincular</button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => handleMostrarFormulario(detalle[0])}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={() => {
-                        setEditandoMedico(detalle[0]);
-                        setModalHorarioAbierto(true);
-                      }}
-                    >
-                      Horario
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {Array.isArray(detalle[1]) && detalle[1].length > 0 ? (
-                      detalle[1].map((servicio, idx) => (
-                        <Chip key={idx} label={servicio.nombre} color="primary" variant="outlined" />
-                      ))
-                    ) : (
-                      <Chip label="Sin servicios" color="default" variant="outlined" />
-                    )}
-                  </Box>
-                </Box>
+                <MedicoDetalleExpandido
+                  detalle={detalle}
+                  onEditar={handleMostrarFormulario}
+                  setEditandoMedico={setEditandoMedico}
+                  setModalHorarioAbierto={setModalHorarioAbierto}
+                />
               )
           }}
         />

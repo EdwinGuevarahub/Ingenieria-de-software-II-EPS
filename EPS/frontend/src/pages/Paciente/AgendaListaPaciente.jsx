@@ -14,6 +14,7 @@ import CanceladoCita from '@/../../src/pages/Paciente/ComponentesCita/CanceladoC
 import ExpandableTable from '../../components/list/ExpandableTable';
 import SearchFilter from '../../components/filters/SearchFilter';
 import SelectFilter from '../../components/filters/SelectFilter';
+import ConfirmarPago from '../EPS/ConfirmacionPago';
 
 import { DatePicker } from '@mui/x-date-pickers'
 
@@ -21,6 +22,7 @@ const AgendaListaPaciente = () => {
 
     // Estados
     const [modalCanceladoCitaAbierto, setModalCanceladoCitaAbierto] = useState(false);
+    const [modalPagoCitaAbierto, setModalPagoCitaAbierto] = useState(false);
 
     // Sobre la tabla
     const [listaAgendas, setListaAgendas] = useState([]);
@@ -77,6 +79,11 @@ const AgendaListaPaciente = () => {
     useEffect(() => {
         fetchServiciosMedicos();
     }, []);
+
+    const handleConfirmarPagoClose = () => {
+        setModalPagoCitaAbierto(false);
+        fetchAgendas(pagina, filtrosAplicados);
+    }
 
     return (
         <Box sx={{ display: 'flex', gap: 4 }}>
@@ -244,19 +251,19 @@ const AgendaListaPaciente = () => {
                                     Modificar Cita
                                 </Button>
                                 <Button
+                                    disabled={detalle[0].fechaPago !== null}
                                     style={{
-                                        background: '#1e88e5', 
+                                        background: detalle[0].fechaPago !== null ? 'green' : '#1e88e5',
                                         color: 'white',
                                         border: 'none',
                                         padding: '8px 12px',
                                         borderRadius: 4
                                     }}
                                     onClick={() => {
-                                        // TODO: Pago de cita en AgendaListaPaciente.
-                                        console.log("Le puchaste al de pagar.")
+                                        setModalPagoCitaAbierto(true);
                                     }}
                                 >
-                                    Pagar Cita
+                                    {detalle[0].fechaPago === null ? 'Pagar' : 'Pagada'}
                                 </Button>
                             </Box>
 
@@ -276,6 +283,14 @@ const AgendaListaPaciente = () => {
                                     fetchAgendas(pagina, filtrosAplicados);
                                 }}
                                 idAgenda={detalle[0].id}
+                            />
+
+                            <ConfirmarPago
+                                open={modalPagoCitaAbierto}
+                                onClose={handleConfirmarPagoClose}
+                                idAgenda={detalle[0].id}
+                                idPaciente={detalle[0].paciente.dni}
+                                montoPago={detalle[0].trabaja.consultorio.servicioMedico.tarifa}
                             />
                         </Box>
                     )}

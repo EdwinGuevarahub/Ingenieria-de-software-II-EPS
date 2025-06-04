@@ -39,6 +39,7 @@ const AppRouter = () => (
     <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout>} /> 
     <Route path="/medicos" element={
       <IpsContextProvider>
+        
         <MainLayout><MedicoLista /></MainLayout>
       </IpsContextProvider>
     } />
