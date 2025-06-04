@@ -80,6 +80,11 @@ const AgendaListaPaciente = () => {
         fetchServiciosMedicos();
     }, []);
 
+    const handleConfirmarPagoClose = () => {
+        setModalPagoCitaAbierto(false);
+        fetchAgendas(pagina, filtrosAplicados);
+    }
+
     return (
         <Box sx={{ display: 'flex', gap: 4 }}>
             {/* Panel de filtros */}
@@ -246,8 +251,9 @@ const AgendaListaPaciente = () => {
                                     Modificar Cita
                                 </Button>
                                 <Button
+                                    disabled={detalle[0].fechaPago !== null}
                                     style={{
-                                        background: '#1e88e5', 
+                                        background: detalle[0].fechaPago !== null ? 'green' : '#1e88e5',
                                         color: 'white',
                                         border: 'none',
                                         padding: '8px 12px',
@@ -257,7 +263,7 @@ const AgendaListaPaciente = () => {
                                         setModalPagoCitaAbierto(true);
                                     }}
                                 >
-                                    Pagar Cita
+                                    {detalle[0].fechaPago === null ? 'Pagar' : 'Pagada'}
                                 </Button>
                             </Box>
 
@@ -281,7 +287,7 @@ const AgendaListaPaciente = () => {
 
                             <ConfirmarPago
                                 open={modalPagoCitaAbierto}
-                                onClose={() => { setModalPagoCitaAbierto(false); }}
+                                onClose={handleConfirmarPagoClose}
                                 idAgenda={detalle[0].id}
                                 idPaciente={detalle[0].paciente.dni}
                                 montoPago={detalle[0].trabaja.consultorio.servicioMedico.tarifa}
