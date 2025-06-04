@@ -4,12 +4,13 @@ import java.time.Instant;
 
 /**
  * DTO para registrar un pago en la agenda.
- * Contiene el id de la agenda y la fecha de pago.
+ * Contiene el id de la agenda, la fecha de pago y el estado.
  * @author DCanas
  */
 public class PagoAgendaDTO {
     private Long agendaId;
     private Instant fechaPago;
+    private String estado; // Nuevo campo para el estado de la agenda
 
     public Long getAgendaId() {
         return agendaId;
@@ -25,5 +26,13 @@ public class PagoAgendaDTO {
 
     public void setFechaPago(Instant fechaPago) {
         this.fechaPago = fechaPago;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }
