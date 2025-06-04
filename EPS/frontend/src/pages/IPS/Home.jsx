@@ -2,22 +2,25 @@ import {
   Typography, Box, Container, Grid, Card, CardContent, CardMedia
 } from '@mui/material';
 import SpaIcon from '@mui/icons-material/Spa';
+import Citas from '../../assets/Images/Cita.jpg';
+import Examen from '../../assets/Images/Examen.jpg';
+import Laboratorio from '../../assets/Images/Laboratorio.jpg';
 import { useIpsContext } from '../../contexts/UserIPSContext';
 
 const services = [
   {
     title: 'Citas médicas',
-    image: '/images/citas-medicas.jpg',
+    image: Citas,
     description: 'Agenda y gestiona tus consultas con médicos generales y especialistas de forma rápida y segura.',
   },
   {
     title: 'Exámenes',
-    image: '/images/examenes.jpg',
+    image: Examen,
     description: 'Solicita y consulta tus exámenes diagnósticos con cobertura en nuestra red de prestadores.',
   },
   {
     title: 'Laboratorios',
-    image: '/images/laboratorios.jpg',
+    image: Laboratorio,
     description: 'Accede a servicios de laboratorio clínico para apoyar el diagnóstico y seguimiento de tu salud.',
   },
 ];
