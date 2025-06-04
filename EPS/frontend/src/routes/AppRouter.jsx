@@ -38,6 +38,12 @@ const AppRouter = () => (
 
     {/*Rutas para la parte de IPS*/}
     <Route path="/registrar-resultados" element={<MainLayout> <RegistrarResultado /></MainLayout>} /> 
+    <Route path="/HomeIPS" element={
+      <IpsContextProvider>
+        
+        <MainLayout><HomeAdmIPS /></MainLayout>
+      </IpsContextProvider>
+    } />
     <Route path="/medicos" element={
       <IpsContextProvider>
         
